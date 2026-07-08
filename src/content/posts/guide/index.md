@@ -6,7 +6,7 @@ description: "如何使用 Firefly 博客模板。"
 image: "./cover.avif"
 tags: ["Firefly", "博客", "Markdown", "指南"]
 category: 博客指南
-draft: false
+draft: true
 ---
 
 
@@ -23,7 +23,7 @@ description: 这是我新 Astro 博客的第一篇文章。
 image: ./cover.jpg
 tags: [前端, 开发]
 category: 前端开发
-draft: false
+draft: true
 ---
 ```
 
