@@ -49,6 +49,24 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			"assets/images/DesktopWallpaper/d4.avif",
 			"assets/images/DesktopWallpaper/d5.avif",
 			"assets/images/DesktopWallpaper/d6.avif",
+			"assets/images/DesktopWallpaper/d7.avif",
+			"assets/images/DesktopWallpaper/d8.avif",
+			"assets/images/DesktopWallpaper/d9.avif",
+			"assets/images/DesktopWallpaper/d10.avif",
+			"assets/images/DesktopWallpaper/d11.avif",
+			"assets/images/DesktopWallpaper/d12.avif",
+			"assets/images/DesktopWallpaper/d13.avif",
+			"assets/images/DesktopWallpaper/d14.avif",
+			"assets/images/DesktopWallpaper/d15.avif",
+			"assets/images/DesktopWallpaper/d16.avif",
+			"assets/images/DesktopWallpaper/d17.avif",
+			"assets/images/DesktopWallpaper/d18.avif",
+			"assets/images/DesktopWallpaper/d19.avif",
+			"assets/images/DesktopWallpaper/d20.avif",
+			"assets/images/DesktopWallpaper/d21.avif",
+			"assets/images/DesktopWallpaper/d22.avif",
+			"assets/images/DesktopWallpaper/d23.avif",
+			"assets/images/DesktopWallpaper/d24.avif",
 		],
 		// 移动背景图片（支持单张或多张随机）
 		// mobile: "assets/images/MobileWallpaper/m1.avif",
@@ -59,6 +77,18 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			"assets/images/MobileWallpaper/m4.avif",
 			"assets/images/MobileWallpaper/m5.avif",
 			"assets/images/MobileWallpaper/m6.avif",
+			"assets/images/MobileWallpaper/m7.avif",
+			"assets/images/MobileWallpaper/m8.avif",
+			"assets/images/MobileWallpaper/m9.avif",
+			"assets/images/MobileWallpaper/m10.avif",
+			"assets/images/MobileWallpaper/m11.avif",
+			"assets/images/MobileWallpaper/m12.avif",
+			"assets/images/MobileWallpaper/m13.avif",
+			"assets/images/MobileWallpaper/m14.avif",
+			"assets/images/MobileWallpaper/m15.avif",
+			"assets/images/MobileWallpaper/m16.avif",
+			"assets/images/MobileWallpaper/m17.avif",
+			"assets/images/MobileWallpaper/m18.avif",
 		],
 		// 背景视频播放地址
 		// 支持单个视频路径（字符串）或多个视频循环（数组）
@@ -81,17 +111,12 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			// 是否允许用户通过控制面板切换横幅标题显示
 			switchable: true,
 			// 主页横幅主标题
-			title: "Lovely firefly!",
+			title: "Welcome to DcElysion",
 			// 主页横幅主标题字体大小
 			titleSize: "3.8rem",
 			// 主页横幅副标题
 			subtitle: [
-				"In Reddened Chrysalis, I Once Rest",
-				"From Shattered Sky, I Free Fall",
-				"Amidst Silenced Stars, I Deep Sleep",
-				"Upon Lighted Fyrefly, I Soon Gaze",
-				"From Undreamt Night, I Thence Shine",
-				"In Finalized Morrow, I Full Bloom",
+				"God’s in his heaven，All’s right with the world",
 			],
 			// 主页横幅副标题字体大小
 			subtitleSize: "1.5rem",
