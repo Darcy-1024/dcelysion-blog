@@ -33,7 +33,7 @@ const iconSetCache = new Map();
 /**
  * 递归获取目录下所有文件
  */
-function getAllFiles(dir, extensions = [".svelte"]) {
+function getAllFiles(dir, extensions = [".svelte", ".astro", ".ts", ".tsx"]) {
 	const files = [];
 
 	function walk(currentDir) {
