@@ -44,6 +44,8 @@ export type WidgetSpecificConfig = {
 // 站点信息组件专用配置
 export type SiteInfoConfig = {
 	unknownBuildPlatform?: string; // 未识别的构建平台显示文本，默认 "Unknown CI"
+	showBlogVersion?: boolean; // 是否显示博客版本，默认 true
+	showBuildTime?: boolean; // 是否显示构建时间，默认 true
 };
 
 // 日历组件专用配置

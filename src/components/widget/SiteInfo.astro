@@ -57,6 +57,8 @@ const buildTime = formatDateI18nWithTime(new Date());
 // 构建平台检测（使用 ci-info 自动识别 CI 环境）
 const unknownBuildPlatform =
 	widgetConfig?.specificConfig?.siteInfo?.unknownBuildPlatform || "Unknown CI";
+const showBlogVersion = widgetConfig?.specificConfig?.siteInfo?.showBlogVersion !== false;
+const showBuildTime = widgetConfig?.specificConfig?.siteInfo?.showBuildTime !== false;
 const buildPlatform = detectBuildPlatform({
 	env: process.env,
 	isCI: ci.isCI,
@@ -98,12 +100,16 @@ const mainItems = [
 		label: i18n(I18nKey.siteInfoBuildPlatform),
 		value: buildPlatform,
 	},
-	{
-		icon: "mdi:clover",
-		label: i18n(I18nKey.siteInfoBlogVersion),
-		value: `Firefly v${blogVersion}`,
-		href: "https://github.com/CuteLeaf/Firefly",
-	},
+	...(showBlogVersion
+		? [
+				{
+					icon: "mdi:clover",
+					label: i18n(I18nKey.siteInfoBlogVersion),
+					value: `Firefly v${blogVersion}`,
+					href: "https://github.com/CuteLeaf/Firefly",
+				} as const,
+			]
+		: []),
 	{
 		icon: "material-symbols:copyright-outline",
 		label: i18n(I18nKey.siteInfoLicense),
@@ -125,11 +131,15 @@ const detailItems: {
 		value: siteDomain,
 		fullWidth: true,
 	},
-	{
-		icon: "mdi:clover",
-		label: "Firefly",
-		value: `v${blogVersion}`,
-	},
+	...(showBlogVersion
+		? [
+				{
+					icon: "mdi:clover",
+					label: "Firefly",
+					value: `v${blogVersion}`,
+				} as const,
+			]
+		: []),
 	{
 		icon: "material-symbols:rocket-launch-outline",
 		label: i18n(I18nKey.siteInfoAstroVersion),
@@ -145,12 +155,16 @@ const detailItems: {
 		label: i18n(I18nKey.siteInfoPnpmVersion),
 		value: pnpmVersion,
 	},
-	{
-		icon: "material-symbols:build-outline",
-		label: i18n(I18nKey.siteInfoBuildTime),
-		value: buildTime,
-		fullWidth: true,
-	},
+	...(showBuildTime
+		? [
+				{
+					icon: "material-symbols:build-outline",
+					label: i18n(I18nKey.siteInfoBuildTime),
+					value: buildTime,
+					fullWidth: true,
+				} as const,
+			]
+		: []),
 	{
 		icon: "material-symbols:computer-outline",
 		label: i18n(I18nKey.siteInfoSystem),
