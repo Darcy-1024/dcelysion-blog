@@ -6,6 +6,7 @@ export type CommentConfig = {
 	type: "none" | "twikoo" | "waline" | "giscus" | "disqus" | "artalk";
 	twikoo?: {
 		envId: string;
+		envIdFallback?: string;
 		region?: string;
 		lang?: string;
 		visitorCount?: boolean;

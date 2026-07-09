@@ -22,7 +22,6 @@ const config = {
 <script is:inline src={jsUrl}></script>
 {cssUrl && <link rel="stylesheet" href={cssUrl.startsWith("http") ? cssUrl : url(cssUrl)} />}
 <script is:inline define:vars={{ config }}>
-  // 获取当前页面路径
   function getCurrentPath() {
     const pathname = window.location.pathname;
     return pathname.endsWith("/") && pathname.length > 1
@@ -30,27 +29,35 @@ const config = {
       : pathname;
   }
 
-  // 动态创建配置对象
-  function createTwikooConfig() {
+  function createTwikooConfig(envId) {
     return {
       ...config,
+      envId: envId || config.envId,
       path: getCurrentPath(),
       el: "#tcomment",
     };
   }
 
-  // 初始化 Twikoo
+  function tryInit(envId) {
+    const dynamicConfig = createTwikooConfig(envId);
+    console.log("[Twikoo] 尝试连接:", envId);
+    return twikoo.init(dynamicConfig);
+  }
+
   function initTwikoo() {
     if (typeof twikoo !== "undefined") {
       const commentEl = document.getElementById("tcomment");
       if (commentEl) {
         commentEl.innerHTML = "";
 
-        const dynamicConfig = createTwikooConfig();
-        console.log("[Twikoo] 初始化配置:", dynamicConfig);
-
-        twikoo
-          .init(dynamicConfig)
+        tryInit(config.envId)
+          .catch((error) => {
+            console.warn("[Twikoo] 主地址失败，切换备用:", error);
+            if (config.envIdFallback && config.envIdFallback !== config.envId) {
+              return tryInit(config.envIdFallback);
+            }
+            throw error;
+          })
           .then(() => {
             console.log("[Twikoo] 初始化完成");
           })
@@ -59,15 +66,12 @@ const config = {
           });
       }
     } else {
-      // 如果 Twikoo 未加载，稍后重试
       setTimeout(initTwikoo, 500);
     }
   }
 
-  // 页面加载时初始化
   document.addEventListener("DOMContentLoaded", initTwikoo);
 
-  // Swup 页面切换后重新初始化
   if (window.swup && window.swup.hooks) {
     window.swup.hooks.on("content:replace", function () {
       setTimeout(initTwikoo, 200);
@@ -82,11 +86,8 @@ const config = {
     });
   }
 
-  // 自定义事件监听
   document.addEventListener("firefly:page:loaded", function () {
-    const commentEl = document.getElementById("tcomment");
-    if (commentEl) {
-      console.log("[Twikoo] 通过自定义事件重新初始化");
+    if (document.getElementById("tcomment")) {
       initTwikoo();
     }
   });
