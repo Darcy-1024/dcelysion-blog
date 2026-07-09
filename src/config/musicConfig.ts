@@ -51,7 +51,7 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 		playlist: [
 			{
 				name: "羽根",
-				artist: " 折戸伸治/ Key ",
+				artist: " 折戸伸治/Key ",
 				url: "/assets/music/羽根 - 折戸伸治.flac",
 				cover: "/assets/music/cover/羽根.jpeg",
 				lrc: "[00:00.00]纯音乐",

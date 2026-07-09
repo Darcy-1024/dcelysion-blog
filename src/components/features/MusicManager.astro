@@ -20,9 +20,11 @@ const localPlaylist =
 							: url(song.cover)
 						: undefined,
 					lrc: song.lrc
-						? isFullUrl(song.lrc)
-							? song.lrc
-							: url(song.lrc)
+						? isFullUrl(song.lrc) || /^(\/|\.\/|\.\.\/)/.test(song.lrc)
+							? isFullUrl(song.lrc)
+								? song.lrc
+								: url(song.lrc)
+							: song.lrc
 						: undefined,
 				};
 			})
