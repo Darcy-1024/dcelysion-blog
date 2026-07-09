@@ -111,6 +111,12 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 			position: "top",
 			// 是否在文章详情页显示
 			showOnPostPage: true,
+			// 组件专属配置
+			specificConfig: {
+				stats: {
+					hideLastActivity: true,
+				},
+			},
 		},
 		{
 			// 组件类型：站点信息组件

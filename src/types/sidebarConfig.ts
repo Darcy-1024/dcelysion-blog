@@ -39,6 +39,12 @@ export type WidgetSpecificConfig = {
 	calendar?: CalendarConfig; // 日历组件专用配置
 	ad?: AdConfig; // 广告组件专用配置
 	siteInfo?: SiteInfoConfig; // 站点信息组件专用配置
+	stats?: StatsConfig; // 站点统计组件专用配置
+};
+
+// 站点统计组件专用配置
+export type StatsConfig = {
+	hideLastActivity?: boolean; // 是否隐藏"最后活动"统计项，默认 false
 };
 
 // 站点信息组件专用配置

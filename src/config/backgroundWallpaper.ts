@@ -104,7 +104,7 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			titleSize: "3.8rem",
 			// 主页横幅副标题
 			subtitle: [
-				"God’s in his heaven，All’s right with the world",
+				"God’s in his heaven，All’s right with the world.",
 			],
 			// 主页横幅副标题字体大小
 			subtitleSize: "1.5rem",

@@ -21,6 +21,10 @@ const { class: className, style, widgetConfig } = Astro.props;
 
 const showTitle = widgetConfig?.showTitle !== false;
 
+// 从配置中获取统计数据设置
+const statsConfig = widgetConfig?.specificConfig?.stats;
+const hideLastActivity = statsConfig?.hideLastActivity === true;
+
 // 从配置中获取站点开始日期
 const siteStartDate = siteConfig.siteStartDate || "2025-01-01";
 
@@ -100,15 +104,18 @@ const stats = [
 		dynamic: true,
 		id: "running-days",
 	},
-	{
-		icon: "mingcute:heartbeat-line",
-		label: i18n(I18nKey.siteStatsLastUpdate),
-		value: 0, // 将由客户端更新
-		suffix: i18n(I18nKey.siteStatsDaysAgo).replace("{days}", ""),
-		dynamic: true,
-		id: "last-update",
-	},
-];
+		{
+			icon: "mingcute:heartbeat-line",
+			label: i18n(I18nKey.siteStatsLastUpdate),
+			value: 0, // 将由客户端更新
+			suffix: i18n(I18nKey.siteStatsDaysAgo).replace("{days}", ""),
+			dynamic: true,
+			id: "last-update",
+		},
+	].filter((stat) => {
+		if (hideLastActivity && stat.id === "last-update") return false;
+		return true;
+	});
 ---
 
 <WidgetLayout name={i18n(I18nKey.siteStats)} showTitle={showTitle} id="site-stats" class={className} style={style}>
