@@ -61,7 +61,7 @@ const className = Astro.props.class;
 
                     if (item.url.startsWith("mailto:")) {
                         const encodedEmail = Buffer.from(item.url.replace("mailto:", "")).toString("base64");
-                        return <a rel="me" aria-label={item.name} href="#" data-encoded-email={encodedEmail} onclick={`
+                        return <a rel="me" aria-label={item.name} title={item.name} href="#" data-encoded-email={encodedEmail} onclick={`
                                             (function() {
                                                 const encodedEmail = this.getAttribute('data-encoded-email');
                                                 const decodedEmail = atob(encodedEmail);
@@ -78,7 +78,7 @@ const className = Astro.props.class;
                             {showName && item.name}
                         </a>
                     } else {
-                        return <a rel="me" aria-label={item.name} href={item.url} target="_blank" class={className}>
+                        return <a rel="me" aria-label={item.name} title={item.name} href={item.url} target="_blank" class={className}>
                             <Icon is:inline name={item.icon} class="text-[1.5rem]"></Icon>
                             {showName && item.name}
                         </a>
@@ -88,7 +88,7 @@ const className = Astro.props.class;
             {profileConfig.links.length == 1 && (function(item){
                 if (item.url.startsWith("mailto:")) {
                         const encodedEmail = Buffer.from(item.url.replace("mailto:", "")).toString("base64");
-                        return <a rel="me" aria-label={item.name} href="#" data-encoded-email={encodedEmail} onclick={`
+                        return <a rel="me" aria-label={item.name} title={item.name} href="#" data-encoded-email={encodedEmail} onclick={`
                                             (function() {
                                                 const encodedEmail = this.getAttribute('data-encoded-email');
                                                 const decodedEmail = atob(encodedEmail);
