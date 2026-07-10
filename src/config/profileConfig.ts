@@ -42,7 +42,7 @@ export const profileConfig: ProfileConfig = {
 		{
 			name: "RSS",
 			icon: "fa7-solid:rss",
-			url: "/rss.xml",
+			url: "/rss/",
 			showName: false,
 		},
 	],
