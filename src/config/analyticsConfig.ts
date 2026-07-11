@@ -2,13 +2,13 @@ import type { AnalyticsConfig } from "../types/analyticsConfig";
 
 export const analyticsConfig: AnalyticsConfig = {
 	// Google Analytics ID
-	googleAnalyticsId: "",
+	googleAnalyticsId: "G-DKB5MQJKR8",
 	// Microsoft Clarity ID
-	microsoftClarityId: "",
+	microsoftClarityId: "xkmnsvd130",
 	// Umami 统计配置
 	umamiAnalytics: {
 		// Umami Website ID
-		websiteId: "",
+		websiteId: "db010c0d-422d-49c6-8a89-6a0aa6b79c23",
 		// Umami JS地址，支持使用自建
 		scriptUrl: "https://cloud.umami.is/script.js",
 		// Umami 会话回放脚本地址，支持使用自建
@@ -34,7 +34,7 @@ export const analyticsConfig: AnalyticsConfig = {
 	// 51la 统计配置
 	la51Analytics: {
 		// 51la 统计 ID
-		Id: "",
+		Id: "3QWkUycmfqUjO4kz",
 		// 自定义 SDK JS 地址，防止 DNS 污染，留空使用默认地址
 		sdkUrl: "",
 		// 多个统计 ID 的数据分离标识，留空则使用 Id
