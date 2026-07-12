@@ -77,6 +77,20 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 				cover: "/assets/music/cover/魔法使之夜.jpg",
 				lrc: "[00:00.00]纯音乐",
 			},
+			{
+				name: "孤独な巡礼",
+				artist: "川井憲次",
+				url: "/assets/music/孤独な巡礼.m4a",
+				cover: "/assets/music/cover/孤独的巡礼.webp",
+				lrc: "[00:00.00]纯音乐",
+			},
+			{
+				name: "夜诞的花冠 Night's Crown of Flowers",
+				artist: "HOYO-MiX",
+				url: "/assets/music/夜诞的花冠 Night's Crown of Flowers.m4a",
+				cover: "/assets/music/cover/夜诞的花冠 Night's Crown of Flowers.webp",
+				lrc: "[00:00.00]纯音乐",
+			},
 		],
 	},
 };
