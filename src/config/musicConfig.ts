@@ -56,6 +56,20 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 				cover: "/assets/music/cover/羽根.jpeg",
 				lrc: "[00:00.00]纯音乐",
 			},
+			{
+				name: "使一颗心免于哀伤",
+				artist: "Chevy",
+				url: "/assets/music/使一颗心免于哀伤-哼唱.mp3",
+				cover: "/assets/music/cover/109951169585655912.webp",
+				lrc: "[00:00.00]纯音乐",
+			},
+			{
+				name: "久遠寺有珠",
+				artist: "深澤秀行",
+				url: "/assets/music/久遠寺有珠.flac",
+				cover: "/assets/music/cover/魔法使之夜.jpg",
+				lrc: "[00:00.00]纯音乐",
+			},
 		],
 	},
 };
