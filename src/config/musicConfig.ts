@@ -78,6 +78,13 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 				lrc: "[00:00.00]纯音乐",
 			},
 			{
+				name: "nostalgia",
+				artist: "深澤秀行",
+				url: "/assets/music/nostalgia.m4a",
+				cover: "/assets/music/cover/魔法使之夜.jpg",
+				lrc: "[00:00.00]纯音乐",
+			},
+			{
 				name: "孤独な巡礼",
 				artist: "川井憲次",
 				url: "/assets/music/孤独な巡礼.m4a",
@@ -89,6 +96,13 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 				artist: "HOYO-MiX",
 				url: "/assets/music/夜诞的花冠_Nights_Crown_of_Flowers.m4a",
 				cover: "/assets/music/cover/夜诞的花冠_Nights_Crown_of_Flowers.webp",
+				lrc: "[00:00.00]纯音乐",
+			},
+			{
+				name: "Kanon D-dur",
+				artist: "Württembergisches Kammerorch.",
+				url: "/assets/music/Kanon D-dur.m4a",
+				cover: "/assets/music/cover/kanon.jpg",
 				lrc: "[00:00.00]纯音乐",
 			},
 		],
