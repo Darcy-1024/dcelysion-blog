@@ -73,7 +73,7 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 			{
 				name: "午後の眠り",
 				artist: "深澤秀行",
-				url: "/assets/music/午後の眠り.m4a",
+				url: "/assets/music/午後の眠り.flac",
 				cover: "/assets/music/cover/魔法使之夜.jpg",
 				lrc: "[00:00.00]纯音乐",
 			},
