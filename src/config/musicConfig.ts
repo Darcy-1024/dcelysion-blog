@@ -57,6 +57,13 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 				lrc: "[00:00.00]纯音乐",
 			},
 			{
+				name: "東方萃夢想",
+				artist: "TAMUSIC",
+				url: "/assets/music/東方萃夢想.flac",
+				cover: "/assets/music/cover/東方萃夢想.png",
+				lrc: "[00:00.00]纯音乐",
+			},
+			{
 				name: "久遠寺有珠",
 				artist: "深澤秀行",
 				url: "/assets/music/久遠寺有珠.m4a",
