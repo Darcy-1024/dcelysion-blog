@@ -43,7 +43,6 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 		// 桌面背景图片（支持单张或多张随机）
 		// desktop: "assets/images/DesktopWallpaper/d1.avif",
 		desktop: [
-			"assets/images/DesktopWallpaper/d7.avif",
 			"assets/images/DesktopWallpaper/d8.avif",
 			"assets/images/DesktopWallpaper/d9.avif",
 			"assets/images/DesktopWallpaper/d10.avif",
@@ -61,6 +60,21 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			"assets/images/DesktopWallpaper/d22.avif",
 			"assets/images/DesktopWallpaper/d23.avif",
 			"assets/images/DesktopWallpaper/d24.avif",
+			"assets/images/DesktopWallpaper/d25.avif",
+			"assets/images/DesktopWallpaper/d26.avif",
+			"assets/images/DesktopWallpaper/d27.avif",
+			"assets/images/DesktopWallpaper/d28.avif",
+			"assets/images/DesktopWallpaper/d29.avif",
+			"assets/images/DesktopWallpaper/d30.avif",
+			"assets/images/DesktopWallpaper/d31.avif",
+			"assets/images/DesktopWallpaper/d32.avif",
+			"assets/images/DesktopWallpaper/d33.avif",
+			"assets/images/DesktopWallpaper/d34.avif",
+			"assets/images/DesktopWallpaper/d35.avif",
+			"assets/images/DesktopWallpaper/d36.avif",
+			"assets/images/DesktopWallpaper/d37.avif",
+			"assets/images/DesktopWallpaper/d38.avif",
+			"assets/images/DesktopWallpaper/d39.avif",
 		],
 		// 移动背景图片（支持单张或多张随机）
 		// mobile: "assets/images/MobileWallpaper/m1.avif",
@@ -77,6 +91,18 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			"assets/images/MobileWallpaper/m16.avif",
 			"assets/images/MobileWallpaper/m17.avif",
 			"assets/images/MobileWallpaper/m18.avif",
+			"assets/images/MobileWallpaper/m19.avif",
+			"assets/images/MobileWallpaper/m20.avif",
+			"assets/images/MobileWallpaper/m21.avif",
+			"assets/images/MobileWallpaper/m22.avif",
+			"assets/images/MobileWallpaper/m23.avif",
+			"assets/images/MobileWallpaper/m24.avif",
+			"assets/images/MobileWallpaper/m25.avif",
+			"assets/images/MobileWallpaper/m26.avif",
+			"assets/images/MobileWallpaper/m27.avif",
+			"assets/images/MobileWallpaper/m29.avif",
+			"assets/images/MobileWallpaper/m30.avif",
+			"assets/images/MobileWallpaper/m31.avif",
 		],
 		// 背景视频播放地址
 		// 支持单个视频路径（字符串）或多个视频循环（数组）
@@ -104,7 +130,7 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			titleSize: "3.8rem",
 			// 主页横幅副标题
 			subtitle: [
-				"God’s in his heaven，All’s right with the world.",
+				"God's in his heaven，All's right with the world.",
 			],
 			// 主页横幅副标题字体大小
 			subtitleSize: "1.5rem",
