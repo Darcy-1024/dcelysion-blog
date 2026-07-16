@@ -149,7 +149,8 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 				siteInfo: {
 					// 未能识别的构建平台回退显示文本，可自定义
 					unknownBuildPlatform: "Unknown CI",
-					showBuildTime: false,
+					showBlogVersion: false,
+						showBuildTime: false,
 				},
 			},
 		},
@@ -328,7 +329,8 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 				siteInfo: {
 					// 未能识别的构建平台回退显示文本，可自定义
 					unknownBuildPlatform: "Unknown CI",
-					showBuildTime: false,
+					showBlogVersion: false,
+						showBuildTime: false,
 				},
 			},
 		},
