@@ -100,16 +100,16 @@ const mainItems = [
 		label: i18n(I18nKey.siteInfoBuildPlatform),
 		value: buildPlatform,
 	},
-	...(showBlogVersion
-		? [
-				{
-					icon: "mdi:clover",
-					label: i18n(I18nKey.siteInfoBlogVersion),
-					value: `Firefly v${blogVersion}`,
-					href: "https://github.com/CuteLeaf/Firefly",
-				} as const,
-			]
-		: []),
+	// ...(showBlogVersion
+	// 	? [
+	// 			{
+	// 				icon: "mdi:clover",
+	// 				label: i18n(I18nKey.siteInfoBlogVersion),
+	// 				value: `Firefly v${blogVersion}`,
+	// 				href: "https://github.com/CuteLeaf/Firefly",
+	// 			} as const,
+	// 		]
+	// 	: []),
 	{
 		icon: "material-symbols:copyright-outline",
 		label: i18n(I18nKey.siteInfoLicense),
