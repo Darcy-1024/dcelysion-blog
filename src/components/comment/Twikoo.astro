@@ -23,6 +23,8 @@ const config = {
 {cssUrl && <link rel="stylesheet" href={cssUrl.startsWith("http") ? cssUrl : url(cssUrl)} />}
 <script is:inline define:vars={{ config }}>
   function getCurrentPath() {
+    const requestedPath = new URLSearchParams(window.location.search).get("path");
+    if (requestedPath) return requestedPath;
     const pathname = window.location.pathname;
     return pathname.endsWith("/") && pathname.length > 1
       ? pathname.slice(0, -1)
