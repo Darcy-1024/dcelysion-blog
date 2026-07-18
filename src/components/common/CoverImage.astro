@@ -194,7 +194,7 @@ const remoteReferrerPolicy =
 	{isLocal && img && (
 		<Picture
 			src={img}
-			alt={alt || ""}
+			alt={alt || "Cover image"}
 			class={imageClass}
 			style={imageStyle}
 			loading={loading}
@@ -211,7 +211,7 @@ const remoteReferrerPolicy =
 	{!isLocal && (
 		<img
 			src={isPublic ? url(src) : src}
-			alt={alt || ""}
+			alt={alt || "Cover image"}
 			class={imageClass}
 			style={imageStyle}
 			loading={loading}
