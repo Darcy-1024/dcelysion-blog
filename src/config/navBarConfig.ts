@@ -33,6 +33,12 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		],
 	});
 
+	// 动态
+	links.push(LinkPresets.Dynamic);
+
+	// 相册
+	links.push(LinkPresets.Gallery);
+
 	//社交及其子菜单
 	links.push({
 		name: "社交",
@@ -53,12 +59,6 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		url: "#",
 		icon: "material-symbols:person",
 		children: [
-			// 动态
-			LinkPresets.Dynamic,
-
-			// 相册
-			LinkPresets.Gallery,
-
 			// 追番
 			LinkPresets.Anime,
 
