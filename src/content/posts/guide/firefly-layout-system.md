@@ -2,11 +2,11 @@
 title: Firefly 布局系统详解
 published: 1970-01-03
 description: 深入了解 Firefly 的布局系统，包括侧边栏布局（左侧/双侧）和文章列表布局（列表/网格），以及自适应网格列数。
-image: ./images/firefly1.avif
+image: ../images/firefly1.avif
 tags: [Firefly, 布局, 博客, 指南]
 category: 博客指南
 draft: true
-slug: firefly-layout-system
+slug: guide/firefly-layout-system
 ---
 
 ## 📖 概述
@@ -18,15 +18,15 @@ Firefly 提供了灵活的布局系统，允许您根据内容需求和个人喜
 ---
 
 [grid]
-![左侧边栏+列表布局](./images/left-list.avif)
-![右侧边栏+网格布局](./images/right-grid2.avif)
-![左侧边栏+三列网格布局](./images/left-grid3.avif)
+![左侧边栏+列表布局](../images/left-list.avif)
+![右侧边栏+网格布局](../images/right-grid2.avif)
+![左侧边栏+三列网格布局](../images/left-grid3.avif)
 [/grid]
 
 [grid]
-![双侧边栏+列表布局](./images/both-list.avif)
-![双侧边栏+网格布局](./images/both-grid.avif)
-![双侧边栏+网格瀑布流布局](./images/masonry.avif)
+![双侧边栏+列表布局](../images/both-list.avif)
+![双侧边栏+网格布局](../images/both-grid.avif)
+![双侧边栏+网格瀑布流布局](../images/masonry.avif)
 [/grid]
 
 
@@ -38,11 +38,11 @@ Firefly 提供了灵活的布局系统，允许您根据内容需求和个人喜
 
 #### 左侧边栏 (position: "left")
 
-![左侧边栏布局](./images/left-list.avif)
+![左侧边栏布局](../images/left-list.avif)
 
 #### 右侧边栏 (position: "right")
 
-![右侧边栏布局](./images/right-grid2.avif)
+![右侧边栏布局](../images/right-grid2.avif)
 
 #### 特点
 
@@ -91,9 +91,9 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 
 #### 布局结构
 
-![双侧边栏+列表布局](./images/both-list.avif)
+![双侧边栏+列表布局](../images/both-list.avif)
 
-![双侧边栏+网格布局](./images/both-grid.avif)
+![双侧边栏+网格布局](../images/both-grid.avif)
 #### 适用场景
 
 - 宽屏桌面端浏览
@@ -122,13 +122,19 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 #### 特点
 
 - 单列纵向排列
-- 显示文章封面图
+- 显示文章封面图，可配置在左侧或右侧
 - 展示更多文章摘要
 - 适合深度阅读
 
 #### 列表布局结构
 
-![列表模式布局](./images/left-list.avif)
+![列表模式布局](../images/left-list.avif)
+
+#### 封面位置
+
+列表模式的封面图默认在卡片右侧，可以通过 `coverPosition` 改到左侧。改到左侧后，标题前的主题色竖线会自动隐藏（它是贴着卡片左边缘的设计），腾出的间距留给正文。
+
+网格模式的封面固定在卡片顶部，不受这项配置影响。
 
 #### 优点
 
@@ -144,8 +150,8 @@ export const sidebarLayoutConfig: SidebarLayoutConfig = {
 // src/config/siteConfig.ts
 export const siteConfig: SiteConfig = {
   postListLayout: {
-    defaultMode: "list", // 列表模式
-    allowSwitch: true,   // 允许用户切换
+    defaultMode: "list",    // 列表模式
+    coverPosition: "right", // 封面图位置："right" 右侧，"left" 左侧
   },
 };
 ```
@@ -164,7 +170,7 @@ export const siteConfig: SiteConfig = {
 
 网格模式通过 `columnWidth` 配置卡片的最小宽度（单位 px），浏览器会根据容器可用宽度自动计算能容纳多少列。
 
-![网格布局](./images/left-grid3.avif)
+![网格布局](../images/left-grid3.avif)
 
 #### 配置示例
 
@@ -173,7 +179,6 @@ export const siteConfig: SiteConfig = {
 export const siteConfig: SiteConfig = {
   postListLayout: {
     defaultMode: "grid",
-    allowSwitch: true,
     grid: {
       masonry: true,      // 开启瀑布流
       columnWidth: 320,   // 卡片最小宽度(px)，浏览器自动计算列数
@@ -188,7 +193,7 @@ export const siteConfig: SiteConfig = {
 
 Firefly 的网格模式内置了智能瀑布流布局支持，解决了网格布局中因图文混合文章导致的卡片高度不一致导致的空白问题。
 
-![瀑布流布局](./images/masonry.avif)
+![瀑布流布局](../images/masonry.avif)
 
 - **智能排版**：自动将卡片放置到最短的列，最大化利用垂直空间。
 - **消除空白**：通过绝对定位精确计算每个卡片的位置，让卡片紧贴上方卡片，消除垂直方向的空白间隙。

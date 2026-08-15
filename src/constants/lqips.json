@@ -1,5 +1,4 @@
 {
-  "src:assets/images/firefly.png": "72d3af9ee699aced93",
   "src:assets/images/avatar.avif": "dcd8d5d1cecabea9a9",
   "public:gallery/firefly-2026/cover.avif": "7588a28a8f989e8d88",
   "public:gallery/firefly-2026/1.avif": "c8bca9dde6d2babfb5",
@@ -149,5 +148,7 @@
   "src:content/posts/images/ai-smarter-or-dumber？/3.avif": "9ba1b09da2adbfb5b6",
   "src:content/posts/images/ai-smarter-or-dumber？/2.avif": "9690b5c5b1ad928795",
   "src:content/posts/images/ai-smarter-or-dumber？/1.avif": "ab946ecd9d97c1a582",
-  "src:content/dynamic/images/spirited-away-film.avif": "b3aaafb5afb2827671"
+  "src:content/dynamic/images/spirited-away-film.avif": "b3aaafb5afb2827671",
+  "src:assets/images/logo/firefly-light.png": "000000000000000000",
+  "src:assets/images/logo/firefly-dark.png": "ffffffffffffffffff"
 }

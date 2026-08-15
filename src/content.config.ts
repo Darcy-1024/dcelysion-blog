@@ -29,6 +29,7 @@ type PostData = {
 
 type DynamicData = {
 	published: Date;
+	draft: boolean;
 	pinned: boolean;
 	location: string;
 };
