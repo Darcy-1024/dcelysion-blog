@@ -1,3 +1,4 @@
+import type { ImageMetadata } from "astro";
 import { getCollection } from "astro:content";
 import { createMarkdownProcessor } from "@astrojs/markdown-remark";
 import {
@@ -7,6 +8,20 @@ import {
 } from "@/utils/dynamic-utils";
 
 const markdownImagePattern = /!\[([^\]]*)\]\((\S+?)(?:\s+["']([^"']*)["'])?\)/g;
+
+const dynamicImageFiles = import.meta.glob<ImageMetadata>(
+	"/src/content/dynamic/images/**/*.{png,jpg,jpeg,webp,avif,gif,svg}",
+	{
+		eager: true,
+		import: "default",
+	},
+);
+
+const resolveDynamicImageSrc = (src: string): string => {
+	if (!src.startsWith("./images/")) return src;
+	const sourcePath = `/src/content/dynamic/${src.slice(2)}`;
+	return dynamicImageFiles[sourcePath]?.src || src;
+};
 
 export async function GET(): Promise<Response> {
 	const processor = await createMarkdownProcessor();
@@ -21,7 +36,11 @@ export async function GET(): Promise<Response> {
 			const markdown = (entry.body || "").replace(
 				markdownImagePattern,
 				(_match, alt: string, src: string, title?: string) => {
-					images.push({ alt, src, ...(title ? { title } : {}) });
+					images.push({
+						alt,
+						src: resolveDynamicImageSrc(src),
+						...(title ? { title } : {}),
+					});
 					return "";
 				},
 			);
