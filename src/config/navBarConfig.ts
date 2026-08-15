@@ -59,11 +59,11 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		url: "#",
 		icon: "material-symbols:person",
 		children: [
-			// 追番
-			LinkPresets.Anime,
-
 			// VNDB
 			LinkPresets.VNDB,
+
+			// 追番
+			LinkPresets.Anime,
 
 			// 番组计划
 			LinkPresets.Bangumi,

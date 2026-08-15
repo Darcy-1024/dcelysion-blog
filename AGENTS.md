@@ -49,7 +49,7 @@ pnpm build
 | `src/` | 站点源代码和内容 | 绝大多数功能修改发生在这里 |
 | `public/` | 原样复制并按根路径访问的静态资源 | 大型媒体、相册、Pio 模型、第三方脚本放在这里 |
 | `scripts/` | 内容脚手架和构建期生成脚本 | 注意脚本可能改写受版本控制的生成数据 |
-| `workers/` | 独立 Cloudflare Worker | 当前包含 Twikoo 反向代理，不属于 Astro 页面代码 |
+| `workers/` | 独立 Cloudflare Worker | 包含 Twikoo 反向代理与 Sites 静态资源入口，不属于 Astro 页面代码 |
 | `docs/` | README 使用的说明图片和多语言文档 | 不参与站点运行时 |
 | `astro.config.mjs` | Astro 集成、Markdown 管线、Swup、字体、图片和 Vite 配置 | Markdown/构建行为的首要入口 |
 | `src/content.config.ts` | 内容集合与 frontmatter schema | 新增字段时必须先更新这里 |
@@ -86,7 +86,7 @@ pnpm build
 | `api/dynamic.json.ts` | 将本地 `dynamic` 集合转换为前端消费的 JSON，并解析动态正文中的本地图片 |
 | `robots.txt.ts`, `404.astro` | 爬虫规则与错误页 |
 
-`siteConfig.pages` 控制 friends、sponsor、guestbook、bangumi、vndb、gallery、anime、dynamic、booknav 等页面是否开放。页面关闭时会重定向到 `/404/`，导航和 sitemap 也据此过滤；新增可开关页面时要同步这些入口。
+`siteConfig.pages` 控制 friends、sponsor、guestbook、bangumi、vndb、gallery、anime、dynamic、booknav 等页面是否开放。关闭的页面会通过各路由守卫重定向到 `/404/`，导航栏按 `pageKey` 过滤链接；sitemap 在 `astro.config.mjs` 中另行维护过滤规则。新增或调整页面开关时，必须逐项核对页面守卫、导航 `pageKey`、页面子路由和 sitemap 过滤，不能假定这些入口会自动保持一致。
 
 ### `src/layouts/`：页面骨架
 
@@ -170,7 +170,7 @@ pnpm build
 - 站点布局不仅有常规断点，还受左右/双侧边栏、平板侧边栏、文章页隐藏侧栏、壁纸模式与用户显示设置影响。
 - 修改网格时先查看 `responsive-utils.ts`、`MainGridLayout.astro` 和 `sidebarConfig.ts`，不要只改一个 class。
 - 通用颜色与圆角优先复用 `--primary`、`--page-bg`、`--card-bg`、`--radius-*` 等现有变量，避免写死主题颜色。
-- 视觉修改至少检查桌面与移动端、明暗主题、普通整页加载与 Swup 导航。
+- 视觉修改应检查本次变更实际影响的桌面/移动端、明暗主题、普通整页加载与 Swup 导航组合。全局布局或生命周期修改应覆盖完整组合；局部改动可缩小范围，但交付时要说明未覆盖项。
 
 ## 7. 构建、生成文件与外部依赖
 
@@ -180,10 +180,10 @@ pnpm build
 pnpm dev             # Astro 开发服务器
 pnpm check           # Astro 诊断
 pnpm type-check      # TypeScript --noEmit --isolatedDeclarations
-pnpm format          # Biome 格式化 src
-pnpm lint            # Biome 检查并安全修复 src
+pnpm format          # Biome 格式化并写入 src 与 scripts
+pnpm lint            # Biome 检查、格式化并写入 src 与 scripts
 pnpm lqips           # 重新生成 src/constants/lqips.json
-pnpm build           # LQIP -> VNDB 封面 -> Astro -> Pio 裁剪 -> 字体 -> 内联脚本压缩 -> Pagefind
+pnpm build           # LQIP -> VNDB 封面 -> Astro -> Pio 裁剪 -> 字体 -> 内联脚本压缩 -> Pagefind -> Sites 入口
 pnpm preview         # 预览 dist
 pnpm new-post <name> # 新建文章
 pnpm new-dynamic ... # 新建动态
@@ -192,11 +192,13 @@ pnpm new-dynamic ... # 新建动态
 构建注意事项：
 
 - `pnpm build` 会更新 `src/constants/lqips.json`；提交前检查差异是否来自本次资源变更。
+- `pnpm format` 与 `pnpm lint` 都带有 `--write`，且作用于整个 `src/` 和 `scripts/`。已有无关改动或只需验证少量文件时，优先使用 `pnpm exec biome check <相关文件>` 做限定范围的只读检查；不要为验证而改写任务外文件。
 - `scripts/generate-vndb-covers.ts` 只在 VNDB 页面启用、模式为 `static`、配置了 `userId` 且开启封面下载时请求外部 API；未配置用户 ID 时会直接跳过。
 - `scripts/prune-pio-assets.ts` 在 Astro 构建后从 `dist/` 移除未启用的 Pio/Live2D 产物；不要手工修改其输出。
 - 字体子集脚本在 Astro 构建后扫描 `dist/**/*.html`，输出到 `dist/_astro/fonts`。
 - `scripts/minify-inline-scripts.ts` 会在字体处理后压缩 `dist/` 中的内联脚本。
 - Pagefind 只在完整构建后生成，因此开发服务器中的搜索可用性与生产预览不同。
+- `scripts/prepare-sites-dist.ts` 在构建末尾生成 `dist/server/index.js`，供 OpenAI Sites 使用 `ASSETS` binding 托管静态产物；不要手工修改该生成文件。
 - anime、bangumi、VNDB、OG 字体等流程可能在构建期访问外部服务；失败时先区分代码错误、缺少配置、网络问题和本地缓存回退。
 - `public/anime-list.json` 是 anime 页的本地回退数据。
 - `scripts/quarantine-bad-posts.mjs` 会移动文件且不是常规构建步骤，未经明确要求不要运行。
@@ -268,8 +270,10 @@ pnpm new-dynamic ... # 新建动态
 | --- | --- |
 | 文档或纯配置注释 | 检查差异和引用路径 |
 | TypeScript/组件逻辑 | `pnpm check` + `pnpm type-check` |
-| 页面、内容 schema、Markdown 插件、资源 | 上述检查 + `pnpm build` |
-| 视觉、交互、Swup 生命周期 | 上述检查 + `pnpm dev` 或 `pnpm preview` 人工验证 |
+| 页面、内容 schema、Markdown 插件 | `pnpm check` + `pnpm type-check` + `pnpm build` |
+| 图片、字体、搜索索引或其他参与生成流程的资源 | 完整 `pnpm build`，并检查 LQIP、缓存和 `dist/` 差异 |
+| 不参与生成流程的静态资源 | 检查引用路径；按影响范围决定是否需要完整构建 |
+| 视觉、交互、Swup 生命周期 | `pnpm check` + `pnpm type-check`，并用 `pnpm dev` 或 `pnpm preview` 验证受影响组合；涉及构建期行为时再加 `pnpm build` |
 | 搜索、字体子集、RSS、OG、部署产物 | 必须完整 `pnpm build`，必要时检查 `dist/` |
 
 若某项验证因外部 API、网络或缺少部署变量无法执行，应明确记录未验证项和原因，不要把环境失败描述为代码通过。

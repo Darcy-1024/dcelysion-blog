@@ -115,11 +115,11 @@ export const siteConfig: SiteConfig = {
 		// 相册页面开关
 		gallery: true,
 		// 追番页面开关
-		anime: false,
+		anime: true,
 		// 动态页面开关
 		dynamic: true,
 		// 书签导航页面开关
-		booknav: true,
+		booknav: false,
 	},
 
 	// 分类导航栏开关，在首页和归档页顶部显示分类快捷导航
@@ -242,7 +242,7 @@ export const siteConfig: SiteConfig = {
 	// VNDB 配置
 	vndb: {
 		// VNDB 用户 ID
-		userId: "",
+		userId: "u358145",
 		// 数据模式：static=构建时获取，dynamic=客户端实时获取
 		// static 模式在构建时获取数据并静态渲染，部署后数据不更新
 		// dynamic 模式在浏览器中实时请求 API，始终显示最新数据
