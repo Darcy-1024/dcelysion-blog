@@ -7,7 +7,7 @@
 Firefly 是一个配置驱动的个人博客/内容站点，当前核心技术栈为：
 
 - Astro 7：文件路由、内容集合、服务端/构建期渲染和页面外壳。
-- Svelte 5：搜索、显示设置、动态流、番剧列表等需要持续状态的交互岛。
+- Svelte 5：搜索、显示设置、动态流、番剧与 VNDB 列表等需要持续状态的交互岛。
 - TypeScript：配置、工具函数与数据模型。
 - Tailwind CSS 4 + Stylus + 普通 CSS：工具类、主题变量和各功能样式。
 - Swup：在多个固定容器之间执行局部页面切换；站点并非只依赖传统整页加载。
@@ -34,8 +34,11 @@ Markdown/MDX
 
 pnpm build
   -> 生成 LQIP 数据
+  -> 按配置生成 VNDB 封面缓存
   -> Astro 构建
+  -> 裁剪未使用的 Pio 资源
   -> 本地字体子集化
+  -> 压缩构建产物中的内联脚本
   -> Pagefind 建立 dist 搜索索引
 ```
 
@@ -75,13 +78,15 @@ pnpm build
 | `dynamic/comments.astro` | 动态内嵌评论 iframe 页面及跨窗口主题/高度通信 |
 | `gallery/index.astro`, `gallery/[album].astro` | 配置驱动的相册列表和相册详情 |
 | `anime.astro`, `bangumi.astro` | 构建期或客户端获取第三方收藏数据并挂载 Svelte 列表 |
+| `vndb.astro` | 按 static/dynamic 模式展示 VNDB 收藏；静态模式可在构建期下载封面 |
+| `booknav.astro` | 从 `booknavConfig` 生成书签导航页 |
 | `rss.astro`, `rss.xml.ts` | RSS 说明页与经过渲染/清理的订阅源 |
 | `og/[...slug].ts` | 使用 Satori 静态生成文章 OG 图片 |
 | `api/allPostMeta.json.ts` | 日历和推荐组件使用的文章元数据 |
-| `api/dynamic.json.ts` | 将本地 `dynamic` 集合转换为前端消费的 JSON |
+| `api/dynamic.json.ts` | 将本地 `dynamic` 集合转换为前端消费的 JSON，并解析动态正文中的本地图片 |
 | `robots.txt.ts`, `404.astro` | 爬虫规则与错误页 |
 
-`siteConfig.pages` 控制 friends、sponsor、guestbook、bangumi、gallery、anime、dynamic 等页面是否开放。页面关闭时会重定向到 `/404/`，导航和 sitemap 也据此过滤；新增可开关页面时要同步这些入口。
+`siteConfig.pages` 控制 friends、sponsor、guestbook、bangumi、vndb、gallery、anime、dynamic、booknav 等页面是否开放。页面关闭时会重定向到 `/404/`，导航和 sitemap 也据此过滤；新增可开关页面时要同步这些入口。
 
 ### `src/layouts/`：页面骨架
 
@@ -97,7 +102,7 @@ pnpm build
 - `controls/`：搜索、主题/显示设置、返回顶部、悬浮目录等用户控制。
 - `features/`：加密内容、Fancybox、KaTeX、字体、音乐、壁纸播放器、樱花、Live2D/Spine 等跨页面能力。
 - `widget/`：由侧边栏配置选择和排序的资料、公告、日历、分类、标签、动态、音乐、统计、广告组件。
-- `pages/`：只服务某个页面的组件；复杂页面按 `anime/`、`bangumi/`、`dynamic/`、`gallery/` 再分组。
+- `pages/`：只服务某个页面的组件；复杂页面按 `anime/`、`bangumi/`、`dynamic/`、`gallery/`、`vndb/` 再分组。
 - `comment/`：评论选择器与 Artalk、Disqus、Giscus、Twikoo、Waline 适配。
 - `analytics/`：Google Analytics、Microsoft Clarity、Umami、51la 接入。
 - `misc/`：许可证、相关文章和分享海报等辅助功能。
@@ -106,7 +111,7 @@ pnpm build
 
 ### `src/config/` 与 `src/types/`：配置驱动层
 
-`src/config/index.ts` 是统一出口，业务代码优先从 `@/config` 导入。主要配置包括站点、导航、侧边栏、背景、评论、分析、字体、代码块、图表、音乐、动态、相册、友链、赞助和看板娘。
+`src/config/index.ts` 是统一出口，业务代码优先从 `@/config` 导入。主要配置包括站点、导航、侧边栏、背景、评论、分析、字体、代码块、图表、音乐、动态、相册、书签导航、VNDB、友链、赞助和看板娘。
 
 规则：
 
@@ -140,7 +145,7 @@ pnpm build
 
 ### 其他源码目录
 
-- `src/utils/`：无 UI 的共享逻辑。重点包括内容查询/推荐、日期、URL、图片/LQIP、布局响应式、导航、设置持久化、目录、动态/Memos 和加密。
+- `src/utils/`：无 UI 的共享逻辑。重点包括内容查询/推荐、日期、URL、图片/LQIP、布局响应式、导航、设置持久化、目录、动态/Memos、书签导航、VNDB 和加密。
 - `src/styles/`：`main.css` 是全局入口，继续导入布局及功能 CSS；`variables.styl` 管主题变量，`markdown-extend.styl` 管正文扩展样式。
 - `src/i18n/`：`i18nKey.ts` 定义键，`languages/*.ts` 提供语言字典，`translation.ts` 负责查找。新增用户可见文本时应补齐所有语言或提供明确回退。
 - `src/constants/`：站点常量、图标数据和 LQIP 映射。`icons-data.json`、`lqips.json` 是生成数据，不要无理由手改。
@@ -178,7 +183,7 @@ pnpm type-check      # TypeScript --noEmit --isolatedDeclarations
 pnpm format          # Biome 格式化 src
 pnpm lint            # Biome 检查并安全修复 src
 pnpm lqips           # 重新生成 src/constants/lqips.json
-pnpm build           # LQIP -> Astro -> 字体子集 -> Pagefind
+pnpm build           # LQIP -> VNDB 封面 -> Astro -> Pio 裁剪 -> 字体 -> 内联脚本压缩 -> Pagefind
 pnpm preview         # 预览 dist
 pnpm new-post <name> # 新建文章
 pnpm new-dynamic ... # 新建动态
@@ -187,9 +192,12 @@ pnpm new-dynamic ... # 新建动态
 构建注意事项：
 
 - `pnpm build` 会更新 `src/constants/lqips.json`；提交前检查差异是否来自本次资源变更。
+- `scripts/generate-vndb-covers.ts` 只在 VNDB 页面启用、模式为 `static`、配置了 `userId` 且开启封面下载时请求外部 API；未配置用户 ID 时会直接跳过。
+- `scripts/prune-pio-assets.ts` 在 Astro 构建后从 `dist/` 移除未启用的 Pio/Live2D 产物；不要手工修改其输出。
 - 字体子集脚本在 Astro 构建后扫描 `dist/**/*.html`，输出到 `dist/_astro/fonts`。
+- `scripts/minify-inline-scripts.ts` 会在字体处理后压缩 `dist/` 中的内联脚本。
 - Pagefind 只在完整构建后生成，因此开发服务器中的搜索可用性与生产预览不同。
-- anime、bangumi、OG 字体等流程可能在构建期访问外部服务；失败时先区分代码错误、缺少配置、网络问题和本地缓存回退。
+- anime、bangumi、VNDB、OG 字体等流程可能在构建期访问外部服务；失败时先区分代码错误、缺少配置、网络问题和本地缓存回退。
 - `public/anime-list.json` 是 anime 页的本地回退数据。
 - `scripts/quarantine-bad-posts.mjs` 会移动文件且不是常规构建步骤，未经明确要求不要运行。
 
