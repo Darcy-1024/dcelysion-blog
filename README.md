@@ -237,6 +237,12 @@ location: China # 位置
 动态内容可以使用 Markdown 语法。
 ```
 
+本地配图统一放在 `src/content/dynamic/images/`，并在动态正文中使用相对路径引用；构建时会自动生成可公开访问的资源地址：
+
+```markdown
+![图片说明](./images/example.avif)
+```
+
 也支持对接 [Memos](https://www.usememos.com/) 作为数据源，在 `src/config/dynamicConfig.ts` 中配置 `memos` 选项即可实时获取 Memos 动态，支持置顶同步和图片附件展示。详见[动态文档](https://docs-firefly.cuteleaf.cn/zh/guide/dynamic.html)。
 
 ## 🧩 Markdown 扩展语法

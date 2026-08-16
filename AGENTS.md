@@ -47,6 +47,7 @@ pnpm build
 | 路径 | 职责 | 修改提示 |
 | --- | --- | --- |
 | `src/` | 站点源代码和内容 | 绝大多数功能修改发生在这里 |
+| `.agents/skills/` | 仓库级 Codex 工作流 | 当前包含动态发布 Skill，修改后需运行对应校验器 |
 | `public/` | 原样复制并按根路径访问的静态资源 | 大型媒体、相册、Pio 模型、第三方脚本放在这里 |
 | `scripts/` | 内容脚手架和构建期生成脚本 | 注意脚本可能改写受版本控制的生成数据 |
 | `workers/` | 独立 Cloudflare Worker | 包含 Twikoo 反向代理与 Sites 静态资源入口，不属于 Astro 页面代码 |
@@ -211,6 +212,17 @@ pnpm new-dynamic ... # 新建动态
 2. 新字段先更新 schema 和数据类型，再更新消费组件。
 3. 检查列表卡片、文章详情、RSS、OG、搜索/API 是否也需要该字段。
 4. 本地图片变更后运行完整构建并检查 LQIP 差异。
+
+### 通过 Agent 发布动态
+
+优先使用仓库级 `$publish-dynamic` Skill（`.agents/skills/publish-dynamic/`）执行以下流程：
+
+1. 用户提供正文和可选附件即可；未指定时使用 `siteConfig.timezone` 下的当前时间生成文件名和 `published`，默认立即公开、不置顶且不填写位置。只有用户明确要求时才设置 `draft`、`pinned` 或 `location`。
+2. 保持用户给出的正文原意和措辞；润色、补充标签或添加表情必须由用户明确提出。
+3. 图片附件按用户指定顺序排列；未指定顺序时沿用附件顺序。需要转换的图片统一输出为 AVIF，使用语义清晰且不冲突的文件名，存放到 `src/content/dynamic/images/`，并在动态 Markdown 中通过 `./images/<file>.avif` 引用。
+4. 动态图片必须经过 `api/dynamic.json.ts` 的本地资源解析，构建后检查 API 返回的是可访问的 `/_astro/` 资源地址，并确认对应文件存在于 `dist/`。
+5. 新增或转换图片后运行完整 `pnpm build`，复查 `src/constants/lqips.json` 只包含预期变更，并保留用户提供的原始附件不动。
+6. 每次完成动态内容、图片处理和验证后，都要主动询问用户是否立即提交、推送并触发部署；在用户明确确认前，不执行相应的 Git 或线上部署操作。
 
 ### 新增普通页面
 

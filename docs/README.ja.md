@@ -238,6 +238,12 @@ location: China # 場所
 本文では Markdown を使用できます。
 ```
 
+ローカル画像は `src/content/dynamic/images/` に保存し、モーメント本文から相対パスで参照します。ビルド時に公開アクセス可能なアセット URL が自動生成されます：
+
+```markdown
+![画像の説明](./images/example.avif)
+```
+
 [Memos](https://www.usememos.com/) をデータソースとして接続することもできます。`src/config/dynamicConfig.ts` の `memos` オプションを設定すると、ピン留めの同期や画像添付ファイルの表示に対応したリアルタイムデータ取得が可能です。詳細は[モーメントドキュメント](https://docs-firefly.cuteleaf.cn/en/guide/dynamic.html)をご参照ください。
 
 ## 🧩 Markdown拡張

@@ -241,6 +241,12 @@ location: China # 位置
 動態內容支援 Markdown 語法。
 ```
 
+本機圖片統一存放在 `src/content/dynamic/images/`，並在動態正文中使用相對路徑引用；建置時會自動產生可公開存取的資源網址：
+
+```markdown
+![圖片說明](./images/example.avif)
+```
+
 也支援對接 [Memos](https://www.usememos.com/) 作為資料來源，在 `src/config/dynamicConfig.ts` 中設定 `memos` 選項即可即時取得 Memos 動態，支援置頂同步和圖片附件展示。詳見[動態檔案](https://docs-firefly.cuteleaf.cn/zh/guide/dynamic.html)。
 
 ## 🧩 Markdown 擴充語法

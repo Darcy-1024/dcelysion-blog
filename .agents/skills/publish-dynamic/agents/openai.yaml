@@ -1,0 +1,4 @@
+interface:
+  display_name: "发布动态"
+  short_description: "创建带附件的博客动态，转换图片、验证构建并确认是否推送部署"
+  default_prompt: "使用 $publish-dynamic 根据我的文字和附件发布一篇博客动态。"

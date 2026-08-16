@@ -238,6 +238,12 @@ location: China # Location
 Moment content supports Markdown.
 ```
 
+Store local images in `src/content/dynamic/images/` and reference them with relative paths in the moment body. The build automatically generates publicly accessible asset URLs:
+
+```markdown
+![Image description](./images/example.avif)
+```
+
 Also supports [Memos](https://www.usememos.com/) as a data source. Configure the `memos` option in `src/config/dynamicConfig.ts` to fetch Memos moments in real-time, with pinned sync and image attachment support. See [Moments documentation](https://docs-firefly.cuteleaf.cn/en/guide/dynamic.html).
 
 ## 📖 Markdown Extensions
