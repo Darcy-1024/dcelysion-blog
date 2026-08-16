@@ -1,10 +1,10 @@
-# Firefly 项目协作指南
+# DcElysion 项目协作指南
 
 本文件面向在本仓库中工作的 AI Agent 与开发者。它描述当前代码的真实结构、主要数据流和修改边界；动手前应先根据任务阅读对应模块，而不是只凭目录名推断实现。
 
 ## 1. 项目概览
 
-Firefly 是一个配置驱动的个人博客/内容站点，当前核心技术栈为：
+DcElysion 是一个配置驱动的个人博客/内容站点，当前核心技术栈为：
 
 - Astro 7：文件路由、内容集合、服务端/构建期渲染和页面外壳。
 - Svelte 5：搜索、显示设置、动态流、番剧与 VNDB 列表等需要持续状态的交互岛。
@@ -54,7 +54,7 @@ pnpm build
 | `docs/` | README 使用的说明图片和多语言文档 | 不参与站点运行时 |
 | `astro.config.mjs` | Astro 集成、Markdown 管线、Swup、字体、图片和 Vite 配置 | Markdown/构建行为的首要入口 |
 | `src/content.config.ts` | 内容集合与 frontmatter schema | 新增字段时必须先更新这里 |
-| `package.json` | 命令和依赖的事实来源 | 使用 `pnpm`，不要生成其他锁文件 |
+| `package.json` / `pnpm-workspace.yaml` | 命令、依赖、pnpm 版本与构建脚本许可的事实来源 | 使用 `pnpm`，不要生成其他锁文件 |
 | `biome.json` | 格式化和静态检查规则 | CSS 被排除，Astro/Svelte 有局部放宽 |
 | `tsconfig.json` | TypeScript 与路径别名 | 优先使用既有别名 |
 | `vercel.json` / `wrangler.jsonc` | 部署与响应头配置 | 不要把密钥写入仓库 |
@@ -132,6 +132,8 @@ pnpm build
 
 生产环境会过滤 `draft: true`，开发环境会显示草稿。文章排序为“置顶优先，再按发布时间倒序”。文章 ID/相对路径决定 URL；处理 URL 时使用 `url-utils.ts`，不要手工拼接 base path。
 
+同步上游时，上游新增、移动或更新的教学、指南和功能示例文章必须默认保持 `draft: true`；即使上游 frontmatter 未填写 `draft` 或设为 `false`，合并后也要改为草稿。只有用户明确要求公开时才能改为 `draft: false`。个人正式文章不属于此默认规则。
+
 内容资源的选择：
 
 - 与文章一起维护、需要 Astro 处理的图片可放在文章目录或 `src/assets/`。
@@ -175,7 +177,7 @@ pnpm build
 
 ## 7. 构建、生成文件与外部依赖
 
-只使用 `pnpm`；`preinstall` 会拒绝其他包管理器。
+只使用 pnpm 11（需要 Node.js 22 或更高版本）；`package.json` 固定具体 pnpm 版本，`pnpm-workspace.yaml` 固定本地 store 并显式许可依赖构建脚本，`preinstall` 会拒绝其他包管理器。
 
 ```bash
 pnpm dev             # Astro 开发服务器
@@ -259,6 +261,7 @@ pnpm new-dynamic ... # 新建动态
 重点检查范围：
 
 - `AGENTS.md`：项目架构、目录职责、路由、数据流、命令、生成文件、修改边界或协作规则发生变化时更新。
+- `CLAUDE.md`：项目概览、命令、架构摘要、代码风格、构建管线或用户偏好规则发生变化时更新；必须与 `AGENTS.md` 保持一致，不得相互矛盾。
 - `README.md` 与 `README.en.md`：面向使用者的功能、安装、配置、命令、部署方式或内容写法发生变化时同步更新；两种语言的事实信息应保持一致。
 - `docs/README.ja.md` 与 `docs/README.zh-TW.md`：对应的公共说明发生变化且这些译文包含该部分时同步维护。
 - `src/config/README.md`：新增、删除或重命名配置文件、配置项、开关和示例时更新。
@@ -271,7 +274,7 @@ pnpm new-dynamic ... # 新建动态
 2. 只同步与本次变更直接相关的内容，不借机大范围重写或翻译无关章节。
 3. 文档描述以当前代码、`package.json` 和配置类型为事实来源；删除已经失效的说明，不保留“将来会实现”的推测。
 4. 如果某份多语言文档无法可靠翻译，至少更新默认语言文档，并在交付说明中明确列出尚未同步的译文，不能静默遗漏。
-5. 纯内部重构且不改变结构、行为、接口或操作方式时，可以不改用户文档，但仍需检查 `AGENTS.md` 中的架构说明是否受影响。
+5. 纯内部重构且不改变结构、行为、接口或操作方式时，可以不改用户文档，但仍需检查 `AGENTS.md` 与 `CLAUDE.md` 中的架构说明是否受影响。
 6. 交付时说明同步修改了哪些文档；若判断无需修改，也应在内部完成文档影响检查。
 
 ## 10. 验证要求

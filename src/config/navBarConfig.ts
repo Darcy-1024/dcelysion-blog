@@ -59,6 +59,9 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		url: "#",
 		icon: "material-symbols:person",
 		children: [
+			// 关于页面
+			LinkPresets.About,
+
 			// VNDB
 			LinkPresets.VNDB,
 
@@ -81,9 +84,6 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		children: [
 			// 打赏
 			LinkPresets.Sponsor,
-
-			// 关于页面
-			LinkPresets.About,
 		],
 	});
 

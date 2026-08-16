@@ -4,24 +4,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Firefly is a feature-rich static blog theme built on **Astro 7** with **Svelte 5** for interactive components. It's a fork of [Fuwari](https://github.com/saicaca/fuwari) extended with extensive features. Primary language is Chinese (Simplified) with i18n for en, zh_TW, ja, ko, ru.
+DcElysion is a feature-rich static blog theme built on **Astro 7** with **Svelte 5** for interactive components. It's a fork of [Fuwari](https://github.com/saicaca/fuwari) extended with extensive features. Primary language is Chinese (Simplified) with i18n for en, zh_TW, ja, ko, ru.
+
+For detailed architecture, module boundaries, agent workflows, and verification rules, see `AGENTS.md` — it is the more detailed companion guide. Keep the two files in sync.
 
 ## Commands
 
 | Command | Purpose |
 |---|---|
 | `pnpm dev` | Dev server at `localhost:4321` |
-| `pnpm build` | Production build (LQIPs → VNDB covers → Astro build → pio asset pruning → font subsetting → Pagefind indexing) |
+| `pnpm build` | Production build (LQIPs → VNDB covers → Astro build → pio asset pruning → font subsetting → inline script minification → Pagefind indexing → Sites entry generation) |
 | `pnpm preview` | Preview production build |
 | `pnpm check` | `astro check` for type/error checking |
 | `pnpm type-check` | `tsc --noEmit --isolatedDeclarations` (covers `src/` and `scripts/`) |
-| `pnpm lint` | Biome lint + auto-fix |
-| `pnpm format` | Biome format |
+| `pnpm lint` | Biome check + auto-fix (`--write` over `src/` and `scripts/`) |
+| `pnpm format` | Biome format (`--write` over `src/` and `scripts/`) |
 | `pnpm new-post <filename>` | Scaffold a new blog post |
 | `pnpm new-dynamic` (`new-d`) | Scaffold a new dynamic (microblog) entry |
 | `pnpm lqips` | Regenerate LQIP data into `src/constants/lqips.json` |
 
-Package manager is **pnpm** (enforced). Node.js >= 22 required.
+Package manager is **pnpm 11** (enforced and pinned in `package.json`); Node.js >= 22 is required. `pnpm-workspace.yaml` pins the local store and explicitly allows required dependency build scripts.
 
 ## Architecture
 
@@ -48,8 +50,8 @@ All features are toggled/configured via TypeScript files in `src/config/`, expor
 
 Defined in `src/content.config.ts`:
 - `posts` — blog posts (`.md`/`.mdx`) with frontmatter: title, published, tags, category, draft, pinned, password, comment, etc.
-- `spec` — special pages (about, guestbook)
-- `dynamic` — microblog entries (`.md`) with frontmatter: published, pinned, location
+- `spec` — special pages (about, friends, guestbook)
+- `dynamic` — microblog entries (`.md`) with frontmatter: published, draft, pinned, location
 
 ### Key Directories
 
@@ -58,7 +60,7 @@ Defined in `src/content.config.ts`:
 - `src/i18n/` — translation keys in `i18nKey.ts`, language files in `languages/*.ts`, lookup via `translation.ts`
 - `src/utils/` — content sorting, crypto (encrypted posts), date formatting, image processing/LQIP, TOC generation
 - `src/pages/` — Astro file-based routing
-- `scripts/` — build-time utilities (`generate-lqips.ts`, `generate-vndb-covers.ts`, `subset-fonts.ts`, `new-post.js`, `new-dynamic.js`)
+- `scripts/` — build-time utilities (`generate-lqips.ts`, `generate-vndb-covers.ts`, `prune-pio-assets.ts`, `subset-fonts.ts`, `minify-inline-scripts.ts`, `prepare-sites-dist.ts`, `new-post.js`, `new-dynamic.js`)
 
 ### Path Aliases (tsconfig.json)
 
@@ -68,13 +70,22 @@ Defined in `src/content.config.ts`:
 
 - **Biome** enforces: tab indentation, double quotes, recommended lint rules
 - Relaxed rules for `.svelte`/`.astro`/`.vue` files (`useConst`, `useImportType`, `noUnusedVariables`, `noUnusedImports` off)
-- `pnpm lint`/`pnpm format` only target `./src` — `scripts/` is type-checked (tsconfig `include`) but not linted, and currently has pre-existing Biome findings
+- `pnpm lint`/`pnpm format` run `biome check --write` / `biome format --write` over both `./src` and `./scripts`; for a scoped, read-only check prefer `pnpm exec biome check <file>` instead of rewriting unrelated files
 - `scripts/subset-font.d.ts` is a hand-written ambient declaration for the untyped `subset-font` package
 - Commit convention: **Conventional Commits** (`feat:`, `fix:`, `chore:`, etc.)
 
+## User Preferences & Working Rules
+
+- **Upstream sync defaults**: when syncing from upstream, any new, moved, or updated tutorial/guide/feature-demo posts must keep `draft: true` — even if upstream frontmatter omits `draft` or sets it to `false`. Make them public only when the user explicitly asks. The user's own posts are exempt.
+- **Publishing dynamics (动态)**: prefer the repo-level `$publish-dynamic` skill (`.agents/skills/publish-dynamic/`). Preserve the user's wording exactly — no rewording, added emoji, or extra tags unless explicitly requested. Default to public, unpinned, no location; set `draft`/`pinned`/`location` only when asked.
+- **Ask before committing/deploying**: after finishing work (e.g. publishing a dynamic), ask the user whether to commit, push, and deploy. Do not run Git or deployment actions until the user confirms.
+- **Proactive doc sync**: when code, config, structure, or workflows change, update drifted docs (AGENTS.md, READMEs, `docs/` translations, `src/config/README.md`, `src/components/README.md`) in the same task without being reminded. If a translation can't be reliably updated, update the default-language doc and report which translations lag.
+- **Minimal footprint**: run `git status --short` first and preserve existing user changes; only touch task-related files and avoid repo-wide reformatting. Never run `scripts/quarantine-bad-posts.mjs` unless explicitly asked.
+- **Delivery notes**: report changed files, doc-sync status, behavior changes, verification results, and any untested areas. PRs stay single-purpose and include summary, verification commands, and known limitations; visual changes include desktop and mobile screenshots.
+
 ## Build Pipeline
 
-Multi-step: `scripts/generate-lqips.ts` → `scripts/generate-vndb-covers.ts` → `astro build` → `scripts/prune-pio-assets.ts` → `scripts/subset-fonts.ts` → `scripts/minify-inline-scripts.ts` → `pagefind --site dist`
+Multi-step: `scripts/generate-lqips.ts` → `scripts/generate-vndb-covers.ts` → `astro build` → `scripts/prune-pio-assets.ts` → `scripts/subset-fonts.ts` → `scripts/minify-inline-scripts.ts` → `pagefind --site dist` → `scripts/prepare-sites-dist.ts`
 
 LQIP data is generated into `src/constants/lqips.json` and committed — regenerate with `pnpm lqips`. Icon data lives in `src/constants/icons-data.json` (committed, Biome-ignored, consumed by `src/components/common/Icon.svelte`) but has no generator script in the current build.
 
@@ -82,9 +93,10 @@ LQIP data is generated into `src/constants/lqips.json` and committed — regener
 
 `prune-pio-assets.ts` deletes unused 看板娘 assets from `dist/` after the Astro build (Astro copies all of `public/` regardless of config). It drops `dist/pio/models/live2d` plus the orphaned `Live2DWidget` client chunk when `live2dWidgetConfig.enable` is false, `dist/pio/models/spine` and `dist/pio/static` when `spineModelConfig.enable` is false, and all of `dist/pio` when both are off (~15 MiB). It no-ops when both are enabled.
 
+`prepare-sites-dist.ts` runs last and generates `dist/server/index.js`, the entry for OpenAI Sites to serve the static output via an `ASSETS` binding.
+
 ## Deployment
 
 - **Vercel** (default, `vercel.json`)
 - **Cloudflare Workers** (`wrangler.jsonc`, set `CF_WORKERS` env var)
 - Static output to `dist/`
-
