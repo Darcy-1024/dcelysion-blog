@@ -23,6 +23,7 @@ export const galleryConfig: GalleryConfig = {
 			date: "2026-07-09",
 			tags: ["插画", "壁纸", "合集"],
 		},
+		/*
 		{
 			id: "encrypted-test",
 			name: "加密相册示例",
@@ -34,6 +35,7 @@ export const galleryConfig: GalleryConfig = {
 			password: "123456",
 			passwordHint: "示例密码123456",
 		},
+		*/
 	],
 
 	// 瀑布流最小列宽(px)，浏览器根据容器宽度自动计算列数，默认 240
