@@ -28,7 +28,7 @@
 
 ---
 📖 README：
-**[简体中文](README.md)** | **[繁體中文](docs/README.zh-TW.md)** | **[English](README.en.md)** | **[日本語](docs/README.ja.md)** 
+**[简体中文](README.md)** | **[繁體中文](docs/README.zh-TW.md)** | **[English](README.en.md)** | **[日本語](docs/README.ja.md)** | **[한국어](docs/README.ko.md)**
 
 🚀 快速指南：
 [**🖥️在线预览**](https://firefly.cuteleaf.cn/) /
@@ -51,7 +51,7 @@
     </td>
   </tr>
   <tr>
-    <td align="center"><img src="./docs/images/3.webp" width="300"><br>透明模式</td>
+    <td align="center"><img src="./docs/images/3.webp" width="300"><br>透明覆盖模式</td>
     <td align="center"><img src="./docs/images/2.webp" width="300"><br>全屏壁纸模式</td>
     <td align="center"><img src="./docs/images/4.webp" width="300"><br>纯色模式</td>
   </tr>
@@ -235,12 +235,6 @@ location: China # 位置
 ---
 
 动态内容可以使用 Markdown 语法。
-```
-
-本地配图统一放在 `src/content/dynamic/images/`，并在动态正文中使用相对路径引用；构建时会自动生成可公开访问的资源地址：
-
-```markdown
-![图片说明](./images/example.avif)
 ```
 
 也支持对接 [Memos](https://www.usememos.com/) 作为数据源，在 `src/config/dynamicConfig.ts` 中配置 `memos` 选项即可实时获取 Memos 动态，支持置顶同步和图片附件展示。详见[动态文档](https://docs-firefly.cuteleaf.cn/zh/guide/dynamic.html)。

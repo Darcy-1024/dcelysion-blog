@@ -1,7 +1,10 @@
 <script lang="ts">
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+import type { NsfwMode } from "@/types/nsfw";
 import type { VndbUlistEntry } from "@/types/vndb";
+import { getFailedCovers, markCoverFailed } from "@/utils/failed-covers";
+import { isVndbNsfw } from "@/utils/nsfw-utils";
 import {
 	formatVndbLength,
 	getVndbStatusText,
@@ -12,14 +15,14 @@ interface Props {
 	item: VndbUlistEntry;
 	loadImage?: boolean;
 	vnBaseUrl?: string;
-	blurNsfw: boolean;
+	nsfw?: NsfwMode; // NSFW 处理："off" | "blur" | "hide"
 }
 
 const {
 	item,
 	loadImage = false,
 	vnBaseUrl = "https://vndb.org/",
-	blurNsfw,
+	nsfw = "off",
 }: Props = $props();
 
 const STATUS_COLORS: Record<string, string> = {
@@ -58,10 +61,7 @@ const year = $derived(
 const imageUrl = $derived(
 	item.vn?.image?.url || item.vn?.image?.thumbnail || "",
 );
-const imageNsfw = $derived(
-	((item.vn?.image?.sexual ?? 0) > 1 || (item.vn?.image?.violence ?? 0) > 1) &&
-		blurNsfw,
-);
+const imageNsfw = $derived(nsfw === "blur" && isVndbNsfw(item));
 const userVote = $derived(item.vote);
 const rating = $derived(item.vn?.rating);
 const voteCount = $derived(item.vn?.votecount);
@@ -94,32 +94,13 @@ const playRange = $derived(
 	[item.started, item.finished].filter(Boolean).join(" ~ "),
 );
 const tags = $derived((item.vn?.tags || []).map((tag) => tag.name));
-const visibleTags = $derived(tags.slice(0, 3));
+const visibleTags = $derived(tags.slice(0, 2));
 const hiddenTagCount = $derived(
 	Math.max((item.vn?.tagCount ?? tags.length) - visibleTags.length, 0),
 );
 const link = $derived(`${vnBaseUrl}${item.vn?.id || item.id}`);
 
 const FAILED_COVERS_KEY = "vndb-failed-covers";
-
-function getFailedCovers(): Set<string> {
-	try {
-		return new Set(JSON.parse(localStorage.getItem(FAILED_COVERS_KEY) || "[]"));
-	} catch {
-		return new Set();
-	}
-}
-
-function markCoverFailed(url: string) {
-	try {
-		const failed = getFailedCovers();
-		failed.add(url);
-		const arr = [...failed];
-		localStorage.setItem(FAILED_COVERS_KEY, JSON.stringify(arr.slice(-200)));
-	} catch {
-		// localStorage 不可用时静默忽略
-	}
-}
 
 const srcs = $derived(imageUrl ? [imageUrl] : []);
 let initialSrc = $state("");
@@ -128,7 +109,7 @@ $effect(() => {
 	const sources = srcs;
 	initialSrc = sources[0] || "";
 	if (typeof window === "undefined" || sources.length === 0) return;
-	const failed = getFailedCovers();
+	const failed = getFailedCovers(FAILED_COVERS_KEY);
 	const firstGood = sources.find((url) => !failed.has(url));
 	if (firstGood) initialSrc = firstGood;
 });
@@ -142,7 +123,7 @@ function handleLoad(e: Event) {
 
 function handleError(e: Event) {
 	const img = e.currentTarget as HTMLImageElement;
-	markCoverFailed(img.src);
+	markCoverFailed(img.src, FAILED_COVERS_KEY);
 	img.style.display = "none";
 }
 </script>

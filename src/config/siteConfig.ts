@@ -1,8 +1,42 @@
 import type { SiteConfig } from "@/types/siteConfig";
+import { resolvePageToggles } from "../utils/page-toggle-utils";
+import { resolveSiteLang } from "../utils/site-config-utils";
 
 // 定义站点语言
 // 语言代码，例如：'zh_CN', 'zh_TW', 'en', 'ja', 'ru', 'ko'。
-const SITE_LANG = "zh_CN";
+const SITE_LANG = resolveSiteLang("zh_CN");
+
+// 页面开关配置 - 控制特定页面的访问权限，设为false会返回404并自动隐藏对应的导航栏菜单项
+const pages = resolvePageToggles({
+	// ── 社交 (Social) ──────────────────────────────────
+
+	// 友链页面开关
+	friends: false,
+	// 留言板页面开关，需要配置评论系统
+	guestbook: true,
+
+	// ── 我的 (My) ──────────────────────────────────
+
+	// 动态页面开关
+	dynamic: true,
+	// 相册页面开关
+	gallery: true,
+	// 书签导航页面开关
+	booknav: false,
+	// 哔哩哔哩追番页面开关
+	bilibili: false,
+	// 番组计划页面开关
+	bangumi: true,
+	// VNDB页面开关
+	vndb: true,
+	// MyAnimeList页面开关
+	mal: false,
+
+	// ── 关于 (About) ──────────────────────────────────
+
+	// 打赏页面开关
+	sponsor: false,
+});
 
 export const siteConfig: SiteConfig = {
 	// 站点标题
@@ -15,8 +49,7 @@ export const siteConfig: SiteConfig = {
 	site_url: "https://blog.dcelysion.cn/",
 
 	// 站点描述
-	description:
-		"God’s in his heaven，All’s right with the world",
+	description: "God’s in his heaven，All’s right with the world",
 
 	// 站点关键词
 	keywords: [
@@ -101,26 +134,6 @@ export const siteConfig: SiteConfig = {
 	timezone: "Asia/Shanghai",
 
 	// 页面开关配置 - 控制特定页面的访问权限，设为false会返回404并自动隐藏对应的导航栏菜单项
-	pages: {
-		// 友链页面开关
-		friends: false,
-		// 打赏页面开关
-		sponsor: false,
-		// 留言板页面开关，需要配置评论系统
-		guestbook: true,
-		// 番组计划页面开关，含追番、游戏、书籍和音乐
-		bangumi: true,
-		// VNDB页面开关。
-		vndb: true,
-		// 相册页面开关
-		gallery: true,
-		// 追番页面开关
-		anime: false,
-		// 动态页面开关
-		dynamic: true,
-		// 书签导航页面开关
-		booknav: false,
-	},
 
 	// 分类导航栏开关，在首页和归档页顶部显示分类快捷导航
 	categoryBar: true,
@@ -131,14 +144,15 @@ export const siteConfig: SiteConfig = {
 	categoryStyle: "rectangle",
 
 	// 标签样式，作用于文章列表底部标签、标签页和侧边栏标签
-	// "pill"：胶囊，中性灰底圆角
+	// "pill"：胶囊，主题色底圆角
+	// "pill-gray"：胶囊，中性灰底圆角
 	// "rectangle"：矩形，主题色底小圆角
 	tagStyle: "pill",
 
 	// 归档页是否折叠非最新年份文章，禁用后默认展开全部年份
 	foldArticle: true,
 
-	// 文章列表布局配置
+	// ── 文章列表布局配置 ──────────────────────────────────
 	postListLayout: {
 		// 默认布局模式："list" 列表模式（单列布局），"grid" 网格模式（多列布局）
 		defaultMode: "list",
@@ -197,7 +211,13 @@ export const siteConfig: SiteConfig = {
 		},
 	},
 
-	// 文章内容页配置
+	// 分页配置
+	pagination: {
+		// 每页显示的文章数量
+		postsPerPage: 10,
+	},
+
+	// ── 文章内容页配置 ──────────────────────────────────
 	post: {
 		// 提醒框（Admonitions）配置，修改后需要重启开发服务器才能生效
 		// 主题：'github' | 'obsidian' | 'vitepress' | 'docusaurus'，每个主题风格和语法不同，可根据喜好选择
@@ -217,7 +237,13 @@ export const siteConfig: SiteConfig = {
 		generateOgImages: false,
 	},
 
-	// bangumi配置
+	// ── Bilibili配置 ──────────────────────────────────
+	bilibili: {
+		// 你的 Bilibili 用户 UID
+		uid: "83533320",
+	},
+
+	// ── 番组计划bangumi配置 ──────────────────────────────────
 	bangumi: {
 		// Bangumi用户ID
 		userId: "1243561",
@@ -226,9 +252,9 @@ export const siteConfig: SiteConfig = {
 		// dynamic 模式在浏览器中实时请求 API，始终显示最新数据
 		mode: "dynamic",
 		// Bangumi API 地址
-		apiUrl: "https://bgmapi.anibt.net",
+		apiUrl: "https://api.bangumi.pro",
 		// 详情页地址
-		subjectBaseUrl: "https://bgmmi.anibt.net/subject/",
+		subjectBaseUrl: "https://api.bangumi.pro/subject/",
 		// 条目类型排序，数组中的类型将按顺序优先展示
 		// 可选值: "anime" | "book" | "music" | "game" | "real" (暂不支持"real"类型)
 		// 未列出的类型将按默认顺序排在后面
@@ -237,9 +263,11 @@ export const siteConfig: SiteConfig = {
 		// categories: {
 		// 	game: false, // 禁用游戏分类显示
 		// },
+		// NSFW 处理："off" 不过滤 | "blur" 仅模糊封面 | "hide" 隐藏条目
+		nsfw: "hide",
 	},
 
-	// VNDB 配置
+	// ── VNDB配置 ──────────────────────────────────
 	vndb: {
 		// VNDB 用户 ID
 		userId: "u358145",
@@ -255,33 +283,27 @@ export const siteConfig: SiteConfig = {
 		vnBaseUrl: "https://vndb.org/",
 		// 私密列表访问令牌，仅 static 模式下使用；不要把真实令牌提交到公开仓库！
 		apiToken: "",
-		// 对Nsfw的游戏封面模糊化
-		blurNsfw: true,
+		// NSFW 处理："off" 不过滤 | "blur" 仅模糊封面 | "hide" 隐藏条目
+		nsfw: "hide",
 	},
 
-	// 追番配置（Bilibili + TMDB）
-	anime: {
-		// Bilibili 配置
-		bilibili: {
-			// 你的 Bilibili 用户 UID
-			uid: "83533320",
-		},
-		// TMDB 配置（可选，需要翻墙）
-		// tmdb: {
-		//   // TMDB API 密钥
-		//   apiKey: "your_tmdb_api_key",
-		//   // TMDB 列表 ID
-		//   listId: "your_list_id",
-		// },
+	// ── MyAnimeList配置 ──────────────────────────────────
+	mal: {
+		// MyAnimeList 用户名（列表需为公开状态，私密列表无法读取）
+		username: "",
+		// MyAnimeList Client ID，在 https://myanimelist.net/apiconfig 注册免费应用后获取
+		clientId: "",
+		// MAL API 地址
+		apiUrl: "https://api.myanimelist.net/v2",
+		// 动画条目详情页地址，末尾需要带 /
+		animeBaseUrl: "https://myanimelist.net/anime/",
+		// 漫画条目详情页地址，末尾需要带 /
+		mangaBaseUrl: "https://myanimelist.net/manga/",
+		// NSFW 处理："off" 不过滤 | "blur" 仅模糊封面 | "hide" 隐藏条目
+		nsfw: "hide",
 	},
 
-	// 分页配置
-	pagination: {
-		// 每页显示的文章数量
-		postsPerPage: 10,
-	},
-
-	// 图像优化及响应式配置
+	// ── 图像优化配置 ──────────────────────────────────
 	// 图像优化压缩只保留avif或webp
 	// 响应式图像是为在不同设备上提高性能而调整的图像。这些图像可以调整大小以适应其容器，并且可以根据访问者的屏幕尺寸和分辨率以不同的大小提供。
 	// Astro 仅能对 src 目录下的图像进行优化，src 目录下的图像越多，构建时间会越长
@@ -297,9 +319,17 @@ export const siteConfig: SiteConfig = {
 		// 为特定域名的图片添加 referrerpolicy="no-referrer" 属性
 		// 支持通配符 *，例如：["i0.hdslb.com", "*.bilibili.com"]
 		// 可解决指定域名图片加载时的 403 问题（如防盗链图片）
-		noReferrerDomains: ["*.hdslb.com", "*.bilibili.com"],
+		noReferrerDomains: [
+			"*.hdslb.com",
+			"*.bilibili.com",
+			"*.myanimelist.net",
+			"*.vndb.org",
+		],
 	},
 
 	// 站点语言，在本配置文件顶部SITE_LANG定义
 	lang: SITE_LANG,
+
+	// 页面开关配置，在本配置文件顶部pages定义
+	pages,
 };

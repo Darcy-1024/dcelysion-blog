@@ -1,15 +1,18 @@
 <script lang="ts">
 import { onMount } from "svelte";
+import GridSkeleton from "@/components/common/GridSkeleton.svelte";
+import TabNav from "@/components/common/TabNav.svelte";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
+import type { NsfwMode } from "@/types/nsfw";
 import type { VndbUlistEntry } from "@/types/vndb";
+import { isVndbNsfw } from "@/utils/nsfw-utils";
 import {
 	buildVndbTabs,
 	fetchVndbUlist,
 	getVndbItemsForTab,
 	type VndbTab,
 } from "@/utils/vndb-utils";
-import TabNav from "./TabNav.svelte";
 import VndbSection from "./VndbSection.svelte";
 
 interface Props {
@@ -17,14 +20,14 @@ interface Props {
 	initialActiveTab?: string;
 	vndbData?: Record<string, VndbUlistEntry[]>;
 	vnBaseUrl?: string;
-	blurNsfw?: boolean;
+	nsfw?: NsfwMode; // NSFW 处理："off" | "blur" | "hide"
 	fetchConfig?: {
 		userId: string;
 		apiUrl: string;
 		apiToken?: string;
 		vnBaseUrl: string;
 		pagination: { limit: number; delay: number; maxTotal: number };
-		blurNsfw: boolean;
+		nsfw?: NsfwMode;
 	};
 }
 
@@ -34,8 +37,10 @@ const {
 	vndbData: staticData,
 	vnBaseUrl,
 	fetchConfig,
-	blurNsfw,
+	nsfw,
 }: Props = $props();
+
+const nsfwMode = $derived(nsfw ?? fetchConfig?.nsfw ?? "off");
 
 const isDynamic = $derived(!!fetchConfig);
 
@@ -68,7 +73,7 @@ async function loadDynamicData() {
 	if (!fetchConfig) return;
 	const { userId, apiUrl, apiToken, pagination } = fetchConfig;
 	const { limit, delay, maxTotal } = pagination;
-	const allItems: VndbUlistEntry[] = [];
+	let allItems: VndbUlistEntry[] = [];
 	let page = 1;
 
 	try {
@@ -88,6 +93,11 @@ async function loadDynamicData() {
 			await new Promise((resolve) => setTimeout(resolve, delay));
 		}
 
+		// NSFW 拦截：hide 模式下过滤掉 NSFW 条目，保持标签页计数一致
+		if (nsfwMode === "hide") {
+			allItems = allItems.filter((item) => !isVndbNsfw(item));
+		}
+
 		if (allItems.length === 0) {
 			fetchLoading = false;
 			error = true;
@@ -103,7 +113,7 @@ async function loadDynamicData() {
 		activeTab = newTabs[0]?.id || "all";
 		fetchLoading = false;
 	} catch (e) {
-		console.error("[VNDB] 获取数据失败:", e);
+		console.error("[VNDB] Failed to fetch data:", e);
 		fetchLoading = false;
 		error = true;
 		errorTitle = i18n(I18nKey.vndbFetchError);
@@ -119,30 +129,7 @@ onMount(async () => {
 </script>
 
 {#if isDynamic && fetchLoading}
-  <div class="border-b border-(--line-divider) mb-3">
-    <div class="flex min-w-max space-x-8">
-      {#each [1, 2, 3, 4] as _}
-        <div class="h-10 w-20 bg-(--btn-regular-bg) rounded animate-pulse"></div>
-      {/each}
-    </div>
-  </div>
-  <div class="flex flex-wrap gap-1.5 mb-4">
-    {#each [1, 2, 3, 4] as _}
-      <div class="h-7 w-16 bg-(--btn-regular-bg) rounded-full animate-pulse"></div>
-    {/each}
-  </div>
-  <div class="bangumi-masonry grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3">
-    {#each [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12] as _}
-      <div class="rounded-xl overflow-hidden">
-        <div class="aspect-2/3 bg-(--btn-regular-bg) animate-pulse"></div>
-      </div>
-    {/each}
-  </div>
-  <div class="mt-6 flex items-center justify-center gap-3">
-    <div class="w-11 h-11 bg-(--btn-regular-bg) rounded-lg animate-pulse"></div>
-    <div class="w-16 h-8 bg-(--btn-regular-bg) rounded animate-pulse"></div>
-    <div class="w-11 h-11 bg-(--btn-regular-bg) rounded-lg animate-pulse"></div>
-  </div>
+  <GridSkeleton />
 {:else if isDynamic && error}
   <div class="text-center py-16">
     <div class="inline-flex items-center justify-center w-16 h-16 bg-(--btn-regular-bg) rounded-full mb-6 border border-(--line-divider)">
@@ -161,7 +148,7 @@ onMount(async () => {
       isActive={tab.id === activeTab}
       itemsPerPage={24}
       {vnBaseUrl}
-	  blurNsfw={blurNsfw ?? fetchConfig?.blurNsfw ?? true}
+	  nsfw={nsfwMode}
     />
   {/each}
 {/if}

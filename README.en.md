@@ -27,7 +27,7 @@
 
 ---
 📖 README:
-**[简体中文](README.md)** | **[繁體中文](docs/README.zh-TW.md)** | **[English](README.en.md)** | **[日本語](docs/README.ja.md)**
+**[简体中文](README.md)** | **[繁體中文](docs/README.zh-TW.md)** | **[English](README.en.md)** | **[日本語](docs/README.ja.md)** | **[한국어](docs/README.ko.md)**
 
 🚀 Quick Guide:
 [**🖥️Live Demo**](https://firefly.cuteleaf.cn/) /
@@ -236,12 +236,6 @@ location: China # Location
 ---
 
 Moment content supports Markdown.
-```
-
-Store local images in `src/content/dynamic/images/` and reference them with relative paths in the moment body. The build automatically generates publicly accessible asset URLs:
-
-```markdown
-![Image description](./images/example.avif)
 ```
 
 Also supports [Memos](https://www.usememos.com/) as a data source. Configure the `memos` option in `src/config/dynamicConfig.ts` to fetch Memos moments in real-time, with pinned sync and image attachment support. See [Moments documentation](https://docs-firefly.cuteleaf.cn/en/guide/dynamic.html).

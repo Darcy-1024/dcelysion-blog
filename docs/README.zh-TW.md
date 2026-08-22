@@ -28,7 +28,7 @@
 
 ---
 📖 README：
-**[简体中文](../README.md)** | **[繁體中文](README.zh-TW.md)** | **[English](../README.en.md)** | **[日本語](README.ja.md)** 
+**[简体中文](../README.md)** | **[繁體中文](README.zh-TW.md)** | **[English](../README.en.md)** | **[日本語](README.ja.md)** | **[한국어](README.ko.md)**
 
 🚀 快速指南：
 [**🖥️線上預覽**](https://firefly.cuteleaf.cn/) /
@@ -51,7 +51,7 @@
     </td>
   </tr>
   <tr>
-    <td align="center"><img src="./images/3.webp" width="300"><br>透明模式</td>
+    <td align="center"><img src="./images/3.webp" width="300"><br>透明覆蓋模式</td>
     <td align="center"><img src="./images/2.webp" width="300"><br>全螢幕桌布模式</td>
     <td align="center"><img src="./images/4.webp" width="300"><br>純色模式</td>
   </tr>
@@ -239,12 +239,6 @@ location: China # 位置
 ---
 
 動態內容支援 Markdown 語法。
-```
-
-本機圖片統一存放在 `src/content/dynamic/images/`，並在動態正文中使用相對路徑引用；建置時會自動產生可公開存取的資源網址：
-
-```markdown
-![圖片說明](./images/example.avif)
 ```
 
 也支援對接 [Memos](https://www.usememos.com/) 作為資料來源，在 `src/config/dynamicConfig.ts` 中設定 `memos` 選項即可即時取得 Memos 動態，支援置頂同步和圖片附件展示。詳見[動態檔案](https://docs-firefly.cuteleaf.cn/zh/guide/dynamic.html)。

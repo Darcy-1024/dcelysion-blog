@@ -33,6 +33,7 @@ Markdown/MDX
   -> Markdown.astro / 文章页呈现
 
 pnpm build
+  -> 生成 GitHub 卡片缓存数据
   -> 生成 LQIP 数据
   -> 按配置生成 VNDB 封面缓存
   -> Astro 构建
@@ -78,7 +79,7 @@ pnpm build
 | `dynamic/index.astro` | 动态流页面；数据来自本地 JSON API、外部 API 或 Memos |
 | `dynamic/comments.astro` | 动态内嵌评论 iframe 页面及跨窗口主题/高度通信 |
 | `gallery/index.astro`, `gallery/[album].astro` | 配置驱动的相册列表和相册详情 |
-| `anime.astro`, `bangumi.astro` | 构建期或客户端获取第三方收藏数据并挂载 Svelte 列表 |
+| `bilibili.astro`, `bangumi.astro`, `myanimelist.astro` | 获取哔哩哔哩、Bangumi 或 MyAnimeList 收藏数据并挂载 Svelte 列表 |
 | `vndb.astro` | 按 static/dynamic 模式展示 VNDB 收藏；静态模式可在构建期下载封面 |
 | `booknav.astro` | 从 `booknavConfig` 生成书签导航页 |
 | `rss.astro`, `rss.xml.ts` | RSS 说明页与经过渲染/清理的订阅源 |
@@ -87,7 +88,7 @@ pnpm build
 | `api/dynamic.json.ts` | 将本地 `dynamic` 集合转换为前端消费的 JSON，并解析动态正文中的本地图片 |
 | `robots.txt.ts`, `404.astro` | 爬虫规则与错误页 |
 
-`siteConfig.pages` 控制 friends、sponsor、guestbook、bangumi、vndb、gallery、anime、dynamic、booknav 等页面是否开放。关闭的页面会通过各路由守卫重定向到 `/404/`，导航栏按 `pageKey` 过滤链接；sitemap 在 `astro.config.mjs` 中另行维护过滤规则。新增或调整页面开关时，必须逐项核对页面守卫、导航 `pageKey`、页面子路由和 sitemap 过滤，不能假定这些入口会自动保持一致。
+`siteConfig.pages` 控制 friends、sponsor、guestbook、bilibili、bangumi、vndb、mal、gallery、dynamic、booknav 等页面是否开放。关闭的页面会通过各路由守卫重定向到 `/404/`，导航栏按 `pageKey` 过滤链接；sitemap 在 `astro.config.mjs` 中另行维护过滤规则。新增或调整页面开关时，必须逐项核对页面守卫、导航 `pageKey`、页面子路由和 sitemap 过滤，不能假定这些入口会自动保持一致。
 
 ### `src/layouts/`：页面骨架
 
@@ -103,7 +104,7 @@ pnpm build
 - `controls/`：搜索、主题/显示设置、返回顶部、悬浮目录等用户控制。
 - `features/`：加密内容、Fancybox、KaTeX、字体、音乐、壁纸播放器、樱花、Live2D/Spine 等跨页面能力。
 - `widget/`：由侧边栏配置选择和排序的资料、公告、日历、分类、标签、动态、音乐、统计、广告组件。
-- `pages/`：只服务某个页面的组件；复杂页面按 `anime/`、`bangumi/`、`dynamic/`、`gallery/`、`vndb/` 再分组。
+- `pages/`：只服务某个页面的组件；复杂页面按 `bilibili/`、`bangumi/`、`mal/`、`dynamic/`、`gallery/`、`vndb/` 再分组。
 - `comment/`：评论选择器与 Artalk、Disqus、Giscus、Twikoo、Waline 适配。
 - `analytics/`：Google Analytics、Microsoft Clarity、Umami、51la 接入。
 - `misc/`：许可证、相关文章和分享海报等辅助功能。
@@ -112,7 +113,7 @@ pnpm build
 
 ### `src/config/` 与 `src/types/`：配置驱动层
 
-`src/config/index.ts` 是统一出口，业务代码优先从 `@/config` 导入。主要配置包括站点、导航、侧边栏、背景、评论、分析、字体、代码块、图表、音乐、动态、相册、书签导航、VNDB、友链、赞助和看板娘。
+`src/config/index.ts` 是统一出口，业务代码优先从 `@/config` 导入。主要配置包括站点、导航、侧边栏、背景、评论、分析、字体、代码块、图表、音乐、动态、相册、书签导航、Bilibili、Bangumi、MyAnimeList、VNDB、友链、赞助和看板娘。
 
 规则：
 
@@ -148,7 +149,7 @@ pnpm build
 
 ### 其他源码目录
 
-- `src/utils/`：无 UI 的共享逻辑。重点包括内容查询/推荐、日期、URL、图片/LQIP、布局响应式、导航、设置持久化、目录、动态/Memos、书签导航、VNDB 和加密。
+- `src/utils/`：无 UI 的共享逻辑。重点包括内容查询/推荐、日期、URL、图片/LQIP、布局响应式、导航、设置持久化、目录、动态/Memos、书签导航、Bilibili、MyAnimeList、VNDB、NSFW 处理、GitHub 卡片和加密。
 - `src/styles/`：`main.css` 是全局入口，继续导入布局及功能 CSS；`variables.styl` 管主题变量，`markdown-extend.styl` 管正文扩展样式。
 - `src/i18n/`：`i18nKey.ts` 定义键，`languages/*.ts` 提供语言字典，`translation.ts` 负责查找。新增用户可见文本时应补齐所有语言或提供明确回退。
 - `src/constants/`：站点常量、图标数据和 LQIP 映射。`icons-data.json`、`lqips.json` 是生成数据，不要无理由手改。
@@ -186,7 +187,8 @@ pnpm type-check      # TypeScript --noEmit --isolatedDeclarations
 pnpm format          # Biome 格式化并写入 src 与 scripts
 pnpm lint            # Biome 检查、格式化并写入 src 与 scripts
 pnpm lqips           # 重新生成 src/constants/lqips.json
-pnpm build           # LQIP -> VNDB 封面 -> Astro -> Pio 裁剪 -> 字体 -> 内联脚本压缩 -> Pagefind -> Sites 入口
+pnpm github-cards    # 重新生成 src/constants/github-card-data.json
+pnpm build           # GitHub 卡片 -> LQIP -> VNDB 封面 -> Astro -> Pio 裁剪 -> 字体 -> 内联脚本压缩 -> Pagefind -> Sites 入口
 pnpm preview         # 预览 dist
 pnpm new-post <name> # 新建文章
 pnpm new-dynamic ... # 新建动态
@@ -195,6 +197,7 @@ pnpm new-dynamic ... # 新建动态
 构建注意事项：
 
 - `pnpm build` 会更新 `src/constants/lqips.json`；提交前检查差异是否来自本次资源变更。
+- `pnpm build` 会先更新 `src/constants/github-card-data.json`；无网络或 API 失败时脚本保留已有缓存，提交前检查差异是否合理。
 - `pnpm format` 与 `pnpm lint` 都带有 `--write`，且作用于整个 `src/` 和 `scripts/`。已有无关改动或只需验证少量文件时，优先使用 `pnpm exec biome check <相关文件>` 做限定范围的只读检查；不要为验证而改写任务外文件。
 - `scripts/generate-vndb-covers.ts` 只在 VNDB 页面启用、模式为 `static`、配置了 `userId` 且开启封面下载时请求外部 API；未配置用户 ID 时会直接跳过。
 - `scripts/prune-pio-assets.ts` 在 Astro 构建后从 `dist/` 移除未启用的 Pio/Live2D 产物；不要手工修改其输出。
@@ -202,8 +205,7 @@ pnpm new-dynamic ... # 新建动态
 - `scripts/minify-inline-scripts.ts` 会在字体处理后压缩 `dist/` 中的内联脚本。
 - Pagefind 只在完整构建后生成，因此开发服务器中的搜索可用性与生产预览不同。
 - `scripts/prepare-sites-dist.ts` 在构建末尾生成 `dist/server/index.js`，供 OpenAI Sites 使用 `ASSETS` binding 托管静态产物；不要手工修改该生成文件。
-- anime、bangumi、VNDB、OG 字体等流程可能在构建期访问外部服务；失败时先区分代码错误、缺少配置、网络问题和本地缓存回退。
-- `public/anime-list.json` 是 anime 页的本地回退数据。
+- GitHub 卡片、Bangumi、MyAnimeList、VNDB、OG 字体等流程可能访问外部服务；失败时先区分代码错误、缺少配置、网络问题和本地缓存回退。
 - `scripts/quarantine-bad-posts.mjs` 会移动文件且不是常规构建步骤，未经明确要求不要运行。
 
 ## 8. 常见修改路径
