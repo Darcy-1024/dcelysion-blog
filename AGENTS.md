@@ -49,7 +49,7 @@ pnpm build
 | --- | --- | --- |
 | `src/` | 站点源代码和内容 | 绝大多数功能修改发生在这里 |
 | `.agents/skills/` | 仓库级 Codex 工作流 | 当前包含动态发布 Skill，修改后需运行对应校验器 |
-| `public/` | 原样复制并按根路径访问的静态资源 | 大型媒体、相册、Pio 模型、第三方脚本放在这里 |
+| `public/` | 原样复制并按根路径访问的静态资源 | 相册、Pio 模型、第三方脚本等放在这里；`public/assets/music/` 仅保留本地工作副本，线上音乐见下文 R2 约定 |
 | `scripts/` | 内容脚手架和构建期生成脚本 | 注意脚本可能改写受版本控制的生成数据 |
 | `workers/` | 独立 Cloudflare Worker | 包含 Twikoo 反向代理与 Sites 静态资源入口，不属于 Astro 页面代码 |
 | `docs/` | README 使用的说明图片和多语言文档 | 不参与站点运行时 |
@@ -153,7 +153,7 @@ pnpm build
 - `src/styles/`：`main.css` 是全局入口，继续导入布局及功能 CSS；`variables.styl` 管主题变量，`markdown-extend.styl` 管正文扩展样式。
 - `src/i18n/`：`i18nKey.ts` 定义键，`languages/*.ts` 提供语言字典，`translation.ts` 负责查找。新增用户可见文本时应补齐所有语言或提供明确回退。
 - `src/constants/`：站点常量、图标数据和 LQIP 映射。`icons-data.json`、`lqips.json` 是生成数据，不要无理由手改。
-- `src/assets/`：由构建系统管理的图片/音乐源。
+- `src/assets/`：由构建系统管理的图片等源码资源。
 - `src/workers/`：浏览器 Web Worker；当前用于樱花效果计算，与根目录 `workers/` 的部署 Worker 不同。
 
 ## 5. 浏览器端与 Swup 生命周期
@@ -207,6 +207,11 @@ pnpm new-dynamic ... # 新建动态
 - `scripts/prepare-sites-dist.ts` 在构建末尾生成 `dist/server/index.js`，供 OpenAI Sites 使用 `ASSETS` binding 托管静态产物；不要手工修改该生成文件。
 - GitHub 卡片、Bangumi、MyAnimeList、VNDB、OG 字体等流程可能访问外部服务；失败时先区分代码错误、缺少配置、网络问题和本地缓存回退。
 - `scripts/quarantine-bad-posts.mjs` 会移动文件且不是常规构建步骤，未经明确要求不要运行。
+
+### 音乐媒体与 Cloudflare R2
+
+- `src/config/musicConfig.ts` 的当前歌单通过 Cloudflare R2 存储桶 `dcelysion-music` 及 `https://music.dcelysion.cn` 提供音频和封面。`public/assets/music/` 只保留本地工作副本，音乐二进制不纳入源码提交；必须保留并提交 `public/.assetsignore`，使 Workers Static Assets 上传排除 `assets/music/`。该文件不等同于 `.gitignore`，暂存前仍须检查音乐二进制。
+- 播放器使用匿名跨域音频。新增或更换站点访问域时，必须同步 R2 CORS 的精确 Origin；当前包括 `https://blog.dcelysion.cn`、`https://dcelysion-blog.lin507793465.workers.dev`、`http://localhost:4321` 和 `http://127.0.0.1:4321`。规则变化后清理音乐域名的 CDN 缓存，并验证 Range 请求与实际播放。
 
 ## 8. 常见修改路径
 
