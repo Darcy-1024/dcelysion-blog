@@ -2,7 +2,7 @@
 title: AI 会让人更聪明，还是更愚蠢？
 published: 2026-07-14
 description: "写在第一个 AI 项目初步完成之后的一些碎碎念。"
-image: /images/ai-smarter-or-dumber？/1.avif
+image: ./images/ai-smarter-or-dumber？/1.avif
 tags: [AI, 思考, 讨论]
 category: 思考
 draft: false
@@ -19,7 +19,7 @@ slug: ai-smarter-or-dumber
 
 直到项目接近完成的此刻，我才突然意识到一件奇怪的事情。相比以前完成项目后的满足感，这一次似乎少了些什么。
 
-![](/images/ai-smarter-or-dumber？/2.avif)
+![](./images/ai-smarter-or-dumber？/2.avif)
 
 ## 当"先问 AI"成为习惯
 
@@ -29,7 +29,7 @@ slug: ai-smarter-or-dumber
 
 更重要的是，我逐渐意识到并非我有意主动要去依赖 AI，而是因为它实在是太方便了——方便到抹平了过程中的摩擦力，让人根本察觉不到有任何违和感。直到项目接近完成，才发觉那些原本属于自己的思考和学习的过程变少了。
 
-![](/images/ai-smarter-or-dumber？/3.avif)
+![](./images/ai-smarter-or-dumber？/3.avif)
 
 ## 获得了结果，却未必能得到成长
 
@@ -43,7 +43,7 @@ slug: ai-smarter-or-dumber
 
 AI 让我们站到了一个全新的高度，甚至是不属于我们的高度。因为与传统"打怪升级"的成长路径相比，我们的内核并没有同步地跟着提升。这就导致了一个很矛盾的现象，换句话说，***我们获得了结果，却未必获得了成长***。
 
-![](/images/ai-smarter-or-dumber？/4.avif)
+![](./images/ai-smarter-or-dumber？/4.avif)
 
 ## 这一次，AI 改变了什么？
 
@@ -53,7 +53,7 @@ AI 让我们站到了一个全新的高度，甚至是不属于我们的高度�
 
 > ***AI 让我们轻而易举地抵达了终点，却也失去了沿途的风景；它外包了过程，似乎也正在外包我们的思考。***
 
-![](/images/ai-smarter-or-dumber？/6.avif)
+![](./images/ai-smarter-or-dumber？/6.avif)
 
 ## 第一次拥有选择权
 
@@ -65,4 +65,4 @@ AI 让我们站到了一个全新的高度，甚至是不属于我们的高度�
 
 <p style="text-align:center">---END---</p>
 
-![](/images/ai-smarter-or-dumber？/5.avif)
+![](./images/ai-smarter-or-dumber？/5.avif)
