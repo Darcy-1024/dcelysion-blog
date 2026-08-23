@@ -1,5 +1,7 @@
 import type { MusicPlayerConfig } from "../types/musicConfig";
 
+const musicAssetBaseUrl = "https://music.dcelysion.cn";
+
 // 音乐播放器配置
 export const musicPlayerConfig: MusicPlayerConfig = {
 	// 是否在导航栏显示音乐播放器入口
@@ -40,7 +42,7 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 		],
 	},
 
-	// 本地音乐配置（当 mode 为 'local' 时使用）
+	// 本地音乐配置（当 mode 为 "local" 时使用，支持 public 相对路径或 HTTPS 媒体地址）
 	// 1. 支持传入歌词文件的路径
 	// lrc: "/assets/music/lrc/使一颗心免于哀伤-哼唱.lrc",
 	// 2. 或者直接填入歌词字符串内容
@@ -50,64 +52,64 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 			{
 				name: "羽根",
 				artist: " 折戸伸治/Key ",
-				url: "/assets/music/羽根 - 折戸伸治.flac",
-				cover: "/assets/music/cover/羽根.jpeg",
+				url: `${musicAssetBaseUrl}/tracks/hane-orito-shinji-e71fba63.flac`,
+				cover: `${musicAssetBaseUrl}/covers/hane-5c5627a1.jpeg`,
 				lrc: "[00:00.00]纯音乐",
 			},
 			{
 				name: "東方萃夢想",
 				artist: "TAMUSIC",
-				url: "/assets/music/東方萃夢想.flac",
-				cover: "/assets/music/cover/東方萃夢想.png",
+				url: `${musicAssetBaseUrl}/tracks/touhou-suimusou-e4b51d8c.flac`,
+				cover: `${musicAssetBaseUrl}/covers/touhou-suimusou-3855e884.png`,
 				lrc: "[00:00.00]纯音乐",
 			},
 			{
 				name: "久遠寺有珠",
 				artist: "深澤秀行",
-				url: "/assets/music/久遠寺有珠.m4a",
-				cover: "/assets/music/cover/魔法使之夜.jpg",
+				url: `${musicAssetBaseUrl}/tracks/kuonji-alice-0fc05b19.flac`,
+				cover: `${musicAssetBaseUrl}/covers/mahoutsukai-no-yoru-63930388.jpg`,
 				lrc: "[00:00.00]纯音乐",
 			},
 			{
 				name: "魔法使いの夜～メインテーマ",
 				artist: "深澤秀行",
-				url: "/assets/music/魔法使いの夜～メインテーマ.m4a",
-				cover: "/assets/music/cover/魔法使之夜.jpg",
+				url: `${musicAssetBaseUrl}/tracks/mahoutsukai-no-yoru-main-theme-45a711f2.flac`,
+				cover: `${musicAssetBaseUrl}/covers/mahoutsukai-no-yoru-63930388.jpg`,
 				lrc: "[00:00.00]纯音乐",
 			},
 			{
 				name: "午後の眠り",
 				artist: "深澤秀行",
-				url: "/assets/music/午後の眠り.flac",
-				cover: "/assets/music/cover/魔法使之夜.jpg",
+				url: `${musicAssetBaseUrl}/tracks/gogo-no-nemuri-07546e54.flac`,
+				cover: `${musicAssetBaseUrl}/covers/mahoutsukai-no-yoru-63930388.jpg`,
 				lrc: "[00:00.00]纯音乐",
 			},
 			{
 				name: "nostalgia",
 				artist: "深澤秀行",
-				url: "/assets/music/nostalgia.m4a",
-				cover: "/assets/music/cover/魔法使之夜.jpg",
+				url: `${musicAssetBaseUrl}/tracks/nostalgia-9f3f9ece.flac`,
+				cover: `${musicAssetBaseUrl}/covers/mahoutsukai-no-yoru-63930388.jpg`,
 				lrc: "[00:00.00]纯音乐",
 			},
 			{
 				name: "孤独な巡礼",
 				artist: "川井憲次",
-				url: "/assets/music/孤独な巡礼.m4a",
-				cover: "/assets/music/cover/孤独的巡礼.jpg",
+				url: `${musicAssetBaseUrl}/tracks/kodoku-na-junrei-cd1f6101.flac`,
+				cover: `${musicAssetBaseUrl}/covers/kodoku-na-junrei-6bd1e927.jpg`,
 				lrc: "[00:00.00]纯音乐",
 			},
 			{
 				name: "夜诞的花冠 Night's Crown of Flowers",
 				artist: "HOYO-MiX",
-				url: "/assets/music/夜诞的花冠_Nights_Crown_of_Flowers.m4a",
-				cover: "/assets/music/cover/夜诞的花冠_Nights_Crown_of_Flowers.webp",
+				url: `${musicAssetBaseUrl}/tracks/nights-crown-of-flowers-2afdb40b.flac`,
+				cover: `${musicAssetBaseUrl}/covers/nights-crown-of-flowers-e6d348b6.webp`,
 				lrc: "[00:00.00]纯音乐",
 			},
 			{
 				name: "Kanon D-dur",
 				artist: "Württembergisches Kammerorch.",
-				url: "/assets/music/Kanon D-dur.m4a",
-				cover: "/assets/music/cover/kanon.jpg",
+				url: `${musicAssetBaseUrl}/tracks/kanon-d-dur-0cc64a56.flac`,
+				cover: `${musicAssetBaseUrl}/covers/kanon-3533f67b.jpg`,
 				lrc: "[00:00.00]纯音乐",
 			},
 		],
