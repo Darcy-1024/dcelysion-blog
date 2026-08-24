@@ -1,2 +1,3 @@
-# Music is served from Cloudflare R2, not Workers Static Assets.
+# Media is served from Cloudflare R2, not Workers Static Assets.
 assets/music/
+assets/videos/

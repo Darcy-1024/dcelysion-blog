@@ -53,7 +53,7 @@ import { profileConfig } from "@/config/profileConfig";
 | `siteConfig.ts` | 站点基础配置（标题、描述、主题色、页面宽度、文章内容页配置等） |
 | `analyticsConfig.ts` | 统计分析配置（Google Analytics、Microsoft Clarity、Umami、51la） |
 | `announcementConfig.ts` | 公告配置（标题、内容、类型、链接等） |
-| `backgroundWallpaper.ts` | 背景壁纸配置（壁纸模式、图片、横幅文字、水波纹等） |
+| `backgroundWallpaper.ts` | 背景壁纸配置（壁纸模式、图片、桌面/移动端视频、横幅文字、水波纹等） |
 | `commentConfig.ts` | 评论系统配置（Twikoo、Waline、Artalk、Giscus、Disqus） |
 | `coverImageConfig.ts` | 封面图配置（文章封面图、随机封面图 API） |
 | `displaySettingsConfig.ts` | 视图设置面板配置（面板总开关、各设置项开关） |

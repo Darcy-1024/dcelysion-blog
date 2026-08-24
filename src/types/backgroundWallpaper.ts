@@ -7,12 +7,24 @@ export type BackgroundWallpaperConfig = {
 		| {
 				desktop?: string | string[];
 				mobile?: string | string[];
-				playerUrl?: string | string[]; // 背景视频播放地址，支持单个视频路径或数组（多视频列表循环）
+				playerUrl?:
+					| string
+					| string[]
+					| {
+							desktop?: string | string[];
+							mobile?: string | string[];
+					  }; // 背景视频播放地址，支持单路径、多视频列表或桌面/移动端分开配置
+				playerPosition?:
+					| string
+					| {
+							desktop?: string;
+							mobile?: string;
+					  }; // 视频 object-position，可按桌面/移动端调整主体位置
 		  }; // 支持单个图片、图片数组或分别设置桌面端和移动端图片
 	// 横幅壁纸和全屏壁纸共享配置
 	common?: {
 		dimOpacity?: number; // 横幅文字遮罩暗度，0-1之间，值越大越暗，默认0.15
-		playerMode?: "order" | "random"; // 多视频播放模式："order" 顺序循环（默认），"random" 随机切换
+		playerMode?: "order" | "random"; // 多视频播放模式："order" 播完后顺序切换（默认），"random" 每次开始播放时随机选择并单曲循环
 		homeText?: {
 			enable: boolean; // 是否在首页显示自定义文字（全局开关）
 			title?: string; // 主标题

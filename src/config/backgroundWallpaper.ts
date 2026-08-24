@@ -101,16 +101,29 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 			"assets/images/MobileWallpaper/m31.avif",
 		],
 		// 背景视频播放地址
-		// 支持单个视频路径（字符串）或多个视频循环（数组，参考上面壁纸配置）
-		// 支持远程视频URL，本地视频请放在 public/assets/videos/ 目录下
-		// playerUrl: "/assets/videos/firefly.mp4",
-		playerUrl: ["/assets/videos/HuTao1.mp4"],
+		// 支持单个路径、多个视频循环，或按 desktop/mobile 配置不同裁剪版本
+		// 远程 URL 可直接使用；本地视频请放在 public/assets/videos/ 目录下
+		playerUrl: {
+			desktop: [
+				"https://wallpapers.dcelysion.cn/desktop/hu-tao-journey-flowers-3840x1280.mp4",
+				"https://wallpapers.dcelysion.cn/desktop/elysia-gate-2560x1344.mp4",
+			],
+			mobile: [
+				"https://wallpapers.dcelysion.cn/mobile/hu-tao-journey-flowers-1224x1728.mp4",
+				"https://wallpapers.dcelysion.cn/mobile/elysia-gate-952x1344.mp4",
+			],
+		},
+		// 移动端视频已分别按人物居中裁剪
+		playerPosition: {
+			desktop: "center",
+			mobile: "center",
+		},
 	},
 	// 横幅壁纸和全屏壁纸共享配置
 	common: {
 		// 壁纸遮罩暗度，让横幅文字显示更清晰，0-1之间，值越大越暗
 		dimOpacity: 0.2,
-		// 多视频播放模式："order" 顺序循环，"random" 随机切换（仅当 playerUrl 为数组时生效）
+		// 多视频播放模式："order" 播完后顺序切换，"random" 每次开始播放时随机选择并单曲循环
 		playerMode: "random",
 		// 主页横幅文字
 		homeText: {

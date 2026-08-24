@@ -87,6 +87,7 @@
 - [x] **Light/Dark Mode** - Supports light/dark/system three modes
 - [x] **Navbar Customization** - Logo, title, links fully customizable
 - [x] **Wallpaper Mode Switching** - Banner wallpaper, fullscreen wallpaper, fullscreen transparent wallpaper, solid background
+- [x] **Responsive Video Wallpapers** - Separate desktop/mobile video sources and subject positioning
 - [x] **Theme Color Customization** - 360° hue adjustment
 
 

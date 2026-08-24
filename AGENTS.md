@@ -209,10 +209,12 @@ pnpm new-dynamic ... # 新建动态
 - GitHub 卡片、Bangumi、MyAnimeList、VNDB、OG 字体等流程可能访问外部服务；失败时先区分代码错误、缺少配置、网络问题和本地缓存回退。
 - `scripts/quarantine-bad-posts.mjs` 会移动文件且不是常规构建步骤，未经明确要求不要运行。
 
-### 音乐媒体与 Cloudflare R2
+### 音乐与壁纸媒体的 Cloudflare R2
 
-- `src/config/musicConfig.ts` 的当前歌单通过 Cloudflare R2 存储桶 `dcelysion-music` 及 `https://music.dcelysion.cn` 提供音频和封面。`public/assets/music/` 只保留本地工作副本，音乐二进制不纳入源码提交；必须保留并提交 `public/.assetsignore`，使 Workers Static Assets 上传排除 `assets/music/`。该文件不等同于 `.gitignore`，暂存前仍须检查音乐二进制。
-- 播放器使用匿名跨域音频。新增或更换站点访问域时，必须同步 R2 CORS 的精确 Origin；当前包括 `https://blog.dcelysion.cn`、`https://dcelysion-blog.lin507793465.workers.dev`、`http://localhost:4321` 和 `http://127.0.0.1:4321`。规则变化后清理音乐域名的 CDN 缓存，并验证 Range 请求与实际播放。
+- `src/config/musicConfig.ts` 的当前歌单通过 Cloudflare R2 存储桶 `dcelysion-music` 及 `https://music.dcelysion.cn` 提供音频和封面。`src/config/backgroundWallpaper.ts` 的视频壁纸使用独立存储桶 `dcelysion-wallpapers` 及 `https://wallpapers.dcelysion.cn`；对象按 `desktop/`、`mobile/` 前缀组织，可为不同终端配置独立裁剪版本和主体位置。
+- `public/assets/music/` 和 `public/assets/videos/` 只作为本地工作副本；必须保留并提交 `public/.assetsignore`，使 Workers Static Assets 上传排除这两个目录。该文件不等同于 `.gitignore`，暂存前仍须检查媒体二进制。
+- R2 视频使用 H.264 + `yuv420p` MP4，写入 `video/mp4` 和版本化长缓存头，并启用 faststart；上传后必须验证自定义域名的 `206 Partial Content` Range 响应和实际播放。
+- 播放器使用匿名跨域媒体。新增或更换站点访问域时，必须同步音乐桶与壁纸桶 R2 CORS 的精确 Origin；当前包括 `https://blog.dcelysion.cn`、`https://dcelysion-blog.lin507793465.workers.dev`、`http://localhost:4321` 和 `http://127.0.0.1:4321`。规则变化后清理对应媒体域名的 CDN 缓存，并验证 Range 请求与实际播放。
 
 ## 8. 常见修改路径
 

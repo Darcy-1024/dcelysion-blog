@@ -4,15 +4,48 @@ import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 
 export interface Props {
-	playerUrl: string | string[];
+	playerUrl:
+		| string
+		| string[]
+		| {
+				desktop?: string | string[];
+				mobile?: string | string[];
+		  };
+	playerPosition?: string | { desktop?: string; mobile?: string };
 	playerMode?: "order" | "random";
 }
 
-const { playerUrl, playerMode = "order" } = Astro.props;
+const {
+	playerUrl,
+	playerPosition = "center",
+	playerMode = "order",
+} = Astro.props;
 
-const urls = Array.isArray(playerUrl) ? playerUrl : [playerUrl];
-const hasMultiple = urls.length > 1;
-const urlsJson = JSON.stringify(urls);
+const normalizeUrls = (value?: string | string[]) =>
+	value ? (Array.isArray(value) ? value : [value]) : [];
+const responsiveUrls =
+	typeof playerUrl === "object" && !Array.isArray(playerUrl)
+		? {
+				desktop: normalizeUrls(playerUrl.desktop),
+				mobile: normalizeUrls(playerUrl.mobile),
+			}
+		: {
+				desktop: normalizeUrls(playerUrl),
+				mobile: normalizeUrls(playerUrl),
+			};
+const responsivePositions =
+	typeof playerPosition === "object"
+		? {
+				desktop: playerPosition.desktop ?? playerPosition.mobile ?? "center",
+				mobile: playerPosition.mobile ?? playerPosition.desktop ?? "center",
+			}
+		: { desktop: playerPosition, mobile: playerPosition };
+const hasMultiple =
+	responsiveUrls.desktop.length > 1 || responsiveUrls.mobile.length > 1;
+const hasSources =
+	responsiveUrls.desktop.length > 0 || responsiveUrls.mobile.length > 0;
+const sourcesJson = JSON.stringify(responsiveUrls);
+const positionsJson = JSON.stringify(responsivePositions);
 
 const tPrev = i18n(I18nKey.videoPrev);
 const tNext = i18n(I18nKey.videoNext);
@@ -20,7 +53,7 @@ const tLoadError = i18n(I18nKey.videoLoadError);
 ---
 
 {
-	urls.length > 0 && (
+	hasSources && (
 		<div id="bg-player">
 			<div
 				id="bg-player-overlay"
@@ -63,9 +96,23 @@ const tLoadError = i18n(I18nKey.videoLoadError);
 	)
 }
 
-<script is:inline define:vars={{ urls: urlsJson, playerMode, hasMultiple }}>
+<script is:inline define:vars={{ sources: sourcesJson, positions: positionsJson, playerMode, hasMultiple }}>
 	(() => {
-		var urlList = JSON.parse(urls);
+		var sourceMap = JSON.parse(sources);
+		var positionMap = JSON.parse(positions);
+		var desktopQuery = window.matchMedia("(min-width: 1024px)");
+
+		function selectUrls() {
+			var preferred = desktopQuery.matches ? sourceMap.desktop : sourceMap.mobile;
+			var fallback = desktopQuery.matches ? sourceMap.mobile : sourceMap.desktop;
+			return preferred.length ? preferred : fallback;
+		}
+
+		function selectPosition() {
+			return desktopQuery.matches ? positionMap.desktop : positionMap.mobile;
+		}
+
+		var urlList = selectUrls();
 		if (!urlList.length) return;
 		var isMultiple = urlList.length > 1;
 
@@ -76,15 +123,19 @@ const tLoadError = i18n(I18nKey.videoLoadError);
 		var toast = document.getElementById("bg-player-toast");
 
 		if (!video) return;
+		video.style.objectPosition = selectPosition();
+		video.loop = playerMode === "random";
 
 		// 防止 is:inline 脚本重复注册监听器（Swup 导航会重新执行脚本）
 		if (video.getAttribute("data-player-init")) return;
 		video.setAttribute("data-player-init", "true");
 
 		var isPlaying = false;
-		var currentIndex = 0;
+		var currentIndex = -1;
 		var errorCount = 0;
 		var toastTimer = null;
+		var playRequestId = 0;
+		var nextPreloadTimer = null;
 
 		function showToast() {
 			if (!toast) return;
@@ -119,46 +170,132 @@ const tLoadError = i18n(I18nKey.videoLoadError);
 			window.dispatchEvent(new CustomEvent("bg-player-state-change", { detail: { playing: isPlaying } }));
 		}
 
+		function hideOverlay() {
+			if (!overlay) return;
+			overlay.classList.remove("opacity-100");
+			overlay.classList.add("opacity-0");
+		}
+
+		function showOverlay() {
+			if (!overlay) return;
+			overlay.classList.remove("opacity-0");
+			overlay.classList.add("opacity-100");
+		}
+
+		function ensureCurrentIndex() {
+			if (currentIndex >= 0 && currentIndex < urlList.length) return;
+			currentIndex = playerMode === "random" ? pickIndex(-1) : 0;
+		}
+
+		function loadCurrentSource() {
+			ensureCurrentIndex();
+			var nextUrl = urlList[currentIndex];
+			if (video.getAttribute("src") === nextUrl) return;
+			video.src = nextUrl;
+			video.load();
+		}
+
+		function preloadNextRandomSource() {
+			if (playerMode !== "random" || !isMultiple) return;
+			currentIndex = pickIndex(currentIndex);
+			var expectedIndex = currentIndex;
+			var pausedRequestId = playRequestId;
+			if (nextPreloadTimer) clearTimeout(nextPreloadTimer);
+			// 先让当前视频完整淡出，再替换 src，避免下一条的首帧在过渡中闪现。
+			nextPreloadTimer = setTimeout(function () {
+				nextPreloadTimer = null;
+				if (isPlaying || pausedRequestId !== playRequestId || currentIndex !== expectedIndex) return;
+				loadCurrentSource();
+			}, 550);
+		}
+
 		function doPlay() {
-			video.src = urlList[currentIndex];
+			if (nextPreloadTimer) {
+				clearTimeout(nextPreloadTimer);
+				nextPreloadTimer = null;
+			}
+			loadCurrentSource();
+			var requestId = ++playRequestId;
 			video.muted = true;
 			video.play()
-				.then(function () { setTimeout(function () { if (video) video.muted = false; }, 100); })
-				.catch(function () { isPlaying = false; syncAttr(); });
+				.then(function () {
+					if (!isPlaying || requestId !== playRequestId) {
+						video.pause();
+						return;
+					}
+					errorCount = 0;
+					showOverlay();
+					syncAttr();
+					setTimeout(function () {
+						if (video && isPlaying && requestId === playRequestId) video.muted = false;
+					}, 100);
+				})
+				.catch(function () {
+					if (requestId !== playRequestId) return;
+					isPlaying = false;
+					hideOverlay();
+					syncAttr();
+				});
 		}
 
 		function switchTrack(index) {
 			if (index < 0 || index >= urlList.length) return;
 			currentIndex = index;
 			if (isPlaying) {
+				hideOverlay();
 				doPlay();
 			} else {
-				video.src = urlList[currentIndex];
-				video.load();
+				loadCurrentSource();
+			}
+		}
+
+		function syncTrackButtons() {
+			if (prevBtn) prevBtn.style.display = isMultiple ? "" : "none";
+			if (nextBtn) nextBtn.style.display = isMultiple ? "" : "none";
+		}
+
+		function onViewportChange() {
+			var nextUrls = selectUrls();
+			if (!nextUrls.length) return;
+			var previousIndex = currentIndex;
+			urlList = nextUrls;
+			isMultiple = urlList.length > 1;
+			currentIndex = previousIndex < 0 ? -1 : Math.min(previousIndex, urlList.length - 1);
+			errorCount = 0;
+			video.style.objectPosition = selectPosition();
+			syncTrackButtons();
+			if (isPlaying) {
+				hideOverlay();
+				doPlay();
+			} else if (currentIndex >= 0) {
+				loadCurrentSource();
 			}
 		}
 
 		function toggle() {
 			isPlaying = !isPlaying;
 			if (isPlaying) {
-				if (currentIndex >= urlList.length) currentIndex = 0;
-				syncAttr();
-				if (overlay) { overlay.classList.remove("opacity-0"); overlay.classList.add("opacity-100"); }
+				ensureCurrentIndex();
 				requestAnimationFrame(function () { doPlay(); });
 			} else {
+				playRequestId++;
 				video.pause();
-				if (overlay) { overlay.classList.remove("opacity-100"); overlay.classList.add("opacity-0"); }
+				hideOverlay();
 				syncAttr();
+				preloadNextRandomSource();
 			}
 		}
 
 		function onEnded() {
-			if (isMultiple) {
+			if (playerMode === "random") {
+				// 随机模式在一次播放会话内保持当前视频循环
+				doPlay();
+			} else if (isMultiple) {
 				currentIndex = pickIndex(currentIndex);
 				doPlay();
 			} else {
 				isPlaying = false;
-				if (overlay) { overlay.classList.remove("opacity-100"); overlay.classList.add("opacity-0"); }
+				hideOverlay();
 				syncAttr();
 			}
 		}
@@ -168,23 +305,59 @@ const tLoadError = i18n(I18nKey.videoLoadError);
 			if (isMultiple && errorCount < urlList.length) {
 				// 多视频模式下自动尝试下一个
 				currentIndex = pickIndex(currentIndex);
-				video.src = urlList[currentIndex];
-				video.load();
+				if (isPlaying) doPlay();
+				else loadCurrentSource();
 			} else {
 				// 所有视频都失败或只有单个视频
 				isPlaying = false;
-				if (overlay) { overlay.classList.remove("opacity-100"); overlay.classList.add("opacity-0"); }
+				hideOverlay();
 				syncAttr();
 				showToast();
 			}
+		}
+
+		function shouldPreload() {
+			var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+			if (!connection) return true;
+			if (connection.saveData) return false;
+			return connection.effectiveType !== "slow-2g" && connection.effectiveType !== "2g";
+		}
+
+		function preconnectSource() {
+			try {
+				var origin = new URL(urlList[0], window.location.href).origin;
+				if (origin === window.location.origin || document.querySelector('link[data-bg-video-preconnect="' + origin + '"]')) return;
+				var link = document.createElement("link");
+				link.rel = "preconnect";
+				link.href = origin;
+				link.setAttribute("data-bg-video-preconnect", origin);
+				document.head.appendChild(link);
+			} catch (_error) {
+				// 无效 URL 会在 video error 事件中按既有流程处理。
+			}
+		}
+
+		function schedulePreload() {
+			preconnectSource();
+			if (!shouldPreload()) {
+				video.preload = "metadata";
+				return;
+			}
+			var preload = function () {
+				if (!isPlaying) loadCurrentSource();
+			};
+			var schedule = function () {
+				if (window.requestIdleCallback) window.requestIdleCallback(preload, { timeout: 2500 });
+				else window.setTimeout(preload, 1500);
+			};
+			if (document.readyState === "complete") schedule();
+			else window.addEventListener("load", schedule, { once: true });
 		}
 
 		// 监听导航栏播放按钮事件
 		window.addEventListener("bg-player-toggle", toggle);
 		video.addEventListener("ended", onEnded);
 		video.addEventListener("error", onError);
-		// 播放成功时重置错误计数
-		video.addEventListener("playing", function () { errorCount = 0; });
 		if (prevBtn) prevBtn.addEventListener("click", function () { switchTrack(prevIndex()); });
 		if (nextBtn) nextBtn.addEventListener("click", function () { switchTrack(pickIndex(currentIndex)); });
 
@@ -192,19 +365,22 @@ const tLoadError = i18n(I18nKey.videoLoadError);
 		window.addEventListener("wallpaperModeChange", function (e) {
 			if (e.detail && e.detail.mode === "none" && isPlaying) {
 				isPlaying = false;
+				playRequestId++;
 				video.pause();
-				if (overlay) { overlay.classList.remove("opacity-100"); overlay.classList.add("opacity-0"); }
+				hideOverlay();
 				syncAttr();
+				preloadNextRandomSource();
 			}
 		});
 
-		// 动态控制 prev/next 按钮显示
-		if (!isMultiple) {
-			if (prevBtn) prevBtn.style.display = "none";
-			if (nextBtn) nextBtn.style.display = "none";
-		}
+		// 动态控制 prev/next 按钮显示，并在跨越桌面/移动端断点时切换视频源
+		syncTrackButtons();
+		schedulePreload();
+		if (desktopQuery.addEventListener) desktopQuery.addEventListener("change", onViewportChange);
+		else if (desktopQuery.addListener) desktopQuery.addListener(onViewportChange);
 
 		function cleanup() {
+			if (nextPreloadTimer) clearTimeout(nextPreloadTimer);
 			// 视频仍在播放时保留属性，供 Navbar 同步按钮状态
 			if (!isPlaying) {
 				document.body.removeAttribute("data-bg-video-playing");

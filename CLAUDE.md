@@ -109,4 +109,4 @@ GitHub card metadata is generated into `src/constants/github-card-data.json` and
 - **Vercel** (default, `vercel.json`)
 - **Cloudflare Workers** (`wrangler.jsonc`, set `CF_WORKERS` env var)
 - Static output to `dist/`
-- Music media is served from Cloudflare R2 through `music.dcelysion.cn`; keep `public/assets/music/` local-only, preserve the committed `public/.assetsignore`, and verify R2 CORS/Range playback whenever a site origin changes.
+- Music is served from the `dcelysion-music` R2 bucket through `music.dcelysion.cn`; responsive wallpaper videos use the separate `dcelysion-wallpapers` bucket through `wallpapers.dcelysion.cn`, organized under `desktop/` and `mobile/`. Keep `public/assets/music/` and `public/assets/videos/` out of Workers Static Assets, preserve the committed `public/.assetsignore`, and verify both buckets' CORS/Range playback whenever a site origin changes.
