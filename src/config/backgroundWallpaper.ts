@@ -113,10 +113,10 @@ export const backgroundWallpaper: BackgroundWallpaperConfig = {
 				"https://wallpapers.dcelysion.cn/mobile/elysia-gate-952x1344.mp4",
 			],
 		},
-		// 移动端视频已分别按人物居中裁剪
+		// 移动端顶部对齐，避免 Safari 较矮视口的居中裁剪把人物面部推入导航栏
 		playerPosition: {
 			desktop: "center",
-			mobile: "center",
+			mobile: "center top",
 		},
 	},
 	// 横幅壁纸和全屏壁纸共享配置
