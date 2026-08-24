@@ -24,7 +24,7 @@ For detailed architecture, module boundaries, agent workflows, and verification 
 | `pnpm lqips` | Regenerate LQIP data into `src/constants/lqips.json` |
 | `pnpm github-cards` | Regenerate cached GitHub card metadata in `src/constants/github-card-data.json` |
 
-Package manager is **pnpm 11** (enforced and pinned in `package.json`); Node.js >= 22 is required. `pnpm-workspace.yaml` pins the local store and explicitly allows required dependency build scripts.
+Package manager is **pnpm 11** (enforced and pinned in `package.json`); Node.js >= 22 is required. `pnpm-workspace.yaml` pins the local store and explicitly allows required dependency build scripts. `astro.config.mjs` raises the Astro `astro` and `ssr` development environments' Vite module-runner transport timeout to 180 seconds because the initial Windows manifest load can exceed Vite's 60-second default; keep the direct Vite pin and recheck the Environment API when upgrading Astro or Vite.
 
 ## Architecture
 

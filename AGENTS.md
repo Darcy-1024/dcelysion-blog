@@ -196,6 +196,7 @@ pnpm new-dynamic ... # 新建动态
 
 构建注意事项：
 
+- `astro.config.mjs` 为 Astro 的 Vite `astro` 和 `ssr` 开发环境把 module-runner transport 超时设为 180 秒；Windows 上首次 manifest 加载可能超过 Vite 默认的 60 秒。该设置依赖 `package.json` 中直接固定的 Vite 版本，升级 Vite/Astro 时需重新核对 Environment API。
 - `pnpm build` 会更新 `src/constants/lqips.json`；提交前检查差异是否来自本次资源变更。
 - `pnpm build` 会先更新 `src/constants/github-card-data.json`；无网络或 API 失败时脚本保留已有缓存，提交前检查差异是否合理。
 - `pnpm format` 与 `pnpm lint` 都带有 `--write`，且作用于整个 `src/` 和 `scripts/`。已有无关改动或只需验证少量文件时，优先使用 `pnpm exec biome check <相关文件>` 做限定范围的只读检查；不要为验证而改写任务外文件。

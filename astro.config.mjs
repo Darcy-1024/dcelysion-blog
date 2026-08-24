@@ -26,6 +26,7 @@ import remarkAdmonitionToBlockquoteCallout from "remark-admonition-to-blockquote
 import remarkDirective from "remark-directive"; /* Handle directives */
 import remarkMath from "remark-math";
 import remarkSectionize from "remark-sectionize";
+import { createRunnableDevEnvironment, createServerModuleRunner } from "vite";
 import {
 	commentConfig,
 	dynamicConfig,
@@ -57,6 +58,20 @@ import { collectUsedFontCssVars } from "./src/utils/fontHelper";
 
 if (process.env.NODE_ENV === "development") {
 	setMaxListeners(20);
+}
+
+const VITE_MODULE_RUNNER_TIMEOUT_MS = 180_000;
+
+function createAstroDevEnvironment(name, config) {
+	return createRunnableDevEnvironment(name, config, {
+		runner(environment, options) {
+			const runner = createServerModuleRunner(environment, options);
+			// Vite defaults transport RPCs to 60 seconds. On this Windows project,
+			// the initial Astro manifest load can legitimately take longer.
+			runner.options.transport.timeout = VITE_MODULE_RUNNER_TIMEOUT_MS;
+			return runner;
+		},
+	});
 }
 
 const adapter = process.env.CF_WORKERS
@@ -352,6 +367,18 @@ export default defineConfig({
 	},
 	vite: {
 		plugins: [tailwindcss()],
+		environments: {
+			astro: {
+				dev: {
+					createEnvironment: createAstroDevEnvironment,
+				},
+			},
+			ssr: {
+				dev: {
+					createEnvironment: createAstroDevEnvironment,
+				},
+			},
+		},
 		server: {
 			watch: {
 				ignored: ["**/package/**", "**/Firefly-docs/**"],
