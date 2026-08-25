@@ -106,6 +106,7 @@ Firefly 项目中所有可复用组件的集中管理。组件按照功能和职
 - `MusicManager.astro` - 全局音乐播放管理器（单例，管理唯一 audio 元素和播放状态，通过 CustomEvent 同步所有 MusicPlayer 视图实例）
 
 **功能组件**
+- `BackgroundPlayer.astro` - 响应式视频壁纸播放器（双 video 轮换，仅在当前视频稳定播放且网络条件允许时预载一条下一视频）
 - `EncryptedContent.astro` - 加密内容组件
 - `EncryptedPost.astro` - 加密文章组件
 - `Live2DWidget.astro` - Live2D 看板娘组件
