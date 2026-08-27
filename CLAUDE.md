@@ -24,7 +24,7 @@ For detailed architecture, module boundaries, agent workflows, and verification 
 | `pnpm lqips` | Regenerate LQIP data into `src/constants/lqips.json` |
 | `pnpm github-cards` | Regenerate cached GitHub card metadata in `src/constants/github-card-data.json` |
 
-Package manager is **pnpm 11** (enforced and pinned in `package.json`); Node.js >= 22 is required. `pnpm-workspace.yaml` pins the local store and explicitly allows required dependency build scripts. `astro.config.mjs` raises the Astro `astro` and `ssr` development environments' Vite module-runner transport timeout to 180 seconds because the initial Windows manifest load can exceed Vite's 60-second default; keep the direct Vite pin and recheck the Environment API when upgrading Astro or Vite.
+Package manager is **pnpm 11** (enforced and pinned in `package.json`); Node.js >= 22 is required. `pnpm-workspace.yaml` pins the local store and explicitly allows required dependency build scripts. Because that store lives inside the repository, keep `**/.pnpm-store/**` in Vite's watcher exclusions; scanning its tens of thousands of cache files severely delays Windows dev startup, and dependency changes require restarting the dev server. The Cloudflare adapter is dynamically imported only when `CF_WORKERS` is set so normal dev/static config loading does not initialize Wrangler/Miniflare.
 
 ## Architecture
 
@@ -96,11 +96,11 @@ Defined in `src/content.config.ts`:
 
 Multi-step: `scripts/generate-github-card-data.ts` → `scripts/generate-lqips.ts` → `scripts/generate-vndb-covers.ts` → `astro build` → `scripts/prune-pio-assets.ts` → `scripts/subset-fonts.ts` → `scripts/minify-inline-scripts.ts` → `pagefind --site dist` → `scripts/prepare-sites-dist.ts`
 
-GitHub card metadata is generated into `src/constants/github-card-data.json` and committed — regenerate with `pnpm github-cards`. LQIP data is generated into `src/constants/lqips.json` and committed — regenerate with `pnpm lqips`. Icon data lives in `src/constants/icons-data.json` (committed, Biome-ignored, consumed by `src/components/common/Icon.svelte`) but has no generator script in the current build.
+GitHub card metadata is generated into `src/constants/github-card-data.json` and committed — regenerate with `pnpm github-cards`. Transient DNS, connection, timeout, HTTP 429, and 5xx failures are retried once before the existing cache fallback. LQIP data is generated into `src/constants/lqips.json` and committed — regenerate with `pnpm lqips`. Icon data lives in `src/constants/icons-data.json` (committed, Biome-ignored, consumed by `src/components/common/Icon.svelte`) but has no generator script in the current build.
 
 `generate-vndb-covers.ts` downloads VNDB cover art into `public/vndb-covers/` (gitignored, skips files that already exist). It no-ops unless `siteConfig.vndb` has a `userId`, `downloadCovers: true`, and `mode: "static"`.
 
-`prune-pio-assets.ts` deletes unused 看板娘 assets from `dist/` after the Astro build (Astro copies all of `public/` regardless of config). It drops `dist/pio/models/live2d` plus the orphaned `Live2DWidget` client chunk when `live2dWidgetConfig.enable` is false, `dist/pio/models/spine` and `dist/pio/static` when `spineModelConfig.enable` is false, and all of `dist/pio` when both are off (~15 MiB). It no-ops when both are enabled.
+`prune-pio-assets.ts` deletes unused 看板娘 assets from `dist/` after the Astro build (Astro copies all of `public/` regardless of config). It drops `dist/pio/models/live2d` plus the orphaned `Live2DWidget` client chunk when `live2dWidgetConfig.enable` is false, `dist/pio/models/spine` and `dist/pio/static` when `spineModelConfig.enable` is false, and all of `dist/pio` when both are off (~15 MiB). While Live2D is disabled, Vite's chunk warning limit is 700 KiB for this known intermediate orphan; enabling it restores the default 500 KiB limit. The pruning script no-ops when both models are enabled.
 
 `prepare-sites-dist.ts` runs last and generates `dist/server/index.js`, the entry for OpenAI Sites to serve the static output via an `ASSETS` binding.
 

@@ -7,6 +7,16 @@ const OUTPUT_FILE = "src/constants/github-card-data.json";
 const CONTENT_GLOB = "src/content/**/*.{md,mdx}";
 const GITHUB_DIRECTIVE_PATTERN =
 	/::github\s*\{[^}]*\brepo\s*=\s*["']([^"']+)["'][^}]*\}/g;
+const MAX_FETCH_ATTEMPTS = 2;
+const RETRY_DELAY_MS = 750;
+const TRANSIENT_NETWORK_CODES = new Set([
+	"EAI_AGAIN",
+	"ECONNRESET",
+	"ENETUNREACH",
+	"ENOTFOUND",
+	"ETIMEDOUT",
+	"UND_ERR_CONNECT_TIMEOUT",
+]);
 
 interface GithubCardData {
 	description: string | null;
@@ -16,6 +26,46 @@ interface GithubCardData {
 }
 
 type GithubCardCache = Record<string, GithubCardData>;
+
+class GithubApiError extends Error {
+	constructor(
+		message: string,
+		readonly status: number,
+	) {
+		super(message);
+		this.name = "GithubApiError";
+	}
+}
+
+function isTransientError(error: unknown): boolean {
+	if (error instanceof GithubApiError) {
+		return error.status === 429 || error.status >= 500;
+	}
+	if (
+		error instanceof Error &&
+		(error.name === "AbortError" || error.name === "TimeoutError")
+	) {
+		return true;
+	}
+
+	let current: unknown = error;
+	for (let depth = 0; depth < 4 && current; depth++) {
+		if (typeof current !== "object") break;
+		if (
+			"code" in current &&
+			typeof current.code === "string" &&
+			TRANSIENT_NETWORK_CODES.has(current.code)
+		) {
+			return true;
+		}
+		current = "cause" in current ? current.cause : undefined;
+	}
+	return false;
+}
+
+function wait(ms: number): Promise<void> {
+	return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 async function readCache(): Promise<GithubCardCache> {
 	try {
@@ -42,7 +92,7 @@ async function findRepositories(): Promise<Map<string, string>> {
 	return repositories;
 }
 
-async function fetchRepositoryData(repo: string): Promise<GithubCardData> {
+async function fetchRepositoryDataOnce(repo: string): Promise<GithubCardData> {
 	const [owner, name] = repo.split("/");
 	const headers: Record<string, string> = {
 		Accept: "application/vnd.github+json",
@@ -59,8 +109,9 @@ async function fetchRepositoryData(repo: string): Promise<GithubCardData> {
 		},
 	);
 	if (!response.ok) {
-		throw new Error(
+		throw new GithubApiError(
 			`GitHub API returned ${response.status}${response.statusText ? ` ${response.statusText}` : ""}`,
+			response.status,
 		);
 	}
 
@@ -76,6 +127,23 @@ async function fetchRepositoryData(repo: string): Promise<GithubCardData> {
 		license:
 			typeof data.license?.spdx_id === "string" ? data.license.spdx_id : null,
 	};
+}
+
+async function fetchRepositoryData(repo: string): Promise<GithubCardData> {
+	for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt++) {
+		try {
+			return await fetchRepositoryDataOnce(repo);
+		} catch (error) {
+			if (attempt === MAX_FETCH_ATTEMPTS || !isTransientError(error)) {
+				throw error;
+			}
+			console.log(
+				`[GITHUB-CARD] Temporary refresh failure for ${repo}; retrying once in ${RETRY_DELAY_MS}ms.`,
+			);
+			await wait(RETRY_DELAY_MS);
+		}
+	}
+	throw new Error(`GitHub card refresh exhausted retries for ${repo}`);
 }
 
 async function main() {

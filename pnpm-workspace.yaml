@@ -3,9 +3,6 @@ packages:
 
 storeDir: .pnpm-store/v11
 
-overrides:
-  vite: 8.2.2
-
 allowBuilds:
   esbuild: true
   swup: true

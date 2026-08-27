@@ -1,5 +1,4 @@
 import { setMaxListeners } from "node:events";
-import cloudflare from "@astrojs/cloudflare";
 import { unified } from "@astrojs/markdown-remark";
 import mdx from "@astrojs/mdx";
 import sitemap from "@astrojs/sitemap";
@@ -26,13 +25,13 @@ import remarkAdmonitionToBlockquoteCallout from "remark-admonition-to-blockquote
 import remarkDirective from "remark-directive"; /* Handle directives */
 import remarkMath from "remark-math";
 import remarkSectionize from "remark-sectionize";
-import { createRunnableDevEnvironment, createServerModuleRunner } from "vite";
 import {
 	commentConfig,
 	dynamicConfig,
 	expressiveCodeConfig,
 	fontConfig,
 	fontsList,
+	live2dWidgetConfig,
 	mermaidConfig,
 	plantumlConfig,
 	siteConfig,
@@ -60,22 +59,8 @@ if (process.env.NODE_ENV === "development") {
 	setMaxListeners(20);
 }
 
-const VITE_MODULE_RUNNER_TIMEOUT_MS = 180_000;
-
-function createAstroDevEnvironment(name, config) {
-	return createRunnableDevEnvironment(name, config, {
-		runner(environment, options) {
-			const runner = createServerModuleRunner(environment, options);
-			// Vite defaults transport RPCs to 60 seconds. On this Windows project,
-			// the initial Astro manifest load can legitimately take longer.
-			runner.options.transport.timeout = VITE_MODULE_RUNNER_TIMEOUT_MS;
-			return runner;
-		},
-	});
-}
-
 const adapter = process.env.CF_WORKERS
-	? cloudflare({
+	? (await import("@astrojs/cloudflare")).default({
 			prerenderEnvironment: "node",
 		})
 	: undefined;
@@ -367,21 +352,14 @@ export default defineConfig({
 	},
 	vite: {
 		plugins: [tailwindcss()],
-		environments: {
-			astro: {
-				dev: {
-					createEnvironment: createAstroDevEnvironment,
-				},
-			},
-			ssr: {
-				dev: {
-					createEnvironment: createAstroDevEnvironment,
-				},
-			},
-		},
 		server: {
 			watch: {
-				ignored: ["**/package/**", "**/Firefly-docs/**"],
+				ignored: [
+					// 项目内 pnpm store 文件很多；监听它会让 Windows 开发启动被目录扫描拖慢。
+					"**/.pnpm-store/**",
+					"**/package/**",
+					"**/Firefly-docs/**",
+				],
 			},
 		},
 		resolve: {
@@ -390,6 +368,9 @@ export default defineConfig({
 			},
 		},
 		build: {
+			// Live2D 关闭时，Astro 仍会先生成一个约 650 KiB、无 HTML 引用的 chunk，
+			// 随后由 prune-pio-assets.ts 删除；启用时仍使用默认阈值暴露真实体积警告。
+			chunkSizeWarningLimit: live2dWidgetConfig.enable ? 500 : 700,
 			minify: "esbuild",
 			esbuildOptions: {
 				minify: true,

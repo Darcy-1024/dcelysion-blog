@@ -196,12 +196,12 @@ pnpm new-dynamic ... # 新建动态
 
 构建注意事项：
 
-- `astro.config.mjs` 为 Astro 的 Vite `astro` 和 `ssr` 开发环境把 module-runner transport 超时设为 180 秒；Windows 上首次 manifest 加载可能超过 Vite 默认的 60 秒。该设置依赖 `package.json` 中直接固定的 Vite 版本，升级 Vite/Astro 时需重新核对 Environment API。
+- `pnpm-workspace.yaml` 把 pnpm store 放在仓库内，因此 `astro.config.mjs` 必须继续从 Vite watcher 排除 `**/.pnpm-store/**`；否则 Windows 启动时会遍历数万个依赖缓存文件。依赖安装或升级后应重启开发服务器，而不是依赖 store 文件的热更新。Cloudflare adapter 也只在设置 `CF_WORKERS` 时动态加载，普通 `pnpm dev` 和静态构建不应提前初始化 Wrangler/Miniflare。
 - `pnpm build` 会更新 `src/constants/lqips.json`；提交前检查差异是否来自本次资源变更。
-- `pnpm build` 会先更新 `src/constants/github-card-data.json`；无网络或 API 失败时脚本保留已有缓存，提交前检查差异是否合理。
+- `pnpm build` 会先更新 `src/constants/github-card-data.json`；瞬时 DNS/连接/超时、HTTP 429 和 5xx 会短暂等待后重试一次，仍失败时保留已有缓存。提交前检查差异是否合理。
 - `pnpm format` 与 `pnpm lint` 都带有 `--write`，且作用于整个 `src/` 和 `scripts/`。已有无关改动或只需验证少量文件时，优先使用 `pnpm exec biome check <相关文件>` 做限定范围的只读检查；不要为验证而改写任务外文件。
 - `scripts/generate-vndb-covers.ts` 只在 VNDB 页面启用、模式为 `static`、配置了 `userId` 且开启封面下载时请求外部 API；未配置用户 ID 时会直接跳过。
-- `scripts/prune-pio-assets.ts` 在 Astro 构建后从 `dist/` 移除未启用的 Pio/Live2D 产物；不要手工修改其输出。
+- `scripts/prune-pio-assets.ts` 在 Astro 构建后从 `dist/` 移除未启用的 Pio/Live2D 产物；Live2D 关闭时 Vite 的 chunk 警告阈值为 700 KiB，用于容纳这个随后被删除的已知孤立 chunk，启用时仍使用默认 500 KiB。不要手工修改其输出。
 - 字体子集脚本在 Astro 构建后扫描 `dist/**/*.html`，输出到 `dist/_astro/fonts`。
 - `scripts/minify-inline-scripts.ts` 会在字体处理后压缩 `dist/` 中的内联脚本。
 - Pagefind 只在完整构建后生成，因此开发服务器中的搜索可用性与生产预览不同。
