@@ -3,14 +3,15 @@ import { getLqipProps } from "@/utils/lqip-utils";
 
 interface Props {
 	src: string;
+	lqipSrc?: string;
 	albumId: string;
 	alt?: string;
 }
 
-const { src, albumId, alt = "" } = Astro.props;
+const { src, lqipSrc, albumId, alt = "" } = Astro.props;
 
 // LQIP 渐变占位
-const lqipProps = getLqipProps(src, undefined, true);
+const lqipProps = getLqipProps(lqipSrc || src, undefined, true);
 ---
 
 <div class="gallery-photo-card break-inside-avoid mb-3">

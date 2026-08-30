@@ -6,7 +6,11 @@ import { galleryConfig, siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { getAlbumCover, scanAlbumPhotos } from "@/utils/gallery-utils";
+import {
+	getAlbumCover,
+	getGalleryLqipSource,
+	scanAlbumPhotos,
+} from "@/utils/gallery-utils";
 import { getLqipProps } from "@/utils/lqip-utils";
 import { url } from "@/utils/url-utils";
 
@@ -28,13 +32,18 @@ if (!albumMeta) {
 	return Astro.redirect("/404/");
 }
 
-const photos = scanAlbumPhotos(albumMeta.id);
-const cover = getAlbumCover(albumMeta, photos);
+const photos = scanAlbumPhotos(albumMeta.id, galleryConfig);
+const photoItems = photos.map((src) => ({
+	src,
+	lqipSrc: getGalleryLqipSource(src, galleryConfig),
+}));
+const cover = getAlbumCover(albumMeta, photos, galleryConfig);
 const columnWidth = galleryConfig.columnWidth || 240;
 
 // LQIP 渐变占位
+const coverLqipSrc = getGalleryLqipSource(cover, galleryConfig);
 const coverLqipProps = cover
-	? getLqipProps(cover, undefined, true)
+	? getLqipProps(coverLqipSrc, undefined, true)
 	: { style: "" };
 ---
 
@@ -138,8 +147,8 @@ const coverLqipProps = cover
               class="gallery-masonry"
               style={`column-count: 2; column-gap: 0.75rem; --col-width: ${columnWidth}px;`}
             >
-              {photos.map((photo) => (
-                <PhotoCard src={photo} albumId={albumMeta.id} />
+              {photoItems.map((photo) => (
+                <PhotoCard src={photo.src} lqipSrc={photo.lqipSrc} albumId={albumMeta.id} />
               ))}
             </div>
           </EncryptedContent>
@@ -148,8 +157,8 @@ const coverLqipProps = cover
             class="gallery-masonry"
             style={`column-count: 2; column-gap: 0.75rem; --col-width: ${columnWidth}px;`}
           >
-            {photos.map((photo) => (
-              <PhotoCard src={photo} albumId={albumMeta.id} />
+            {photoItems.map((photo) => (
+              <PhotoCard src={photo.src} lqipSrc={photo.lqipSrc} albumId={albumMeta.id} />
             ))}
           </div>
         )

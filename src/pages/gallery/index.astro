@@ -5,7 +5,11 @@ import { galleryConfig, siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { getAlbumCover, scanAlbumPhotos } from "@/utils/gallery-utils";
+import {
+	getAlbumCover,
+	getGalleryLqipSource,
+	scanAlbumPhotos,
+} from "@/utils/gallery-utils";
 
 // 检查页面是否启用
 if (!siteConfig.pages.gallery) {
@@ -17,9 +21,10 @@ const description = i18n(I18nKey.galleryDescription);
 
 // 构建相册数据（扫描照片、获取封面）
 const albums = galleryConfig.albums.map((album) => {
-	const photos = scanAlbumPhotos(album.id);
-	const cover = getAlbumCover(album, photos);
-	return { ...album, cover, photoCount: photos.length };
+	const photos = scanAlbumPhotos(album.id, galleryConfig);
+	const cover = getAlbumCover(album, photos, galleryConfig);
+	const coverLqipSrc = getGalleryLqipSource(cover, galleryConfig);
+	return { ...album, cover, coverLqipSrc, photoCount: photos.length };
 });
 
 // 收集所有标签用于筛选
@@ -96,6 +101,7 @@ const allTags = [...new Set(albums.flatMap((a) => a.tags || []))].sort();
                 id={album.id}
                 name={album.name}
                 cover={album.cover}
+                lqipSrc={album.coverLqipSrc}
                 description={album.description}
                 date={album.date}
                 location={album.location}

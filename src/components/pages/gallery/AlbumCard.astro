@@ -8,6 +8,7 @@ interface Props {
 	id: string;
 	name: string;
 	cover: string;
+	lqipSrc?: string;
 	description?: string;
 	date?: string;
 	location?: string;
@@ -20,6 +21,7 @@ const {
 	id,
 	name,
 	cover,
+	lqipSrc,
 	description,
 	date,
 	location,
@@ -29,7 +31,9 @@ const {
 } = Astro.props;
 
 // LQIP 渐变占位
-const lqipProps = cover ? getLqipProps(cover, undefined, true) : { style: "" };
+const lqipProps = cover
+	? getLqipProps(lqipSrc || cover, undefined, true)
+	: { style: "" };
 ---
 
 <a

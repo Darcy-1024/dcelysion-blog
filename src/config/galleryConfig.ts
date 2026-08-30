@@ -1,11 +1,18 @@
 import type { GalleryConfig } from "@/types/galleryConfig";
 
+const galleryAssetBaseUrl = "https://gallery.dcelysion.cn";
+
 // 相册配置
 export const galleryConfig: GalleryConfig = {
+	// public/gallery 继续作为构建清单、LQIP 和回滚副本；浏览器从 R2 自定义域读取图片
+	assetBaseUrl: galleryAssetBaseUrl,
+	// 远端文件名加入内容哈希，允许安全使用长期 immutable 缓存
+	assetVersioning: "content-hash",
+
 	// 相册列表
 	albums: [
 		// 支持jpg/png/webp/avif/gif格式
-		// id: 相册唯一标识符（用于目录命名和URL路径），比如设置：id: "firefly-2026", 对应 public/gallery/firefly-2026/目录
+		// id: 相册唯一标识符（用于目录命名、URL路径和 R2 对象前缀），比如设置：id: "firefly-2026", 对应 public/gallery/firefly-2026/目录
 		// cover: 手动指定封面图（可选，不填会把cover.*文件作为封面图，如果没有cover.*文件，则使用第一张图片作为封面图）
 		// name: 相册名称
 		// description: 相册描述
@@ -14,7 +21,7 @@ export const galleryConfig: GalleryConfig = {
 		// tags: 相册标签，用于分类和过滤
 		// password: 访问密码，设置后需要输入密码才能查看相册内容（可选）
 		// passwordHint: 密码提示，设置后在输入密码错误时显示（可选，需配合password使用）
-		// 每添加一个数组项就相当于添加了一个相册，记得在 public/gallery/ 目录下创建对应的子目录并放入图片
+		// 每添加一个数组项就相当于添加了一个相册；先在 public/gallery/ 创建对应子目录，再把图片上传到配置的远端资源地址
 		{
 			id: "wallpaper-2026",
 			name: "封面合集",

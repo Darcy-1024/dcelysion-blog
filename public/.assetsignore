@@ -1,3 +1,10 @@
 # Media is served from Cloudflare R2, not Workers Static Assets.
 assets/music/
 assets/videos/
+gallery/**/*.jpg
+gallery/**/*.jpeg
+gallery/**/*.png
+gallery/**/*.webp
+gallery/**/*.avif
+gallery/**/*.gif
+gallery/**/urls.txt

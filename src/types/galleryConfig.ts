@@ -11,8 +11,12 @@ export type GalleryAlbum = {
 	passwordHint?: string; // 密码提示
 };
 
+export type GalleryAssetVersioning = "none" | "content-hash";
+
 // 相册配置
 export type GalleryConfig = {
+	assetBaseUrl?: string; // 本地相册图片的线上资源根地址；省略时仍使用 public/gallery
+	assetVersioning?: GalleryAssetVersioning; // R2 等远端资源的文件名版本策略
 	albums: GalleryAlbum[];
 	columnWidth?: number; // 瀑布流最小列宽(px)，默认 240，浏览器根据容器宽度自动计算列数
 };

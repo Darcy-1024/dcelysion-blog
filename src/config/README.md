@@ -63,7 +63,7 @@ import { profileConfig } from "@/config/profileConfig";
 | `fontConfig.ts` | 字体配置（字体列表、回退、预加载） |
 | `footerConfig.ts` | 页脚配置（自定义 HTML 注入，如备案号） |
 | `friendsConfig.ts` | 友链配置（友链列表、页面设置） |
-| `galleryConfig.ts` | 相册配置（相册列表、瀑布流列宽） |
+| `galleryConfig.ts` | 相册配置（相册列表、远端资源根地址、内容哈希版本和瀑布流列宽） |
 | `licenseConfig.ts` | 许可证配置（CC 协议等） |
 | `musicConfig.ts` | 音乐播放器配置（Meting API / 本地歌单、public 相对路径或外部 HTTPS 媒体、导航栏和侧边栏开关） |
 | `navBarConfig.ts` | 导航栏配置（动态链接、LinkPresets 链接预设、搜索配置） |
@@ -80,3 +80,4 @@ import { profileConfig } from "@/config/profileConfig";
 - `siteConfig.ts` 只保留站点核心信息，不聚合其他模块配置
 - `navBarConfig.ts` 底部的 `LinkPresets` 可自由自定义导航栏链接的名称、图标和 URL
 - `displaySettingsConfig.ts` 的视图设置面板默认关闭，除了修改配置里的 `enable`，也可以在部署平台（Vercel / Cloudflare 等）设置环境变量 `PUBLIC_DISPLAY_SETTINGS=true` 开启，无需改动配置文件；环境变量优先级更高，取值 `true/1/on/yes` 开启、`false/0/off/no` 关闭
+- 相册始终从 `public/gallery/<album-id>/` 扫描本地副本。设置 `galleryConfig.assetBaseUrl` 后，页面会把这些本地文件映射为远端 HTTPS URL；`assetVersioning: "content-hash"` 会给远端文件名加入内容哈希，以便安全使用长期缓存。本地文件仍用于生成相册清单和 LQIP，`urls.txt` 中的第三方外链不会被改写。

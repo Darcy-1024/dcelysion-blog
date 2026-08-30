@@ -49,7 +49,7 @@ pnpm build
 | --- | --- | --- |
 | `src/` | 站点源代码和内容 | 绝大多数功能修改发生在这里 |
 | `.agents/skills/` | 仓库级 Codex 工作流 | 当前包含动态发布 Skill，修改后需运行对应校验器 |
-| `public/` | 原样复制并按根路径访问的静态资源 | 相册、Pio 模型、第三方脚本等放在这里；`public/assets/music/` 仅保留本地工作副本，线上音乐见下文 R2 约定 |
+| `public/` | 原样复制并按根路径访问的静态资源 | Pio 模型、第三方脚本及媒体本地副本等放在这里；音乐、视频与相册的线上交付见下文 R2 约定 |
 | `scripts/` | 内容脚手架和构建期生成脚本 | 注意脚本可能改写受版本控制的生成数据 |
 | `workers/` | 独立 Cloudflare Worker | 包含 Twikoo 反向代理与 Sites 静态资源入口，不属于 Astro 页面代码 |
 | `docs/` | README 使用的说明图片和多语言文档 | 不参与站点运行时 |
@@ -139,7 +139,7 @@ pnpm build
 
 - 与文章一起维护、需要 Astro 处理的图片可放在文章目录或 `src/assets/`。
 - 必须以稳定根路径原样访问、体积较大或由外部库读取的资源放 `public/`。
-- 相册由 `galleryConfig.ts` 声明元数据，并从 `public/gallery/<album-id>/` 扫描图片；可用 `cover.*`、`urls.txt` 和可选密码。
+- 相册由 `galleryConfig.ts` 声明元数据，并在构建期从 `public/gallery/<album-id>/` 扫描本地副本；可用 `cover.*`、`urls.txt` 和可选密码。设置 `assetBaseUrl` 后，本地图片映射为 R2 URL，第三方 `urls.txt` 外链保持原样。
 
 ### `src/plugins/`：Markdown AST 扩展
 
@@ -209,12 +209,13 @@ pnpm new-dynamic ... # 新建动态
 - GitHub 卡片、Bangumi、MyAnimeList、VNDB、OG 字体等流程可能访问外部服务；失败时先区分代码错误、缺少配置、网络问题和本地缓存回退。
 - `scripts/quarantine-bad-posts.mjs` 会移动文件且不是常规构建步骤，未经明确要求不要运行。
 
-### 音乐与壁纸媒体的 Cloudflare R2
+### 音乐、壁纸与相册媒体的 Cloudflare R2
 
-- `src/config/musicConfig.ts` 的当前歌单通过 Cloudflare R2 存储桶 `dcelysion-music` 及 `https://music.dcelysion.cn` 提供音频和封面。`src/config/backgroundWallpaper.ts` 的视频壁纸使用独立存储桶 `dcelysion-wallpapers` 及 `https://wallpapers.dcelysion.cn`；对象按 `desktop/`、`mobile/` 前缀组织，可为不同终端配置独立裁剪版本和主体位置。
-- `public/assets/music/` 和 `public/assets/videos/` 只作为本地工作副本；必须保留并提交 `public/.assetsignore`，使 Workers Static Assets 上传排除这两个目录。该文件不等同于 `.gitignore`，暂存前仍须检查媒体二进制。
+- `src/config/musicConfig.ts` 的当前歌单通过 Cloudflare R2 存储桶 `dcelysion-music` 及 `https://music.dcelysion.cn` 提供音频和封面。`src/config/backgroundWallpaper.ts` 的视频壁纸使用独立存储桶 `dcelysion-wallpapers` 及 `https://wallpapers.dcelysion.cn`；对象按 `desktop/`、`mobile/` 前缀组织，可为不同终端配置独立裁剪版本和主体位置。`src/config/galleryConfig.ts` 将本地相册映射到 `dcelysion-gallery` 及 `https://gallery.dcelysion.cn`，对象按 `<album-id>/` 前缀组织。
+- `public/assets/music/`、`public/assets/videos/` 和 `public/gallery/` 只作为本地工作副本、构建清单或 LQIP 来源；必须保留并提交 `public/.assetsignore`，使 Workers Static Assets 上传排除音乐/视频目录与相册媒体文件，同时保留构建生成的 `dist/gallery/**/index.html` 相册路由。该文件不等同于 `.gitignore`，暂存前仍须检查媒体二进制。
+- 相册远端对象使用内容哈希文件名和版本化长缓存；新增或替换本地图片后，先非破坏性上传对应新键，再构建并确认页面 URL、对象 MIME/长度和浏览器/Fancybox 显示。不要用会删除远端对象的初次同步命令；相册密码只保护页面展示，不是 R2 对象鉴权。
 - R2 视频使用 H.264 + `yuv420p` MP4，写入 `video/mp4` 和版本化长缓存头，并启用 faststart；上传后必须验证自定义域名的 `206 Partial Content` Range 响应和实际播放。
-- 播放器使用匿名跨域媒体。新增或更换站点访问域时，必须同步音乐桶与壁纸桶 R2 CORS 的精确 Origin；当前包括 `https://blog.dcelysion.cn`、`https://dcelysion-blog.lin507793465.workers.dev`、`http://localhost:4321` 和 `http://127.0.0.1:4321`。规则变化后清理对应媒体域名的 CDN 缓存，并验证 Range 请求与实际播放。
+- 新增或更换站点访问域时，必须同步三个媒体桶 R2 CORS 的精确 Origin；当前包括 `https://blog.dcelysion.cn`、`https://dcelysion-blog.lin507793465.workers.dev`、`http://localhost:4321` 和 `http://127.0.0.1:4321`。规则变化后清理对应媒体域名的 CDN 缓存；音视频验证 Range/实际播放，相册验证 HTTP 200、正确图片 MIME/长度和实际显示。
 
 ## 8. 常见修改路径
 
