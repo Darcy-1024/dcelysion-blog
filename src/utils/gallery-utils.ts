@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import galleryPreviewData from "@constants/gallery-previews.json";
 import type { GalleryAlbum, GalleryConfig } from "@/types/galleryConfig";
 import { url } from "@/utils/url-utils";
 
@@ -8,6 +9,27 @@ type GalleryAssetOptions = Pick<
 	GalleryConfig,
 	"assetBaseUrl" | "assetVersioning"
 >;
+
+interface GalleryPreviewManifestAsset {
+	objectKey: string;
+	width: number;
+	height: number;
+	bytes: number;
+	sha256: string;
+	sourceSha256: string;
+}
+
+interface GalleryPreviewManifest {
+	assets: Record<string, GalleryPreviewManifestAsset>;
+}
+
+export interface GalleryPreviewAsset {
+	src: string;
+	width: number;
+	height: number;
+}
+
+const galleryPreviewManifest = galleryPreviewData as GalleryPreviewManifest;
 
 const contentHashCache = new Map<string, { signature: string; hash: string }>();
 
@@ -61,6 +83,34 @@ function buildRemoteAssetUrl(
 		.map((segment) => encodeURIComponent(segment))
 		.join("/");
 	return `${assetBaseUrl.replace(/\/+$/, "")}/${encodedPath}`;
+}
+
+function getRemoteGalleryRelativePath(
+	assetUrl: string,
+	assetBaseUrl: string,
+): string | null {
+	try {
+		const baseUrl = new URL(`${assetBaseUrl.replace(/\/+$/, "")}/`);
+		const remoteUrl = new URL(assetUrl);
+		const basePath = baseUrl.pathname.endsWith("/")
+			? baseUrl.pathname
+			: `${baseUrl.pathname}/`;
+		if (
+			remoteUrl.origin !== baseUrl.origin ||
+			!remoteUrl.pathname.startsWith(basePath)
+		) {
+			return null;
+		}
+
+		return remoteUrl.pathname
+			.slice(basePath.length)
+			.split("/")
+			.filter(Boolean)
+			.map((segment) => decodeURIComponent(segment))
+			.join("/");
+	} catch {
+		return null;
+	}
 }
 
 function getLocalGalleryRelativePath(
@@ -187,6 +237,30 @@ export function getAlbumCover(
 }
 
 /**
+ * 将本站 R2 原图 URL 映射为已生成的 1200px 预览 URL。
+ * 第三方图片或尚未生成预览的图片继续使用原地址。
+ */
+export function getGalleryPreviewAsset(
+	assetUrl: string,
+	options: GalleryAssetOptions = {},
+): GalleryPreviewAsset | null {
+	if (!assetUrl || !options.assetBaseUrl) return null;
+	const relativePath = getRemoteGalleryRelativePath(
+		assetUrl,
+		options.assetBaseUrl,
+	);
+	if (!relativePath) return null;
+	const preview = galleryPreviewManifest.assets[relativePath];
+	if (!preview) return null;
+
+	return {
+		src: buildRemoteAssetUrl(options.assetBaseUrl, preview.objectKey),
+		width: preview.width,
+		height: preview.height,
+	};
+}
+
+/**
  * 将本站 R2 相册 URL 映射回本地 public/gallery 路径，继续复用构建期 LQIP。
  */
 export function getGalleryLqipSource(
@@ -194,38 +268,22 @@ export function getGalleryLqipSource(
 	options: GalleryAssetOptions = {},
 ): string {
 	if (!assetUrl || !options.assetBaseUrl) return assetUrl;
+	const relativePath = getRemoteGalleryRelativePath(
+		assetUrl,
+		options.assetBaseUrl,
+	);
+	if (!relativePath) return assetUrl;
+	const pathSegments = relativePath.split("/").filter(Boolean);
+	if (pathSegments.length < 2) return assetUrl;
 
-	try {
-		const baseUrl = new URL(`${options.assetBaseUrl.replace(/\/+$/, "")}/`);
-		const remoteUrl = new URL(assetUrl);
-		const basePath = baseUrl.pathname.endsWith("/")
-			? baseUrl.pathname
-			: `${baseUrl.pathname}/`;
-		if (
-			remoteUrl.origin !== baseUrl.origin ||
-			!remoteUrl.pathname.startsWith(basePath)
-		) {
-			return assetUrl;
-		}
-
-		const relativePath = remoteUrl.pathname
-			.slice(basePath.length)
-			.split("/")
-			.filter(Boolean)
-			.map((segment) => decodeURIComponent(segment));
-		if (relativePath.length < 2) return assetUrl;
-
-		if (options.assetVersioning === "content-hash") {
-			const fileName = relativePath.at(-1);
-			if (!fileName) return assetUrl;
-			relativePath[relativePath.length - 1] = fileName.replace(
-				/-[0-9a-f]{8}(?=\.[^.]+$)/i,
-				"",
-			);
-		}
-
-		return `/gallery/${relativePath.join("/")}`;
-	} catch {
-		return assetUrl;
+	if (options.assetVersioning === "content-hash") {
+		const fileName = pathSegments.at(-1);
+		if (!fileName) return assetUrl;
+		pathSegments[pathSegments.length - 1] = fileName.replace(
+			/-[0-9a-f]{8}(?=\.[^.]+$)/i,
+			"",
+		);
 	}
+
+	return `/gallery/${pathSegments.join("/")}`;
 }

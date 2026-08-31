@@ -152,7 +152,7 @@ pnpm build
 - `src/utils/`：无 UI 的共享逻辑。重点包括内容查询/推荐、日期、URL、图片/LQIP、布局响应式、导航、设置持久化、目录、动态/Memos、书签导航、Bilibili、MyAnimeList、VNDB、NSFW 处理、GitHub 卡片和加密。
 - `src/styles/`：`main.css` 是全局入口，继续导入布局及功能 CSS；`variables.styl` 管主题变量，`markdown-extend.styl` 管正文扩展样式。
 - `src/i18n/`：`i18nKey.ts` 定义键，`languages/*.ts` 提供语言字典，`translation.ts` 负责查找。新增用户可见文本时应补齐所有语言或提供明确回退。
-- `src/constants/`：站点常量、图标数据和 LQIP 映射。`icons-data.json`、`lqips.json` 是生成数据，不要无理由手改。
+- `src/constants/`：站点常量、图标数据、LQIP 和相册预览映射。`icons-data.json`、`lqips.json`、`gallery-previews.json` 是生成数据，不要无理由手改；其中相册预览映射由 `pnpm gallery-previews` 生成。
 - `src/assets/`：由构建系统管理的图片等源码资源。
 - `src/workers/`：浏览器 Web Worker；当前用于樱花效果计算，与根目录 `workers/` 的部署 Worker 不同。
 
@@ -187,6 +187,7 @@ pnpm type-check      # TypeScript --noEmit --isolatedDeclarations
 pnpm format          # Biome 格式化并写入 src 与 scripts
 pnpm lint            # Biome 检查、格式化并写入 src 与 scripts
 pnpm lqips           # 重新生成 src/constants/lqips.json
+pnpm gallery-previews # 生成最大宽度 1200px 的 AVIF 相册预览和映射
 pnpm github-cards    # 重新生成 src/constants/github-card-data.json
 pnpm build           # GitHub 卡片 -> LQIP -> VNDB 封面 -> Astro -> Pio 裁剪 -> 字体 -> 内联脚本压缩 -> Pagefind -> Sites 入口
 pnpm preview         # 预览 dist
@@ -199,6 +200,7 @@ pnpm new-dynamic ... # 新建动态
 - `pnpm-workspace.yaml` 把 pnpm store 放在仓库内，因此 `astro.config.mjs` 必须继续从 Vite watcher 排除 `**/.pnpm-store/**`；否则 Windows 启动时会遍历数万个依赖缓存文件。依赖安装或升级后应重启开发服务器，而不是依赖 store 文件的热更新。Cloudflare adapter 也只在设置 `CF_WORKERS` 时动态加载，普通 `pnpm dev` 和静态构建不应提前初始化 Wrangler/Miniflare。
 - `pnpm build` 会更新 `src/constants/lqips.json`；提交前检查差异是否来自本次资源变更。
 - `pnpm build` 会先更新 `src/constants/github-card-data.json`；瞬时 DNS/连接/超时、HTTP 429 和 5xx 会短暂等待后重试一次，仍失败时保留已有缓存。提交前检查差异是否合理。
+- `pnpm gallery-previews` 是独立的媒体维护命令，不属于普通 `pnpm build`。它为已配置相册的本地图片生成最大宽度 1200px、不会放大的 AVIF 预览，把待上传文件写入已忽略的 `.gallery-previews/`，并更新受版本控制的 `src/constants/gallery-previews.json`。部署引用新映射的 HTML 前必须先上传并验证映射中的全部 R2 对象。
 - `pnpm format` 与 `pnpm lint` 都带有 `--write`，且作用于整个 `src/` 和 `scripts/`。已有无关改动或只需验证少量文件时，优先使用 `pnpm exec biome check <相关文件>` 做限定范围的只读检查；不要为验证而改写任务外文件。
 - `scripts/generate-vndb-covers.ts` 只在 VNDB 页面启用、模式为 `static`、配置了 `userId` 且开启封面下载时请求外部 API；未配置用户 ID 时会直接跳过。
 - `scripts/prune-pio-assets.ts` 在 Astro 构建后从 `dist/` 移除未启用的 Pio/Live2D 产物；Live2D 关闭时 Vite 的 chunk 警告阈值为 700 KiB，用于容纳这个随后被删除的已知孤立 chunk，启用时仍使用默认 500 KiB。不要手工修改其输出。
@@ -213,7 +215,8 @@ pnpm new-dynamic ... # 新建动态
 
 - `src/config/musicConfig.ts` 的当前歌单通过 Cloudflare R2 存储桶 `dcelysion-music` 及 `https://music.dcelysion.cn` 提供音频和封面。`src/config/backgroundWallpaper.ts` 的视频壁纸使用独立存储桶 `dcelysion-wallpapers` 及 `https://wallpapers.dcelysion.cn`；对象按 `desktop/`、`mobile/` 前缀组织，可为不同终端配置独立裁剪版本和主体位置。`src/config/galleryConfig.ts` 将本地相册映射到 `dcelysion-gallery` 及 `https://gallery.dcelysion.cn`，对象按 `<album-id>/` 前缀组织。
 - `public/assets/music/`、`public/assets/videos/` 和 `public/gallery/` 只作为本地工作副本、构建清单或 LQIP 来源；必须保留并提交 `public/.assetsignore`，使 Workers Static Assets 上传排除音乐/视频目录与相册媒体文件，同时保留构建生成的 `dist/gallery/**/index.html` 相册路由。该文件不等同于 `.gitignore`，暂存前仍须检查媒体二进制。
-- 相册远端对象使用内容哈希文件名和版本化长缓存；新增或替换本地图片后，先非破坏性上传对应新键，再构建并确认页面 URL、对象 MIME/长度和浏览器/Fancybox 显示。不要用会删除远端对象的初次同步命令；相册密码只保护页面展示，不是 R2 对象鉴权。
+- 相册详情页瀑布流优先加载 `gallery-previews.json` 登记的最大宽度 1200px 预览，点击 Fancybox 仍加载原图；顶部横幅、相册列表封面、第三方 `urls.txt` 外链和未命中映射的图片继续使用原地址。预览对象按映射中的内容哈希键从 `.gallery-previews/` 非破坏性上传；必须先确认全部预览对象的 HTTP 状态、图片 MIME、尺寸和长度，再部署引用它们的页面，并验证 Fancybox 打开的仍是原图。
+- 相册远端原图使用内容哈希文件名和版本化长缓存；新增或替换本地图片后，先非破坏性上传对应新键，再生成预览、上传映射列出的预览对象，最后构建并确认页面 URL 和浏览器显示。不要用会删除远端对象的初次同步命令；相册密码只保护页面展示，不是 R2 对象鉴权。
 - R2 视频使用 H.264 + `yuv420p` MP4，写入 `video/mp4` 和版本化长缓存头，并启用 faststart；上传后必须验证自定义域名的 `206 Partial Content` Range 响应和实际播放。
 - 新增或更换站点访问域时，必须同步三个媒体桶 R2 CORS 的精确 Origin；当前包括 `https://blog.dcelysion.cn`、`https://dcelysion-blog.lin507793465.workers.dev`、`http://localhost:4321` 和 `http://127.0.0.1:4321`。规则变化后清理对应媒体域名的 CDN 缓存；音视频验证 Range/实际播放，相册验证 HTTP 200、正确图片 MIME/长度和实际显示。
 
@@ -313,6 +316,7 @@ pnpm new-dynamic ... # 新建动态
 - 不手工编辑 `dist/`、`.astro/`、依赖目录或锁文件之外的安装产物。
 - 不提交 `.env`、服务密钥、访问 token、私人 API key 或真实密码。
 - Commit 使用 Conventional Commits，例如 `feat: ...`、`fix: ...`、`docs: ...`、`chore: ...`。
+- OpenAI Sites 默认不部署。GitHub 提交或推送不构成 Sites 授权；执行 Sites source sync、版本保存或部署前，每次都必须单独询问并获得用户明确确认。
 - PR 保持单一关注点，写明变更摘要、验证命令、已知限制；视觉修改附桌面和移动端截图。
 
 ## 12. Agent 开工检查表

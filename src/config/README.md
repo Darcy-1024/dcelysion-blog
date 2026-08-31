@@ -81,3 +81,4 @@ import { profileConfig } from "@/config/profileConfig";
 - `navBarConfig.ts` 底部的 `LinkPresets` 可自由自定义导航栏链接的名称、图标和 URL
 - `displaySettingsConfig.ts` 的视图设置面板默认关闭，除了修改配置里的 `enable`，也可以在部署平台（Vercel / Cloudflare 等）设置环境变量 `PUBLIC_DISPLAY_SETTINGS=true` 开启，无需改动配置文件；环境变量优先级更高，取值 `true/1/on/yes` 开启、`false/0/off/no` 关闭
 - 相册始终从 `public/gallery/<album-id>/` 扫描本地副本。设置 `galleryConfig.assetBaseUrl` 后，页面会把这些本地文件映射为远端 HTTPS URL；`assetVersioning: "content-hash"` 会给远端文件名加入内容哈希，以便安全使用长期缓存。本地文件仍用于生成相册清单和 LQIP，`urls.txt` 中的第三方外链不会被改写。
+- 执行 `pnpm gallery-previews` 会为已配置相册的本地图片生成最大宽度 1200px、不会放大的 AVIF 预览，待上传文件暂存于已忽略的 `.gallery-previews/`，映射写入 `src/constants/gallery-previews.json`。相册详情页瀑布流优先加载已登记的预览，点击 Fancybox 仍加载原图；顶部横幅、相册列表封面、第三方外链和未命中映射的图片继续使用原地址。该命令不会由 `pnpm build` 自动执行，部署引用新映射的页面前必须先上传并验证对应 R2 对象。

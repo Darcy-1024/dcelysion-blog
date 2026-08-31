@@ -22,6 +22,7 @@ For detailed architecture, module boundaries, agent workflows, and verification 
 | `pnpm new-post <filename>` | Scaffold a new blog post |
 | `pnpm new-dynamic` (`new-d`) | Scaffold a new dynamic (microblog) entry |
 | `pnpm lqips` | Regenerate LQIP data into `src/constants/lqips.json` |
+| `pnpm gallery-previews` | Generate max-width 1200px AVIF gallery previews and `src/constants/gallery-previews.json` |
 | `pnpm github-cards` | Regenerate cached GitHub card metadata in `src/constants/github-card-data.json` |
 
 Package manager is **pnpm 11** (enforced and pinned in `package.json`); Node.js >= 22 is required. `pnpm-workspace.yaml` pins the local store and explicitly allows required dependency build scripts. Because that store lives inside the repository, keep `**/.pnpm-store/**` in Vite's watcher exclusions; scanning its tens of thousands of cache files severely delays Windows dev startup, and dependency changes require restarting the dev server. The Cloudflare adapter is dynamically imported only when `CF_WORKERS` is set so normal dev/static config loading does not initialize Wrangler/Miniflare.
@@ -69,7 +70,7 @@ Defined in `src/content.config.ts`:
 - `src/i18n/` — translation keys in `i18nKey.ts`, language files in `languages/*.ts`, lookup via `translation.ts`
 - `src/utils/` — content sorting, crypto (encrypted posts), date formatting, image processing/LQIP, TOC generation
 - `src/pages/` — Astro file-based routing
-- `scripts/` — build-time utilities (`generate-github-card-data.ts`, `generate-lqips.ts`, `generate-vndb-covers.ts`, `prune-pio-assets.ts`, `subset-fonts.ts`, `minify-inline-scripts.ts`, `prepare-sites-dist.ts`, `new-post.js`, `new-dynamic.js`)
+- `scripts/` — build-time and media-maintenance utilities (`generate-gallery-previews.ts`, `generate-github-card-data.ts`, `generate-lqips.ts`, `generate-vndb-covers.ts`, `prune-pio-assets.ts`, `subset-fonts.ts`, `minify-inline-scripts.ts`, `prepare-sites-dist.ts`, `new-post.js`, `new-dynamic.js`)
 
 ### Path Aliases (tsconfig.json)
 
@@ -87,7 +88,7 @@ Defined in `src/content.config.ts`:
 
 - **Upstream sync defaults**: when syncing from upstream, any new, moved, or updated tutorial/guide/feature-demo posts must keep `draft: true` — even if upstream frontmatter omits `draft` or sets it to `false`. Make them public only when the user explicitly asks. The user's own posts are exempt.
 - **Publishing dynamics (动态)**: prefer the repo-level `$publish-dynamic` skill (`.agents/skills/publish-dynamic/`). Preserve the user's wording exactly — no rewording, added emoji, or extra tags unless explicitly requested. Default to public, unpinned, no location; set `draft`/`pinned`/`location` only when asked.
-- **Ask before committing/deploying**: after finishing work (e.g. publishing a dynamic), ask the user whether to commit, push, and deploy. Do not run Git or deployment actions until the user confirms.
+- **Ask before committing/deploying**: after finishing work (e.g. publishing a dynamic), ask the user whether to commit, push, and deploy. Do not run Git or deployment actions until the user confirms. OpenAI Sites is opt-in and remains undeployed by default: a GitHub commit or push never authorizes Sites source sync, version saving, or deployment, so ask for explicit Sites approval every time.
 - **Proactive doc sync**: when code, config, structure, or workflows change, update drifted docs (AGENTS.md, READMEs, `docs/` translations, `src/config/README.md`, `src/components/README.md`) in the same task without being reminded. If a translation can't be reliably updated, update the default-language doc and report which translations lag.
 - **Minimal footprint**: run `git status --short` first and preserve existing user changes; only touch task-related files and avoid repo-wide reformatting. Never run `scripts/quarantine-bad-posts.mjs` unless explicitly asked.
 - **Delivery notes**: report changed files, doc-sync status, behavior changes, verification results, and any untested areas. PRs stay single-purpose and include summary, verification commands, and known limitations; visual changes include desktop and mobile screenshots.
@@ -97,6 +98,8 @@ Defined in `src/content.config.ts`:
 Multi-step: `scripts/generate-github-card-data.ts` → `scripts/generate-lqips.ts` → `scripts/generate-vndb-covers.ts` → `astro build` → `scripts/prune-pio-assets.ts` → `scripts/subset-fonts.ts` → `scripts/minify-inline-scripts.ts` → `pagefind --site dist` → `scripts/prepare-sites-dist.ts`
 
 GitHub card metadata is generated into `src/constants/github-card-data.json` and committed — regenerate with `pnpm github-cards`. Transient DNS, connection, timeout, HTTP 429, and 5xx failures are retried once before the existing cache fallback. LQIP data is generated into `src/constants/lqips.json` and committed — regenerate with `pnpm lqips`. Icon data lives in `src/constants/icons-data.json` (committed, Biome-ignored, consumed by `src/components/common/Icon.svelte`) but has no generator script in the current build.
+
+Gallery previews are generated explicitly with `pnpm gallery-previews`; this is not part of `pnpm build`. The command writes max-width 1200px AVIF upload files to the ignored `.gallery-previews/` staging directory and updates the committed `src/constants/gallery-previews.json` mapping. Upload and verify every mapped R2 object before deploying HTML that references a new mapping.
 
 `generate-vndb-covers.ts` downloads VNDB cover art into `public/vndb-covers/` (gitignored, skips files that already exist). It no-ops unless `siteConfig.vndb` has a `userId`, `downloadCovers: true`, and `mode: "static"`.
 
@@ -109,4 +112,4 @@ GitHub card metadata is generated into `src/constants/github-card-data.json` and
 - **Vercel** (default, `vercel.json`)
 - **Cloudflare Workers** (`wrangler.jsonc`, set `CF_WORKERS` env var)
 - Static output to `dist/`
-- Music is served from the `dcelysion-music` R2 bucket through `music.dcelysion.cn`; responsive wallpaper videos use `dcelysion-wallpapers` through `wallpapers.dcelysion.cn`; gallery images use content-hashed keys in `dcelysion-gallery` through `gallery.dcelysion.cn`. Keep `public/assets/music/`, `public/assets/videos/`, and `public/gallery/` as local source/rollback copies. The committed `public/.assetsignore` excludes the media files from Workers Static Assets but must preserve generated `dist/gallery/**/index.html` routes. When a site origin changes, update all three buckets' exact CORS allowlists and verify audio/video Range playback plus gallery MIME, length, and browser rendering.
+- Music is served from the `dcelysion-music` R2 bucket through `music.dcelysion.cn`; responsive wallpaper videos use `dcelysion-wallpapers` through `wallpapers.dcelysion.cn`; gallery images use content-hashed keys in `dcelysion-gallery` through `gallery.dcelysion.cn`. Gallery detail grids prefer the generated 1200px previews while Fancybox still opens the original; album-list covers, detail-page hero images, third-party URLs, and manifest misses retain the original URL. Upload and verify mapped previews before deploying the referencing page. Keep `public/assets/music/`, `public/assets/videos/`, and `public/gallery/` as local source/rollback copies. The committed `public/.assetsignore` excludes the media files from Workers Static Assets but must preserve generated `dist/gallery/**/index.html` routes. When a site origin changes, update all three buckets' exact CORS allowlists and verify audio/video Range playback plus gallery MIME, length, and browser rendering.

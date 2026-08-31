@@ -1,0 +1,467 @@
+{
+	"version": 1,
+	"transform": {
+		"width": 1200,
+		"format": "avif",
+		"quality": 70,
+		"effort": 6
+	},
+	"assets": {
+		"wallpaper-2026/cover-391053db.avif": {
+			"objectKey": "wallpaper-2026/_previews/cover-391053db-w1200-3bc2bceb.avif",
+			"width": 1200,
+			"height": 518,
+			"bytes": 130597,
+			"sha256": "3bc2bceb7890397c4e162ff2b710472d311434b86f0a2764bf3918f62fd40b9d",
+			"sourceSha256": "391053db1c57d8ae543a2ab25c6b72cf4793530cd8c61e4ea55af18d70d4c520"
+		},
+		"wallpaper-2026/d10-5ade2316.avif": {
+			"objectKey": "wallpaper-2026/_previews/d10-5ade2316-w1200-77f4543d.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 187737,
+			"sha256": "77f4543d637aeff1b3cc7d871ae9503e72536c4b64a59002598a965edccbad8d",
+			"sourceSha256": "5ade2316861752d74be01b4feb87764bce2f2580f252a931ca0835669098baae"
+		},
+		"wallpaper-2026/d11-2cb3d08a.avif": {
+			"objectKey": "wallpaper-2026/_previews/d11-2cb3d08a-w1200-fec4c39b.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 146472,
+			"sha256": "fec4c39bafae3f930579657b77c1db0fef1e6fa77fa9d9d45a27db02435e03c3",
+			"sourceSha256": "2cb3d08ad6d7f2774ea6e3140a8694654123a630b2eb139d2998dd00047ce3df"
+		},
+		"wallpaper-2026/d12-608036f6.avif": {
+			"objectKey": "wallpaper-2026/_previews/d12-608036f6-w1200-3a3ef8f6.avif",
+			"width": 1200,
+			"height": 703,
+			"bytes": 114509,
+			"sha256": "3a3ef8f6a1b5303dc41164c1dcb71052a5e827abd533398058bca1e1ded6a56b",
+			"sourceSha256": "608036f6da494444b5663591a4bcd00faf27fd12c219febb118bec6dff2eb9ee"
+		},
+		"wallpaper-2026/d13-55fad700.avif": {
+			"objectKey": "wallpaper-2026/_previews/d13-55fad700-w1200-fc548f1a.avif",
+			"width": 1200,
+			"height": 681,
+			"bytes": 122327,
+			"sha256": "fc548f1a646fece6ee4869900d8fdceb5f537d83f84b2abd8944c28f1dece9ac",
+			"sourceSha256": "55fad7003750329d783f4593f48bd5f38584427797e0e3bb91139e576f14149c"
+		},
+		"wallpaper-2026/d14-015251a9.avif": {
+			"objectKey": "wallpaper-2026/_previews/d14-015251a9-w1200-b8c4ef29.avif",
+			"width": 1200,
+			"height": 741,
+			"bytes": 158050,
+			"sha256": "b8c4ef29d6b3e498c323ee98589e303acd64699182c580297afc41ae44094dc4",
+			"sourceSha256": "015251a96949137a959468acb35203515b0fef06d6eb0d7fae9e5cd7a5190db3"
+		},
+		"wallpaper-2026/d15-b23f6203.avif": {
+			"objectKey": "wallpaper-2026/_previews/d15-b23f6203-w1200-3c12be9a.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 133786,
+			"sha256": "3c12be9afb4a6212f772ab54658be8d6cddf6de1ad81c87ccad09a2779d9140d",
+			"sourceSha256": "b23f6203cfea5d99ece685068bf13ecaaf26cd0b60eb488287d5d7f138ef6062"
+		},
+		"wallpaper-2026/d16-76391435.avif": {
+			"objectKey": "wallpaper-2026/_previews/d16-76391435-w1200-42610d84.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 120948,
+			"sha256": "42610d843b33c6883273ed488b9f09bbc0b8d836ac29fd497fb00e23cbaa7d5a",
+			"sourceSha256": "763914357c9530ce15b2c2e3ce212a59abeab02c4d5825f591faf8333eb0c436"
+		},
+		"wallpaper-2026/d17-b3f5fda9.avif": {
+			"objectKey": "wallpaper-2026/_previews/d17-b3f5fda9-w1200-e9c5cefb.avif",
+			"width": 1200,
+			"height": 758,
+			"bytes": 151273,
+			"sha256": "e9c5cefbb8208942b894948c4c5be6c1f2a465ebd39773d2823f217b39283647",
+			"sourceSha256": "b3f5fda9867f26d861348780d89a3b393c71dfd0fdc2d9c92c1311eb328ac520"
+		},
+		"wallpaper-2026/d18-391053db.avif": {
+			"objectKey": "wallpaper-2026/_previews/d18-391053db-w1200-3bc2bceb.avif",
+			"width": 1200,
+			"height": 518,
+			"bytes": 130597,
+			"sha256": "3bc2bceb7890397c4e162ff2b710472d311434b86f0a2764bf3918f62fd40b9d",
+			"sourceSha256": "391053db1c57d8ae543a2ab25c6b72cf4793530cd8c61e4ea55af18d70d4c520"
+		},
+		"wallpaper-2026/d19-e1b42c43.avif": {
+			"objectKey": "wallpaper-2026/_previews/d19-e1b42c43-w1200-f991a4a2.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 149156,
+			"sha256": "f991a4a2368af0d107bad988cbe079defbd8778033cf097fbbecc9ac273f9544",
+			"sourceSha256": "e1b42c4333eaaacf55fa93dbe34c6dc604d43186cca287f267ec8105ce099754"
+		},
+		"wallpaper-2026/d20-d30ec649.avif": {
+			"objectKey": "wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
+			"width": 1200,
+			"height": 575,
+			"bytes": 69007,
+			"sha256": "dd91e8df4ef27814897a85ab9c334992c7314d6b6b3f1a362c4516e763aa59c7",
+			"sourceSha256": "d30ec649d1c1914097c1bcc5c3ed7202d5849a0b826a7e3d57573e49c57ac1f4"
+		},
+		"wallpaper-2026/d21-57aa4b4f.avif": {
+			"objectKey": "wallpaper-2026/_previews/d21-57aa4b4f-w1200-51a16d17.avif",
+			"width": 1200,
+			"height": 718,
+			"bytes": 144554,
+			"sha256": "51a16d1783720e5759586184e8dfe4c21bb088191d7e12ed58f243ebdd8fab21",
+			"sourceSha256": "57aa4b4ff8c847c75d05558b08c489e490fa1a84a1f48a63d0495b7c75f9df7e"
+		},
+		"wallpaper-2026/d22-d2519bf0.avif": {
+			"objectKey": "wallpaper-2026/_previews/d22-d2519bf0-w1200-30d13746.avif",
+			"width": 1200,
+			"height": 660,
+			"bytes": 81502,
+			"sha256": "30d13746f05b8eb42fd04e5657250a5f5f4a8fb4d781d5ee115c0e94fde8c755",
+			"sourceSha256": "d2519bf037b369498aa1f0505ec452ec098ebee586c6327df27c4f21250f3066"
+		},
+		"wallpaper-2026/d23-a520a3b5.avif": {
+			"objectKey": "wallpaper-2026/_previews/d23-a520a3b5-w1200-6ad5f814.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 154019,
+			"sha256": "6ad5f814a6431b10b1ca1294a049b103a36e8ef60e839fc3f6164cf7dd7f5528",
+			"sourceSha256": "a520a3b58e1fc7d16d5cd4846fb7bb42c4c1384db2acfda23cd6f1701895880a"
+		},
+		"wallpaper-2026/d24-3410c685.avif": {
+			"objectKey": "wallpaper-2026/_previews/d24-3410c685-w1200-0e9b9261.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 244814,
+			"sha256": "0e9b9261aabc4a55f79686222ad5db58f0f397ce587073b2fb1475c03ef2f48c",
+			"sourceSha256": "3410c685ebb5ff663fb2f23c5cbca159ca13a6768739c0ecaf4d405897e5d76d"
+		},
+		"wallpaper-2026/d25-52d82d96.avif": {
+			"objectKey": "wallpaper-2026/_previews/d25-52d82d96-w1200-dcf9a410.avif",
+			"width": 1200,
+			"height": 676,
+			"bytes": 223671,
+			"sha256": "dcf9a410b6784e7701dd9fec6f68bd27e0dadf4ef6f1a476318fbe19c50be551",
+			"sourceSha256": "52d82d969cbc64d7ff81b417ffc9073bd6c8ff157b9f839580a5f4191c88cc48"
+		},
+		"wallpaper-2026/d26-ae2ae63a.avif": {
+			"objectKey": "wallpaper-2026/_previews/d26-ae2ae63a-w1200-eaacd744.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 98934,
+			"sha256": "eaacd74433f145b930b6f27a7e3058acf70ffd1186ac3943cfae59cdffd68ded",
+			"sourceSha256": "ae2ae63a723b6527a7ff40e87ed8fbc04bfb5b7ec4a907566bc5f294abddf597"
+		},
+		"wallpaper-2026/d27-8ce034ac.avif": {
+			"objectKey": "wallpaper-2026/_previews/d27-8ce034ac-w1200-3a6d4f78.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 116638,
+			"sha256": "3a6d4f7850d537be0e039d7797b2edaed6eec3afe8dd5094142a39d28a915fc7",
+			"sourceSha256": "8ce034ace3223fe960bb80dda60043b4445b5870b908f9f6531232d91409a0ab"
+		},
+		"wallpaper-2026/d28-d1c49e99.avif": {
+			"objectKey": "wallpaper-2026/_previews/d28-d1c49e99-w1200-ec07f64f.avif",
+			"width": 1200,
+			"height": 672,
+			"bytes": 153268,
+			"sha256": "ec07f64f21e0fa6fccd99bc327870476d8139b81dbbf6c4ef6a1aa4818317f97",
+			"sourceSha256": "d1c49e999066b846033864c6c8097fc671e963d47c553b74b35701ec9c77cd67"
+		},
+		"wallpaper-2026/d29-4f0c1e4a.avif": {
+			"objectKey": "wallpaper-2026/_previews/d29-4f0c1e4a-w1200-efb0ab77.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 99767,
+			"sha256": "efb0ab7721fe5d4a6323cb5c0a97319575c82fd2e9947d17a7b99433e0b0d890",
+			"sourceSha256": "4f0c1e4ad96c1baec8e6ff3fb0dcd15adce1ad8497cb0562368e4eb7a2bde20b"
+		},
+		"wallpaper-2026/d30-8c766f47.avif": {
+			"objectKey": "wallpaper-2026/_previews/d30-8c766f47-w1200-06f0a0bd.avif",
+			"width": 1200,
+			"height": 696,
+			"bytes": 124328,
+			"sha256": "06f0a0bd5d27f9c0cf9f00320f7f858e6784c68fbe4def681a3d4a8975c207a8",
+			"sourceSha256": "8c766f47800a7b1c04a2d62099214c4cd2c930d31cf4ee58e2aa8bfc1fb74725"
+		},
+		"wallpaper-2026/d31-a6d1d93e.avif": {
+			"objectKey": "wallpaper-2026/_previews/d31-a6d1d93e-w1200-c32fa2e7.avif",
+			"width": 1000,
+			"height": 562,
+			"bytes": 128785,
+			"sha256": "c32fa2e710f9643a42693c632d4497af858d45f39e0c0394e1fda420e24a55f2",
+			"sourceSha256": "a6d1d93eb0b585336983e3ce08613ea3e18e1d2bca89cc453ea6a27c90baa1e7"
+		},
+		"wallpaper-2026/d32-e89da728.avif": {
+			"objectKey": "wallpaper-2026/_previews/d32-e89da728-w1200-e56bca04.avif",
+			"width": 1200,
+			"height": 825,
+			"bytes": 164527,
+			"sha256": "e56bca0469748749f420935c5aba3cd745d7c4618fcbe53e522e09c590301be5",
+			"sourceSha256": "e89da72819bd1ad2bfc815b065d336ed20daf224bff14d0cbc4ae0820171ad53"
+		},
+		"wallpaper-2026/d33-43c09992.avif": {
+			"objectKey": "wallpaper-2026/_previews/d33-43c09992-w1200-8b8d7d7d.avif",
+			"width": 1200,
+			"height": 637,
+			"bytes": 126961,
+			"sha256": "8b8d7d7d9904d78c7b8b013f489a71c5bb7cfbed276006a91521f58726272f7f",
+			"sourceSha256": "43c09992e0ee79caadc53d8bd59cc765af4a5106ef538c9ece01fee4a8c4cf94"
+		},
+		"wallpaper-2026/d34-cb9ba5ea.avif": {
+			"objectKey": "wallpaper-2026/_previews/d34-cb9ba5ea-w1200-e4bf4f84.avif",
+			"width": 1200,
+			"height": 630,
+			"bytes": 107292,
+			"sha256": "e4bf4f84a089bc26260becacfe7ab4bd0aa8db8ef9ac3c91060424486de2cd60",
+			"sourceSha256": "cb9ba5eae240787746fcb060428ebb8c46911e8cfd3d9dddc3f60c67928eff1d"
+		},
+		"wallpaper-2026/d35-4f4fedac.avif": {
+			"objectKey": "wallpaper-2026/_previews/d35-4f4fedac-w1200-55c927a8.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 115590,
+			"sha256": "55c927a8d97d98a153a488f67b3efa977970051c3e76c22fcc3df0c4008a14a9",
+			"sourceSha256": "4f4fedac849c48d342de8c218c15c627e4e9f0f0733bc6a27daae78ab803f344"
+		},
+		"wallpaper-2026/d36-8e2a07d9.avif": {
+			"objectKey": "wallpaper-2026/_previews/d36-8e2a07d9-w1200-b094105b.avif",
+			"width": 1200,
+			"height": 663,
+			"bytes": 129299,
+			"sha256": "b094105b89820d6fe223d3a9706cd7fea82aee4465fefaf5a148cd83513b6396",
+			"sourceSha256": "8e2a07d9353ddc4f9c7de6a4033b4178f9c47d157aeea5429c592a3f66db6175"
+		},
+		"wallpaper-2026/d37-1fd90c23.avif": {
+			"objectKey": "wallpaper-2026/_previews/d37-1fd90c23-w1200-b0104f39.avif",
+			"width": 1200,
+			"height": 710,
+			"bytes": 135073,
+			"sha256": "b0104f39d01d3638047ca502977a458d5fb52be5c5bad7c8c70e34bf6336da8e",
+			"sourceSha256": "1fd90c23c2acb20b46ce52d7d7666a2a5eb6cc29c172c0d587fe3c721781ab88"
+		},
+		"wallpaper-2026/d38-8d3a4e5e.avif": {
+			"objectKey": "wallpaper-2026/_previews/d38-8d3a4e5e-w1200-a1a32d18.avif",
+			"width": 1200,
+			"height": 768,
+			"bytes": 157538,
+			"sha256": "a1a32d1807be1213840e74448f48dfa421321d2a298ad75a43b6293e8f728afb",
+			"sourceSha256": "8d3a4e5ef9a25ed96a5d026343c198c437e4f07f131c6e599f94d36795128243"
+		},
+		"wallpaper-2026/d39-c4aa1ce9.avif": {
+			"objectKey": "wallpaper-2026/_previews/d39-c4aa1ce9-w1200-db719011.avif",
+			"width": 1200,
+			"height": 662,
+			"bytes": 169885,
+			"sha256": "db719011e800448d3ef269e24760a2052486321150fb1c86471a1d9dc7c3fa8d",
+			"sourceSha256": "c4aa1ce929ff68c6384d3ecdbbc361eea3d5a8e47c41640d8a71dabe57b5f406"
+		},
+		"wallpaper-2026/d8-0e1694f3.avif": {
+			"objectKey": "wallpaper-2026/_previews/d8-0e1694f3-w1200-91fb699e.avif",
+			"width": 1200,
+			"height": 651,
+			"bytes": 81752,
+			"sha256": "91fb699e2080d471cf2304732d61d72052ed945e6091aa28264bd0ddaed94ada",
+			"sourceSha256": "0e1694f3ccb9b7a442f2b4b40b8f49b1b912fa735bd9e2b03b92116a254bc63b"
+		},
+		"wallpaper-2026/d9-5d033ec0.avif": {
+			"objectKey": "wallpaper-2026/_previews/d9-5d033ec0-w1200-cde2ceb8.avif",
+			"width": 1200,
+			"height": 675,
+			"bytes": 158847,
+			"sha256": "cde2ceb813634815dfd072f16a0859a72c88148283cb47ecec78b4b29e70f674",
+			"sourceSha256": "5d033ec08890b8282e7380f46676bd100336b31f43617273f7518ab8de7145ec"
+		},
+		"wallpaper-2026/m10-ea79b8ed.avif": {
+			"objectKey": "wallpaper-2026/_previews/m10-ea79b8ed-w1200-4c98ace4.avif",
+			"width": 1200,
+			"height": 1800,
+			"bytes": 388589,
+			"sha256": "4c98ace4a0a7ed5375594d8ede6c47717c226593c127ad12a03b97ae0cc86eff",
+			"sourceSha256": "ea79b8edbd35e02c46f8b93e3c9636cd7e80cc456b26fa01ac134f21f56d0718"
+		},
+		"wallpaper-2026/m11-91625d3b.avif": {
+			"objectKey": "wallpaper-2026/_previews/m11-91625d3b-w1200-4184b3a9.avif",
+			"width": 1200,
+			"height": 1829,
+			"bytes": 214579,
+			"sha256": "4184b3a933ec5dbc541a0ce48c1fe41001ec01e524a66fe0b265a77d762ed755",
+			"sourceSha256": "91625d3b782d3ab9922b8177257c6f9c0989d0a0d5c66d8f6f76088dee93e517"
+		},
+		"wallpaper-2026/m12-6661d484.avif": {
+			"objectKey": "wallpaper-2026/_previews/m12-6661d484-w1200-d649bc0e.avif",
+			"width": 1200,
+			"height": 1809,
+			"bytes": 307415,
+			"sha256": "d649bc0ec01f35f7bc9621112a495000f7237872acc0df8835845320efbf9ab2",
+			"sourceSha256": "6661d484e6e8fc2e4aec6b4af5e5ff5a800b4a89ba0c6f9cd4d3414cf0702488"
+		},
+		"wallpaper-2026/m13-ab239627.avif": {
+			"objectKey": "wallpaper-2026/_previews/m13-ab239627-w1200-ef6bcde5.avif",
+			"width": 1200,
+			"height": 1697,
+			"bytes": 420290,
+			"sha256": "ef6bcde5c78f66175c80dd8fee922699a5289c8fecda1b21c72267add0f749ee",
+			"sourceSha256": "ab23962717585f9cab6bec5aa75747c88c8ffcdc7361d3229f059a811bf6147c"
+		},
+		"wallpaper-2026/m14-ed693f77.avif": {
+			"objectKey": "wallpaper-2026/_previews/m14-ed693f77-w1200-34f7a26b.avif",
+			"width": 1200,
+			"height": 2400,
+			"bytes": 599976,
+			"sha256": "34f7a26ba561b758a526b40c0a66786ed639c97b7257f22ff098782617033f88",
+			"sourceSha256": "ed693f77de7d8afc1948af7ba5fd837093d1286c5f005dc50c7929c835cacee6"
+		},
+		"wallpaper-2026/m15-35d9af8d.avif": {
+			"objectKey": "wallpaper-2026/_previews/m15-35d9af8d-w1200-9abc4869.avif",
+			"width": 1200,
+			"height": 1807,
+			"bytes": 338102,
+			"sha256": "9abc4869f67f91bf900e216a03563fc5324e0cb501c310ae42d816700083eadf",
+			"sourceSha256": "35d9af8d7c2fcf5f199baecfba8fa89f7c0fee69e09a22e9f532c3a1c4baff6d"
+		},
+		"wallpaper-2026/m16-23f94c40.avif": {
+			"objectKey": "wallpaper-2026/_previews/m16-23f94c40-w1200-b8910567.avif",
+			"width": 1200,
+			"height": 2005,
+			"bytes": 423351,
+			"sha256": "b8910567627de5f87823817d2dc61d82145c901403d33bc70dd4c7a554d48b29",
+			"sourceSha256": "23f94c4010c1c465d3791472bab72150d1f335ce21af1e40e322a4f27b25fdae"
+		},
+		"wallpaper-2026/m17-28cce0c2.avif": {
+			"objectKey": "wallpaper-2026/_previews/m17-28cce0c2-w1200-1b57d9c2.avif",
+			"width": 1200,
+			"height": 1668,
+			"bytes": 318441,
+			"sha256": "1b57d9c2b6e37200ac3117b6f604e95e8d2d87f4fcc9c87f5a4d7b0b7e1d2fee",
+			"sourceSha256": "28cce0c2518cd1c95e057a4d50e6e4a32daeb6c8913a412890fb520d5f9ca54b"
+		},
+		"wallpaper-2026/m18-6c6dfbf8.avif": {
+			"objectKey": "wallpaper-2026/_previews/m18-6c6dfbf8-w1200-b40a2990.avif",
+			"width": 1200,
+			"height": 2400,
+			"bytes": 284124,
+			"sha256": "b40a2990a5df741f1565779bee837b522414fb0a0e872f520665e9fa7566459e",
+			"sourceSha256": "6c6dfbf8014bc79f6cf9e44907ea06e2f25751d2d6abac02fc75bb5a70543829"
+		},
+		"wallpaper-2026/m19-77e04744.avif": {
+			"objectKey": "wallpaper-2026/_previews/m19-77e04744-w1200-5c915b45.avif",
+			"width": 1200,
+			"height": 2191,
+			"bytes": 230134,
+			"sha256": "5c915b45dbab3140911242770e78c20e544e2bf9cc31a20bd2d0e4b515e7cbd9",
+			"sourceSha256": "77e04744e9d05575ec46d2eb705183e97e3dc6855c6acf2f9ed235cbfaea8a90"
+		},
+		"wallpaper-2026/m20-5d4adaed.avif": {
+			"objectKey": "wallpaper-2026/_previews/m20-5d4adaed-w1200-0cc9324a.avif",
+			"width": 1200,
+			"height": 1920,
+			"bytes": 280533,
+			"sha256": "0cc9324af7c39579999f3cf37ec40dbdd9810138bc5e9a76579d7fd8b9b1ea51",
+			"sourceSha256": "5d4adaed9990083e68249ca84b2ec6625381df67196f85637fedea406a389e20"
+		},
+		"wallpaper-2026/m21-7dff4556.avif": {
+			"objectKey": "wallpaper-2026/_previews/m21-7dff4556-w1200-7d0cb3db.avif",
+			"width": 1200,
+			"height": 2133,
+			"bytes": 222410,
+			"sha256": "7d0cb3dbb27714d304821f28fa311516641381b90faa6d576cbf679d539e0c82",
+			"sourceSha256": "7dff455682aa078119bbaccb68b2729be8101ae73d1ffcd29a575c443d27021a"
+		},
+		"wallpaper-2026/m22-7564107a.avif": {
+			"objectKey": "wallpaper-2026/_previews/m22-7564107a-w1200-e11d121d.avif",
+			"width": 1200,
+			"height": 1759,
+			"bytes": 189461,
+			"sha256": "e11d121d051bfd2a57e8da3c1f906e77e38aa9c1e3b22f6899996006f623da7c",
+			"sourceSha256": "7564107a63b09f77ab1eb40dac908a4586815a0702be71035a6392bee2e5b558"
+		},
+		"wallpaper-2026/m23-3e9d8c37.avif": {
+			"objectKey": "wallpaper-2026/_previews/m23-3e9d8c37-w1200-bb148d51.avif",
+			"width": 1200,
+			"height": 1834,
+			"bytes": 192137,
+			"sha256": "bb148d510f59303b82ee876c645db64b7903e9061e9c87367fc809740b19a895",
+			"sourceSha256": "3e9d8c37cf5329d192570daf90fb21dea3da4b9370a5f39ef6ce85595e98fde5"
+		},
+		"wallpaper-2026/m24-a062bb21.avif": {
+			"objectKey": "wallpaper-2026/_previews/m24-a062bb21-w1200-edbee152.avif",
+			"width": 1000,
+			"height": 1778,
+			"bytes": 266833,
+			"sha256": "edbee152c49040808cd3b52217048b892db814ab11a8b3014b4551591a49ca33",
+			"sourceSha256": "a062bb21f7863620b844fb5d12c753773d30f2fb3d7787dc4628c51264622009"
+		},
+		"wallpaper-2026/m25-e49a60cb.avif": {
+			"objectKey": "wallpaper-2026/_previews/m25-e49a60cb-w1200-906557ed.avif",
+			"width": 1000,
+			"height": 1750,
+			"bytes": 167163,
+			"sha256": "906557edefc1425b0ae4300bbad5fb20e99ee58b6f7b619f391c1abc0f51adb3",
+			"sourceSha256": "e49a60cb4cea98eaa43f986fd1a8360964be7597c6705f2aa70bb962e30d40f0"
+		},
+		"wallpaper-2026/m26-41e39241.avif": {
+			"objectKey": "wallpaper-2026/_previews/m26-41e39241-w1200-3936dc54.avif",
+			"width": 1200,
+			"height": 1577,
+			"bytes": 212196,
+			"sha256": "3936dc541d6af9c8b1a4a741df52fd05825258a6bba0ee8acd1ed08e8907aaa8",
+			"sourceSha256": "41e392410999a254b869c02e13a0272b522ab39cd221e553bafa717893857f17"
+		},
+		"wallpaper-2026/m27-a67faab9.avif": {
+			"objectKey": "wallpaper-2026/_previews/m27-a67faab9-w1200-1fd16975.avif",
+			"width": 1200,
+			"height": 1667,
+			"bytes": 420916,
+			"sha256": "1fd16975c8e33367b45c59d77ba144c97b097cb0d4b3a70cc9753af1a82b266b",
+			"sourceSha256": "a67faab96866d13e1b60d8e1f05793c3f2a73927ac6d7304be617dc5366d424b"
+		},
+		"wallpaper-2026/m29-c12a1fcc.avif": {
+			"objectKey": "wallpaper-2026/_previews/m29-c12a1fcc-w1200-d26ee772.avif",
+			"width": 1200,
+			"height": 1667,
+			"bytes": 375583,
+			"sha256": "d26ee77227c95efde145bba794423a01c8a1edfeee91afbce8c27e1f81e6e0b5",
+			"sourceSha256": "c12a1fcce0cbf386bc8dd2d9f365e0abdbdff82fe1c7bd34dec7905e4dafaa3b"
+		},
+		"wallpaper-2026/m30-89b639e5.avif": {
+			"objectKey": "wallpaper-2026/_previews/m30-89b639e5-w1200-902532b4.avif",
+			"width": 1200,
+			"height": 2128,
+			"bytes": 484812,
+			"sha256": "902532b4da31d8949d6c9f6571f7d7b92069bcf742eaf6148f4ecbc1aae0d7c1",
+			"sourceSha256": "89b639e52d681f957bec5ce192245345369b5143ff9f42835ab7ec7cc69cfa61"
+		},
+		"wallpaper-2026/m31-b7cd3c02.avif": {
+			"objectKey": "wallpaper-2026/_previews/m31-b7cd3c02-w1200-7f6fb402.avif",
+			"width": 1200,
+			"height": 2008,
+			"bytes": 246203,
+			"sha256": "7f6fb4028d80b4d5a0808b03b2b8d476386cf4ca67f1193ae82b46519c48048d",
+			"sourceSha256": "b7cd3c02eaf7ac4cbc38ec112d2b9aaecef9e0784d5a2e1f1e792b13663ca275"
+		},
+		"wallpaper-2026/m7-62490994.avif": {
+			"objectKey": "wallpaper-2026/_previews/m7-62490994-w1200-e6413a19.avif",
+			"width": 1200,
+			"height": 1563,
+			"bytes": 256620,
+			"sha256": "e6413a191afd6f06829a7fa7b995f2ef9ee1464e94615d25846d6d8d92e9c768",
+			"sourceSha256": "62490994578a84f0b8f376a20556c1a852898344c022ff71eeb097a4c6368088"
+		},
+		"wallpaper-2026/m8-98aaaf3d.avif": {
+			"objectKey": "wallpaper-2026/_previews/m8-98aaaf3d-w1200-f59ad4c2.avif",
+			"width": 1200,
+			"height": 1600,
+			"bytes": 152739,
+			"sha256": "f59ad4c23a304ce5fff13223179592106c7f3f97de5e32ceb57cf7dbe2315ba2",
+			"sourceSha256": "98aaaf3d80998338a0ecea8dac56bd5f6fc0ea57d852ef574de7d4910deeca16"
+		},
+		"wallpaper-2026/m9-b6bb3ec8.avif": {
+			"objectKey": "wallpaper-2026/_previews/m9-b6bb3ec8-w1200-ebda5137.avif",
+			"width": 863,
+			"height": 1920,
+			"bytes": 245633,
+			"sha256": "ebda51378d1d064956dc552ddb6862773d9a5ff78a70883e89be9479854e2522",
+			"sourceSha256": "b6bb3ec8d9e794dfbfbc99a24a1bdb7a61fdc9a57ce7ae2101031c243dede237"
+		}
+	}
+}

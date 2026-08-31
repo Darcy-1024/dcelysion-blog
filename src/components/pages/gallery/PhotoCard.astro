@@ -3,12 +3,13 @@ import { getLqipProps } from "@/utils/lqip-utils";
 
 interface Props {
 	src: string;
+	previewSrc?: string;
 	lqipSrc?: string;
 	albumId: string;
 	alt?: string;
 }
 
-const { src, lqipSrc, albumId, alt = "" } = Astro.props;
+const { src, previewSrc = src, lqipSrc, albumId, alt = "" } = Astro.props;
 
 // LQIP 渐变占位
 const lqipProps = getLqipProps(lqipSrc || src, undefined, true);
@@ -23,7 +24,7 @@ const lqipProps = getLqipProps(lqipSrc || src, undefined, true);
   >
     <div class="lqip-placeholder absolute inset-0 pointer-events-none" style={lqipProps.style} aria-hidden="true"></div>
     <img
-      src={src}
+      src={previewSrc}
       alt={alt}
       loading="lazy"
       decoding="async"

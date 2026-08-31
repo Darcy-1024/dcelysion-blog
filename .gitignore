@@ -4,6 +4,9 @@ dist/
 # generated vndb covers
 public/vndb-covers/
 
+# generated gallery preview upload files
+.gallery-previews/
+
 # generated types
 .astro/
 
