@@ -1,4 +1,44 @@
+import type {
+	CarouselSlide,
+	FancyboxInstance,
+	FancyboxOptions,
+} from "@fancyapps/ui";
 import * as FancyboxModule from "@fancyapps/ui";
+import { zh_CN } from "@fancyapps/ui/dist/fancybox/l10n/zh_CN.js";
+
+const VIEW_ORIGINAL_SIZE_TITLE = "查看原始尺寸";
+const FIT_TO_VIEW_TITLE = "适应窗口";
+const fancyboxL10n = {
+	...zh_CN,
+	TOGGLE_FULL: VIEW_ORIGINAL_SIZE_TITLE,
+};
+const fancyboxEvents: FancyboxOptions["on"] = {
+	"Carousel.panzoom:render": (instance, _carousel, slide) => {
+		updateToggle1to1Title(instance, slide);
+	},
+};
+
+function updateToggle1to1Title(
+	instance: FancyboxInstance,
+	slide: CarouselSlide,
+): void {
+	if (!instance.isCurrentSlide(slide) || !slide.panzoomRef) return;
+	const button = instance
+		.getContainer()
+		?.querySelector<HTMLButtonElement>('[data-panzoom-action="toggleFull"]');
+	if (!button) return;
+	button.title = slide.panzoomRef.isFullsize()
+		? FIT_TO_VIEW_TITLE
+		: VIEW_ORIGINAL_SIZE_TITLE;
+}
+
+function getLightboxOptions(startIndex: number): Partial<FancyboxOptions> {
+	return {
+		startIndex,
+		l10n: fancyboxL10n,
+		on: fancyboxEvents,
+	};
+}
 
 type GalleryImage = {
 	alt: string;
@@ -127,9 +167,7 @@ export function registerDynamicGallery(): void {
 							src: image.src,
 							type: "image",
 						})),
-						{
-							startIndex: this.activeIndex,
-						},
+						getLightboxOptions(this.activeIndex),
 					);
 				},
 			);
@@ -159,7 +197,7 @@ export function registerDynamicGallery(): void {
 					src: image.src,
 					type: "image",
 				})),
-				{ startIndex: index },
+				getLightboxOptions(index),
 			);
 		}
 
