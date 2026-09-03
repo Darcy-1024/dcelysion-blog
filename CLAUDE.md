@@ -52,14 +52,14 @@ All features are toggled/configured via TypeScript files in `src/config/`, expor
 
 Scroll-linked work in `src/utils/` is rAF-throttled and must stay cheap on mobile — do not regress these:
 
-- `fullscreen-wallpaper-utils.ts` — fullscreen-mode title fade + blur ramp. The blur value `--fullscreen-blur` is **quantized to 2px steps** (skips writes when unchanged) and the max blur (`--overlay-blur`) is **cached** (read once; refreshed by a MutationObserver on `#wallpaper-wrapper` style). Avoid per-frame `getComputedStyle` or continuous full-screen `filter: blur()` writes — each change re-rasterizes the whole viewport on mobile.
+- `fullscreen-wallpaper-utils.ts` — hero fullscreen-mode title fade + blur ramp. The blur value `--fullscreen-blur` is **quantized to 2px steps** (skips writes when unchanged) and the max blur (`--overlay-blur`) is **cached** (read once; refreshed by a MutationObserver on `#wallpaper-wrapper` style). Avoid per-frame `getComputedStyle` or continuous full-screen `filter: blur()` writes — each change re-rasterizes the whole viewport on mobile.
 - `grid-layout-utils.ts` — `updateSidebarStickySpacing()` is the per-scroll path and **must not read layout** (`offsetHeight` etc.). The sidebar top-container visibility (`hasVisibleTop`) is cached by `refreshSidebarStickyState()`, which runs on init/navigation only.
 - Fullscreen blur ramp can be disabled per device via `backgroundWallpaper.fullscreen.blurRamp.enable.{desktop,mobile}` — when off, fullscreen mode has no blur on that device (home + other pages) and the settings-panel blur slider is hidden. Documented in `Firefly-Docs/` (zh/en).
 
 ### Content Collections
 
 Defined in `src/content.config.ts`:
-- `posts` — blog posts (`.md`/`.mdx`) with frontmatter: title, published, tags, category, draft, pinned, password, comment, etc.
+- `posts` — blog posts (`.md`/`.mdx`) with frontmatter: title, published, tags, category, series, seriesOrder, draft, pinned, password, comment, etc.; `/series/` and in-post navigation derive from the series fields.
 - `spec` — special pages (about, friends, guestbook)
 - `dynamic` — microblog entries (`.md`) with frontmatter: published, draft, pinned, location
 
@@ -70,7 +70,7 @@ Defined in `src/content.config.ts`:
 - `src/i18n/` — translation keys in `i18nKey.ts`, language files in `languages/*.ts`, lookup via `translation.ts`
 - `src/utils/` — content sorting, crypto (encrypted posts), date formatting, image processing/LQIP, TOC generation
 - `src/pages/` — Astro file-based routing
-- `scripts/` — build-time and media-maintenance utilities (`generate-gallery-previews.ts`, `generate-github-card-data.ts`, `generate-lqips.ts`, `generate-vndb-covers.ts`, `prune-pio-assets.ts`, `subset-fonts.ts`, `minify-inline-scripts.ts`, `prepare-sites-dist.ts`, `new-post.js`, `new-dynamic.js`)
+- `scripts/` — build-time and media-maintenance utilities (`generate-gallery-previews.ts`, `generate-github-card-data.ts`, `generate-lqips.ts`, `generate-vndb-covers.ts`, `prune-pio-assets.ts`, `subset-fonts.ts`, `minify-inline-scripts.ts`, `run-pagefind.ts`, `site-root.ts`, `prepare-sites-dist.ts`, `new-post.js`, `new-dynamic.js`)
 
 ### Path Aliases (tsconfig.json)
 
@@ -95,7 +95,7 @@ Defined in `src/content.config.ts`:
 
 ## Build Pipeline
 
-Multi-step: `scripts/generate-github-card-data.ts` → `scripts/generate-lqips.ts` → `scripts/generate-vndb-covers.ts` → `astro build` → `scripts/prune-pio-assets.ts` → `scripts/subset-fonts.ts` → `scripts/minify-inline-scripts.ts` → `pagefind --site dist` → `scripts/prepare-sites-dist.ts`
+Multi-step: `scripts/generate-github-card-data.ts` → `scripts/generate-lqips.ts` → `scripts/generate-vndb-covers.ts` → `astro build` → `scripts/prune-pio-assets.ts` → `scripts/subset-fonts.ts` → `scripts/minify-inline-scripts.ts` → `scripts/run-pagefind.ts` → `scripts/prepare-sites-dist.ts`
 
 GitHub card metadata is generated into `src/constants/github-card-data.json` and committed — regenerate with `pnpm github-cards`. Transient DNS, connection, timeout, HTTP 429, and 5xx failures are retried once before the existing cache fallback. LQIP data is generated into `src/constants/lqips.json` and committed — regenerate with `pnpm lqips`. Icon data lives in `src/constants/icons-data.json` (committed, Biome-ignored, consumed by `src/components/common/Icon.svelte`) but has no generator script in the current build.
 

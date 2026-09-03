@@ -38,6 +38,8 @@ Firefly 项目中所有可复用组件的集中管理。组件按照功能和职
 - `BackToTop.astro` - 返回顶部按钮
 - `FloatingControls.astro` - 右下角悬浮控件容器
 - `FloatingTOC.astro` - 浮动目录组件
+- `ImmersiveReading.astro` - 文章页沉浸阅读开关
+- `ImmersiveTOC.astro` - 沉浸阅读模式的左右目录
 - `ScrollDownIndicator.astro` - 向下滚动指示器
 - `ArchivePanel.astro` - 归档面板组件（服务端渲染 + 客户端筛选/折叠）
 
@@ -156,6 +158,7 @@ Firefly 项目中所有可复用组件的集中管理。组件按照功能和职
 
 - `License.astro` - 许可证信息显示
 - `RecommendedPost.astro` - 推荐文章组件
+- `SeriesNav.astro` - 文章系列的顺序导航组件
 - `SharePoster.svelte` - 分享海报生成
 
 ---

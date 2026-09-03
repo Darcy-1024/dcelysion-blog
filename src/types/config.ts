@@ -1,6 +1,9 @@
 export type { AnalyticsConfig } from "./analyticsConfig";
 export type { AnnouncementConfig } from "./announcementConfig";
-export type { BackgroundWallpaperConfig } from "./backgroundWallpaper";
+export type {
+	BackgroundWallpaperConfig,
+	FullscreenWallpaperLayout,
+} from "./backgroundWallpaper";
 export type {
 	BooknavFaviconConfig,
 	BooknavGroup,
@@ -26,6 +29,7 @@ export type {
 	GalleryAssetVersioning,
 	GalleryConfig,
 } from "./galleryConfig";
+export type { ImmersiveReadingConfig } from "./immersiveReadingConfig";
 export type { LicenseConfig } from "./licenseConfig";
 export type { MermaidConfig } from "./mermaidConfig";
 export type { MusicPlayerConfig } from "./musicConfig";

@@ -50,13 +50,13 @@ import { profileConfig } from "@/config/profileConfig";
 
 | 文件 | 说明 |
 |------|------|
-| `siteConfig.ts` | 站点基础配置（标题、描述、主题色、页面宽度、文章内容页配置等） |
+| `siteConfig.ts` | 站点基础配置（标题、描述、主题色、导航栏模式、页面宽度、沉浸阅读等） |
 | `analyticsConfig.ts` | 统计分析配置（Google Analytics、Microsoft Clarity、Umami、51la） |
 | `announcementConfig.ts` | 公告配置（标题、内容、类型、链接等） |
-| `backgroundWallpaper.ts` | 背景壁纸配置（壁纸模式、图片、桌面/移动端视频、横幅文字、水波纹等） |
+| `backgroundWallpaper.ts` | 背景壁纸配置（壁纸模式、classic/hero 全屏布局、图片、桌面/移动端视频、横幅文字、水波纹等） |
 | `commentConfig.ts` | 评论系统配置（Twikoo、Waline、Artalk、Giscus、Disqus） |
 | `coverImageConfig.ts` | 封面图配置（文章封面图、随机封面图 API） |
-| `displaySettingsConfig.ts` | 视图设置面板配置（面板总开关、各设置项开关） |
+| `displaySettingsConfig.ts` | 视图设置面板配置（面板总开关、壁纸/全屏布局切换及各设置项开关） |
 | `dynamicConfig.ts` | 动态页面配置（页面标题、描述、评论开关和每页显示数量） |
 | `effectsConfig.ts` | 动画特效配置（樱花数量、速度、尺寸等） |
 | `expressiveCodeConfig.ts` | 代码高亮配置（亮色/暗色主题、折叠、语言徽章） |
@@ -66,7 +66,7 @@ import { profileConfig } from "@/config/profileConfig";
 | `galleryConfig.ts` | 相册配置（相册列表、远端资源根地址、内容哈希版本和瀑布流列宽） |
 | `licenseConfig.ts` | 许可证配置（CC 协议等） |
 | `musicConfig.ts` | 音乐播放器配置（Meting API / 本地歌单、public 相对路径或外部 HTTPS 媒体、导航栏和侧边栏开关） |
-| `navBarConfig.ts` | 导航栏配置（动态链接、LinkPresets 链接预设、搜索配置） |
+| `navBarConfig.ts` | 导航栏配置（动态链接、含系列页的 LinkPresets 链接预设、搜索配置） |
 | `pioConfig.ts` | 看板娘配置（Spine 模型、Live2D 模型） |
 | `plantumlConfig.ts` | PlantUML 图表渲染配置 |
 | `profileConfig.ts` | 用户资料配置（头像、姓名、社交链接） |
@@ -79,6 +79,7 @@ import { profileConfig } from "@/config/profileConfig";
 - 每个配置文件对应 `types/` 目录下的独立类型定义文件
 - `siteConfig.ts` 只保留站点核心信息，不聚合其他模块配置
 - `navBarConfig.ts` 底部的 `LinkPresets` 可自由自定义导航栏链接的名称、图标和 URL
+- `siteConfig.navbar.navbarMode` 支持 `static`、`fixed`、`dynamic`；`siteConfig.post.immersiveReading` 控制文章页沉浸阅读按钮、默认状态和目录位置
 - `displaySettingsConfig.ts` 的视图设置面板默认关闭，除了修改配置里的 `enable`，也可以在部署平台（Vercel / Cloudflare 等）设置环境变量 `PUBLIC_DISPLAY_SETTINGS=true` 开启，无需改动配置文件；环境变量优先级更高，取值 `true/1/on/yes` 开启、`false/0/off/no` 关闭
 - 相册始终从 `public/gallery/<album-id>/` 扫描本地副本。设置 `galleryConfig.assetBaseUrl` 后，页面会把这些本地文件映射为远端 HTTPS URL；`assetVersioning: "content-hash"` 会给远端文件名加入内容哈希，以便安全使用长期缓存。本地文件仍用于生成相册清单和 LQIP，`urls.txt` 中的第三方外链不会被改写。
 - 执行 `pnpm gallery-previews` 会为已配置相册的本地图片生成最大宽度 1200px、不会放大的 AVIF 预览，待上传文件暂存于已忽略的 `.gallery-previews/`，映射写入 `src/constants/gallery-previews.json`。相册详情页瀑布流优先加载已登记的预览，点击 Fancybox 仍加载原图；顶部横幅、相册列表封面、第三方外链和未命中映射的图片继续使用原地址。该命令不会由 `pnpm build` 自动执行，部署引用新映射的页面前必须先上传并验证对应 R2 对象。

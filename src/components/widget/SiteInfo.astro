@@ -57,8 +57,10 @@ const buildTime = formatDateI18nWithTime(new Date());
 // 构建平台检测（使用 ci-info 自动识别 CI 环境）
 const unknownBuildPlatform =
 	widgetConfig?.specificConfig?.siteInfo?.unknownBuildPlatform || "Unknown CI";
-const showBlogVersion = widgetConfig?.specificConfig?.siteInfo?.showBlogVersion !== false;
-const showBuildTime = widgetConfig?.specificConfig?.siteInfo?.showBuildTime !== false;
+const showBlogVersion =
+	widgetConfig?.specificConfig?.siteInfo?.showBlogVersion !== false;
+const showBuildTime =
+	widgetConfig?.specificConfig?.siteInfo?.showBuildTime !== false;
 const buildPlatform = detectBuildPlatform({
 	env: process.env,
 	isCI: ci.isCI,
@@ -186,7 +188,7 @@ const detailItems: {
     <div class="flex flex-col gap-2">
       {
         mainItems.map((item: { icon: string; label: string; value: string; href?: string }) => (
-          <div class="flex items-center justify-between px-3 py-2 rounded-lg bg-neutral-100/60 dark:bg-neutral-800/50">
+          <div class="flex items-center justify-between px-3 py-2 rounded-lg">
             <div class="flex items-center gap-2.5">
               <div class="text-(--primary) text-lg">
                 <Icon name={item.icon} />

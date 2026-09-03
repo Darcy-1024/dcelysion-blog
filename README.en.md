@@ -78,6 +78,8 @@
 - [x] **Responsive Design** - Perfect adaptation for desktop, tablet and mobile devices
 - [x] **Multi-language Support** - i18n internationalization ui, supports Simplified Chinese, Traditional Chinese, English, Japanese, Russian, Korean
 - [x] **Full-text Search** - Client-side search based on Pagefind, supports article content indexing.
+- [x] **Article Series** - Group posts with frontmatter and provide a series index plus ordered post navigation
+- [x] **Immersive Reading** - Hide distractions on post pages while optionally keeping a left or right table of contents
 
 ### Personalization
 - [x] **Dynamic Sidebar** - Supports single sidebar, dual sidebar configuration
@@ -85,8 +87,8 @@
 - [x] **Font Management** - Custom font support with rich font selector
 - [x] **Footer Configuration** - HTML content injection, fully customizable
 - [x] **Light/Dark Mode** - Supports light/dark/system three modes
-- [x] **Navbar Customization** - Logo, title, links fully customizable
-- [x] **Wallpaper Mode Switching** - Banner wallpaper, fullscreen wallpaper, fullscreen transparent wallpaper, solid background
+- [x] **Navbar Customization** - Fully customizable logo, title, links, and static/fixed/dynamic modes
+- [x] **Wallpaper Mode Switching** - Banner, fullscreen (classic/hero), transparent fullscreen, and solid backgrounds
 - [x] **Responsive Video Wallpapers** - Separate desktop/mobile video sources and subject positioning
 - [x] **Theme Color Customization** - 360° hue adjustment
 

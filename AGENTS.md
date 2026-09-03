@@ -74,7 +74,8 @@ pnpm build
 | `[...page].astro` | 首页和分页文章列表；使用 Astro `paginate` |
 | `posts/[...slug].astro` | 文章静态路径、正文渲染、前后篇、推荐、加密、评论、分享与结构化数据 |
 | `about.astro`, `friends.astro`, `guestbook.astro` | 从 `spec` 集合读取固定内容；后两者还组合配置或评论 |
-| `archive.astro`, `categories/index.astro`, `tags/index.astro` | 从文章集合派生的聚合页 |
+| `archive.astro`, `categories/index.astro`, `tags/index.astro` | 从文章集合派生的归档、分类和标签聚合页 |
+| `series/index.astro` | 按文章 `series` 元数据生成系列聚合与有序篇章列表 |
 | `search.astro` | 挂载 Pagefind 驱动的 `AdvancedSearch.svelte` |
 | `dynamic/index.astro` | 动态流页面；数据来自本地 JSON API、外部 API 或 Memos |
 | `dynamic/comments.astro` | 动态内嵌评论 iframe 页面及跨窗口主题/高度通信 |
@@ -83,7 +84,7 @@ pnpm build
 | `vndb.astro` | 按 static/dynamic 模式展示 VNDB 收藏；静态模式可在构建期下载封面 |
 | `booknav.astro` | 从 `booknavConfig` 生成书签导航页 |
 | `rss.astro`, `rss.xml.ts` | RSS 说明页与经过渲染/清理的订阅源 |
-| `og/[...slug].ts` | 使用 Satori 静态生成文章 OG 图片 |
+| `og/[...slug].ts` | 使用 Takumi 静态生成文章 OG 图片 |
 | `api/allPostMeta.json.ts` | 日历和推荐组件使用的文章元数据 |
 | `api/dynamic.json.ts` | 将本地 `dynamic` 集合转换为前端消费的 JSON，并解析动态正文中的本地图片 |
 | `robots.txt.ts`, `404.astro` | 爬虫规则与错误页 |
@@ -101,19 +102,19 @@ pnpm build
 
 - `layout/`：Navbar、Footer、SideBar、PostCard、PostPage、PostMeta、CategoryBar 等站点结构组件。
 - `common/`：按钮、下拉面板、图片包装、Markdown 包装、分页、通用 Widget 外壳。
-- `controls/`：搜索、主题/显示设置、返回顶部、悬浮目录等用户控制。
+- `controls/`：搜索、主题/显示设置、返回顶部、悬浮目录和沉浸阅读等用户控制。
 - `features/`：加密内容、Fancybox、KaTeX、字体、音乐、壁纸播放器、樱花、Live2D/Spine 等跨页面能力。
 - `widget/`：由侧边栏配置选择和排序的资料、公告、日历、分类、标签、动态、音乐、统计、广告组件。
 - `pages/`：只服务某个页面的组件；复杂页面按 `bilibili/`、`bangumi/`、`mal/`、`dynamic/`、`gallery/`、`vndb/` 再分组。
 - `comment/`：评论选择器与 Artalk、Disqus、Giscus、Twikoo、Waline 适配。
 - `analytics/`：Google Analytics、Microsoft Clarity、Umami、51la 接入。
-- `misc/`：许可证、相关文章和分享海报等辅助功能。
+- `misc/`：许可证、相关文章、系列导航和分享海报等辅助功能。
 
 选择组件类型时：静态输出和轻量 DOM 增强优先 `.astro`；确实需要响应式状态与生命周期时才使用 `.svelte`，并在调用处明确 `client:*` 指令。避免把可在构建期完成的工作发送到浏览器。
 
 ### `src/config/` 与 `src/types/`：配置驱动层
 
-`src/config/index.ts` 是统一出口，业务代码优先从 `@/config` 导入。主要配置包括站点、导航、侧边栏、背景、评论、分析、字体、代码块、图表、音乐、动态、相册、书签导航、Bilibili、Bangumi、MyAnimeList、VNDB、友链、赞助和看板娘。
+`src/config/index.ts` 是统一出口，业务代码优先从 `@/config` 导入。主要配置包括站点、导航、沉浸阅读、侧边栏、背景、评论、分析、字体、代码块、图表、音乐、动态、相册、书签导航、Bilibili、Bangumi、MyAnimeList、VNDB、友链、赞助和看板娘。
 
 规则：
 
@@ -127,7 +128,7 @@ pnpm build
 
 集合在 `src/content.config.ts` 中定义：
 
-- `posts/`：支持 `.md` 和 `.mdx`。必填 `title`、`published`；其余常用字段为 `updated`、`draft`、`description`、`image`、`tags`、`category`、`lang`、`pinned`、`author`、`sourceLink`、`licenseName`、`licenseUrl`、`comment`、`password`、`passwordHint`。`prev*`/`next*` 是内部字段，由 `getSortedPosts()` 注入，不应在文章里手填。
+- `posts/`：支持 `.md` 和 `.mdx`。必填 `title`、`published`；其余常用字段为 `updated`、`draft`、`description`、`image`、`tags`、`category`、`series`、`seriesOrder`、`lang`、`pinned`、`author`、`sourceLink`、`licenseName`、`licenseUrl`、`comment`、`password`、`passwordHint`。同名 `series` 的文章会按 `seriesOrder` 排序；`prev*`/`next*` 是内部字段，由 `getSortedPosts()` 注入，不应在文章里手填。
 - `dynamic/`：仅 `.md`，必填 `published`，可用 `draft`、`pinned`、`location`。
 - `spec/`：about、friends、guestbook 等固定页面正文，schema 当前不接受自定义 frontmatter 字段。
 
