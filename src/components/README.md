@@ -21,7 +21,7 @@ Firefly 项目中所有可复用组件的集中管理。组件按照功能和职
 - `ConfigCarrier.astro` - 配置载体组件
 - `DropdownMenu.astro` - 下拉菜单组件
 - `Footer.astro` - 页脚组件
-- `Navbar.astro` - 导航栏组件
+- `Navbar.astro` - 导航栏组件；品牌首页按钮使用透明背景、无边框和阴影，标题和 Logo 颜色由 `siteConfig.navbar.followTheme` 控制，启用时图片 Logo 以原图透明轮廓着主题色
 - `NavMenuPanel.astro` - 导航菜单面板
 - `PostCard.astro` - 文章卡片组件
 - `PostMeta.astro` - 文章元数据组件
@@ -36,10 +36,11 @@ Firefly 项目中所有可复用组件的集中管理。组件按照功能和职
 - `BackToComment.astro` - 返回评论区按钮
 - `BackToHome.astro` - 返回主页按钮
 - `BackToTop.astro` - 返回顶部按钮
-- `FloatingControls.astro` - 右下角悬浮控件容器
+- `FloatingControls.astro` - 右下角悬浮控件容器，包含沉浸阅读及目录开关
 - `FloatingTOC.astro` - 浮动目录组件
 - `ImmersiveReading.astro` - 文章页沉浸阅读开关
-- `ImmersiveTOC.astro` - 沉浸阅读模式的左右目录
+- `ImmersiveScrollRail.astro` - 文章页右侧滚动轨，普通与沉浸阅读共用，并与目录同步章节标记
+- `ImmersiveTOC.astro` - 沉浸阅读模式版心内的左右目录面板；宽屏透明无框、靠上定位，隐藏滚动条并保留滚轮操作，上下渐隐，自动跟随当前章节避开渐隐区，由右下角控件展开/收起
 - `ScrollDownIndicator.astro` - 向下滚动指示器
 - `ArchivePanel.astro` - 归档面板组件（服务端渲染 + 客户端筛选/折叠）
 
@@ -67,7 +68,7 @@ Firefly 项目中所有可复用组件的集中管理。组件按照功能和职
 **内容和展示组件**
 - `CoverImage.astro` - 封面图组件（支持本地图片和随机图API）
 - `ImageWrapper.astro` - 图片包装器（支持本地和远程图片）
-- `Markdown.astro` - Markdown 内容样式包装器
+- `Markdown.astro` - Markdown 内容样式包装器；文章默认传入启用的 `typography` 属性，frontmatter 可用 `typography: false` 关闭，由 `features/ArticleTypography.astro` 按需加载 Tiqian，页面不显示排版开关；居中或右对齐段落保留原生排版
 - `PioMessageBox.astro` - 消息框组件（Live2D/Spine 消息显示）
 - `Timeline.astro` / `TimelineItem.astro` - MDX 时间线组件（左侧竖线节点，条目支持日期/标题/正文 Markdown、节点换色和内置图标）
 - `Steps.astro` / `StepItem.astro` / `Badge.astro`  - MDX 内容组件（编号步骤条、内联徽章）
@@ -89,7 +90,7 @@ Firefly 项目中所有可复用组件的集中管理。组件按照功能和职
 - `Announcement.astro` - 公告组件
 - `Calendar.astro` - 日历组件
 - `Categories.astro` - 分类组件
-- `Music.astro` - 音乐播放器小部件
+- `Music.astro` - 音乐播放器小部件；吸附侧栏空间不足时，播放列表自动缩短至至少两行歌曲的高度，仍放不下则随页面滚动。高度适配由 `src/utils/sidebar-playlist-fit.ts` 管理，并在 Swup 换页后重新绑定。
 - `Profile.astro` - 个人信息/社交链接小部件
 - `SidebarTOC.astro` - 侧边栏目录组件
 - `SiteInfo.astro` - 站点信息组件

@@ -80,7 +80,7 @@
 - [x] **多言語サポート** - i18n 国際化UI、簡体字中国語、繁体字中国語、英語、日本語、ロシア語、韓国語をサポート
 - [x] **全文検索** - Pagefind ベースのクライアントサイド検索、記事コンテンツのインデックスをサポート
 - [x] **記事シリーズ** - frontmatter で記事をシリーズ化し、シリーズ一覧と順序付きナビゲーションを提供
-- [x] **没入型リーディング** - 記事ページの不要な要素を隠し、左右どちらかの目次を任意で表示
+- [x] **没入型リーディング** - 記事ページの不要な要素を隠し、初期表示と訪問者の選択を記憶でき、左右どちらかに目次を配置可能。通常表示と没入表示で、目次と連動する右側のセクションスクロールマーカーを共用
 
 ### パーソナライゼーション
 - [x] **動的サイドバー** - シングルサイドバー、デュアルサイドバー設定をサポート
@@ -243,6 +243,10 @@ location: China # 場所
 
 [Memos](https://www.usememos.com/) をデータソースとして接続することもできます。`src/config/dynamicConfig.ts` の `memos` オプションを設定すると、ピン留めの同期や画像添付ファイルの表示に対応したリアルタイムデータ取得が可能です。詳細は[モーメントドキュメント](https://docs-firefly.cuteleaf.cn/en/guide/dynamic.html)をご参照ください。
 
+### 中国語の自動組版
+
+記事では Tiqian による中国語の段落組版がデフォルトで有効です。frontmatter に `typography: false` を指定すると、その記事では無効になります。ページに切り替えボタンは表示しません。エンジンは有効な記事だけで読み込まれます。Markdown 原文は変更せず、JavaScript が無効または読み込みに失敗しても原文を表示します。alpha 版を固定し、ビルド時の事前組版は使用しません。サンプル記事の `draft: true` は維持します。
+
 ## 🧩 Markdown拡張
 
 Astro がデフォルトで対応している[GitHub Flavored Markdown](https://github.github.com/gfm/)に加えて、いくつかの追加の Markdown 機能があります：
@@ -274,6 +278,10 @@ Astro がデフォルトで対応している[GitHub Flavored Markdown](https://
 [fuwari](https://github.com/saicaca/fuwari) テンプレートを開発した[saicaca](https://github.com/saicaca)に深く感謝します。Firefly はこのテンプレートをベースに二次開発されています。
 
 蛍関連の画像素材の著作権はゲーム[「崩壊：スターレイル」](https://sr.mihoyo.com/)の開発元 [miHoYo](https://www.mihoyo.com/) に帰属します。
+
+デフォルトのフォント設定には、Xiaomi の [MiSans](https://hyperos.mi.com/font/faq) を使用しています。
+
+記事詳細ページのタイトル、本文内の見出し、「About」ページの見出しには、SIL OFL 1.1 の [霞鶩文楷](https://github.com/lxgw/LxgwWenKai/releases/tag/v1.522) Regular（400）を使用し、ビルド時に WOFF2 サブセットを生成します。`fontConfig.articleTitleFont` と `articleTitleWeight` で変更できます。 記事ページと「About」ページのバナーは Medium（500）を使用し、`articleBannerTitleWeight` で個別に設定します。
 
 ### 技術スタック
 

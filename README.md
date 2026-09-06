@@ -80,7 +80,7 @@
 - [x] **多语言支持** - i18n 国际化，UI 支持简体中文、繁体中文、英文、日文、俄语、韩文
 - [x] **全文搜索** - 基于 Pagefind 的客户端搜索，支持文章内容索引
 - [x] **文章系列** - 使用 frontmatter 组织系列文章，并提供系列聚合页与篇章导航
-- [x] **沉浸阅读** - 文章页可隐藏干扰元素，并按配置保留左右目录
+- [x] **沉浸阅读** - 文章页可隐藏干扰元素，支持默认进入、记住访问者选择并按配置保留左右目录；普通与沉浸阅读共用右侧章节滚动标记
 
 ### 个性化
 - [x] **动态侧边栏** - 支持配置单侧边栏、双侧边栏
@@ -242,6 +242,10 @@ location: China # 位置
 
 也支持对接 [Memos](https://www.usememos.com/) 作为数据源，在 `src/config/dynamicConfig.ts` 中配置 `memos` 选项即可实时获取 Memos 动态，支持置顶同步和图片附件展示。详见[动态文档](https://docs-firefly.cuteleaf.cn/zh/guide/dynamic.html)。
 
+### 中文自动排版
+
+文章默认启用 Tiqian 中文段落排版，frontmatter 设置 `typography: false` 可为单篇关闭。页面不显示排版开关；仅启用的文章加载引擎。原始 Markdown 不会被改写，无 JavaScript 或加载失败时仍显示原文。当前固定使用 alpha 版本，暂不启用构建期预排；示例文章的 `draft: true` 不受影响。
+
 ## 🧩 Markdown 扩展语法
 
 除了 Astro 默认支持的 [GitHub Flavored Markdown](https://github.github.com/gfm/) 之外，还包含了一些额外的 Markdown 功能：
@@ -273,6 +277,10 @@ location: China # 位置
 非常感谢 [saicaca](https://github.com/saicaca) 开发的 [fuwari](https://github.com/saicaca/fuwari) 模板，Firefly 就是基于这个模板二次开发
 
 流萤部分相关图片素材版权归游戏 [《崩坏：星穹铁道》](https://sr.mihoyo.com/) 开发商 [米哈游](https://www.mihoyo.com/) 所有
+
+默认字体配置使用小米推出的 [MiSans](https://hyperos.mi.com/font/faq) 字体
+
+文章详情页的大标题、正文各级标题及关于页标题使用 [霞鹜文楷](https://github.com/lxgw/LxgwWenKai/releases/tag/v1.522) Regular（400），以 SIL OFL 1.1 授权；本地构建生成 WOFF2 子集。可通过 `fontConfig.articleTitleFont` 和 `articleTitleWeight` 调整。 文章和关于页横幅共同使用 Medium（500），由 `articleBannerTitleWeight` 控制。
 
 ### 技术栈
 

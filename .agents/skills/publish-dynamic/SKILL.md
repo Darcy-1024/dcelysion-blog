@@ -1,59 +1,28 @@
 ---
 name: publish-dynamic
-description: Create and publish Firefly blog dynamics from user text and optional image attachments. Use when the user asks to 发动态、发布动态、新增动态, invokes $publish-dynamic, or wants a moment added under src/content/dynamic with image conversion, build verification, and an explicit confirmation before Git push or deployment.
+description: "在本博客创建或修改动态（src/content/dynamic），处理用户正文及可选图片附件。"
 ---
 
-# Publish Dynamic
+# 发布动态
 
-Publish one Firefly dynamic while preserving the user's wording and unrelated workspace changes.
+完成可验证的动态内容，遵循仓库 AGENTS.md 的 Git 与 Sites 授权边界。
 
-## Prepare
+## 内容约定
 
-1. Read the repository `AGENTS.md` and run `git status --short` before editing.
-2. Treat user-provided text as final copy. Do not rewrite it, add emoji, or add metadata unless requested.
-3. Accept optional `location`, `pinned`, and `draft` values. Default to public, unpinned, and no location.
-4. Use `siteConfig.timezone` for the publication timestamp and filename. Fall back to `Asia/Shanghai` only when the config is unavailable.
-
-## Create the dynamic
-
-1. Create `src/content/dynamic/YYYY-MM-DD-HHmmss.md` without overwriting an existing file.
-2. Use this frontmatter shape, omitting optional fields that were not requested:
+- 正文、标点、表情保持用户原样；图片按用户指定顺序，否则按附件顺序。不擅自润色或添加标签。
+- 在 `src/content/dynamic/` 创建不冲突的 `YYYY-MM-DD-HHmmss.md`；时间取 `siteConfig.timezone`，配置不可用才回退 `Asia/Shanghai`。
+- 默认公开、不置顶、不填写位置。仅按用户要求添加 `draft`、`pinned` 或 `location`。最小 frontmatter：
 
 ```yaml
 ---
 published: YYYY-MM-DD HH:mm:ss
-draft: false
-pinned: true
-location: Example
 ---
 ```
 
-3. Put the exact user text after the frontmatter.
-4. Append image references in the requested order, or attachment order when none is specified:
+- 图片使用 `![简短描述](./images/semantic-name.avif)`。有附件时阅读 [图片处理与验证](references/images.md)；纯文字任务不加载图片流程。
 
-```markdown
-![Concise image description](./images/semantic-name.avif)
-```
+## 完成标准
 
-## Process attachments
+确认文件符合当前内容 schema、正文与要求一致、时间及可选元数据正确、没有覆盖现有文件。选择能验证本次内容的检查；纯文字动态无需仅因本 Skill 而运行图片生成流程。涉及图片时完成参考中的构建与资产验证。
 
-1. Never modify or delete the original attachments.
-2. Inspect each source image before conversion. Preserve orientation, color profile, dimensions, and visible content; do not crop or resize unless requested.
-3. Convert raster attachments to AVIF with a visually high-quality setting around quality 80. Use semantic, collision-free lowercase filenames under `src/content/dynamic/images/`.
-4. When a HEIC contains tiles, auxiliary images, or malformed trailing metadata, extract and verify the primary visible still with an available HEIF-capable decoder before encoding AVIF. Do not use image generation to recreate an attachment.
-5. If conversion would silently discard meaningful animation, transparency, or other requested content, stop and explain the tradeoff before proceeding.
-
-## Verify
-
-1. Run the complete `pnpm build` for any new or changed image. If the environment prevents a build step, report the exact unverified step and reason.
-2. Check that `src/constants/lqips.json` contains only the expected new image entries.
-3. Inspect `dist/api/dynamic.json` and confirm the new entry returns each local image as an accessible `/_astro/` URL rather than `./images/...`.
-4. Confirm every returned asset exists under `dist/` and matches the expected format and dimensions.
-5. Run `git diff --check` and review `git status --short`. Do not absorb unrelated changes into this task.
-
-## Hand off and deploy
-
-1. Summarize the dynamic file, image files, generated LQIP change, and verification results.
-2. Always ask: `是否现在提交、推送并触发部署？`
-3. Do not stage, commit, push, or deploy until the user explicitly confirms after this question.
-4. After confirmation, stage only task-scoped files, use a Conventional Commit, push the current branch, and verify the configured deployment trigger or deployment result. Stop and report any missing credentials or required approval.
+交付文件与验证结果。若用户尚未授权提交或推送，先交付本地结果再询问；已有本任务明确授权则按授权继续，不重复索要相同确认。只暂存任务文件，使用 Conventional Commits，并验证推送及配置的自动部署实际结果。Sites 各操作仍需根目录规定的单独确认。

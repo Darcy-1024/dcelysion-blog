@@ -79,7 +79,7 @@
 - [x] **Multi-language Support** - i18n internationalization ui, supports Simplified Chinese, Traditional Chinese, English, Japanese, Russian, Korean
 - [x] **Full-text Search** - Client-side search based on Pagefind, supports article content indexing.
 - [x] **Article Series** - Group posts with frontmatter and provide a series index plus ordered post navigation
-- [x] **Immersive Reading** - Hide distractions on post pages while optionally keeping a left or right table of contents
+- [x] **Immersive Reading** - Hide distractions on post pages, optionally start by default, remember each visitor's choice, and keep a left or right table of contents; normal and immersive reading share the synchronized section rail on the right
 
 ### Personalization
 - [x] **Dynamic Sidebar** - Supports single sidebar, dual sidebar configuration
@@ -243,6 +243,10 @@ Moment content supports Markdown.
 
 Also supports [Memos](https://www.usememos.com/) as a data source. Configure the `memos` option in `src/config/dynamicConfig.ts` to fetch Memos moments in real-time, with pinned sync and image attachment support. See [Moments documentation](https://docs-firefly.cuteleaf.cn/en/guide/dynamic.html).
 
+### Automatic Chinese typography
+
+Tiqian paragraph composition is enabled for posts by default. Set `typography: false` in a post’s frontmatter to disable it. No typography toggle is shown on the page; only enabled posts load the engine. Markdown sources stay intact; without JavaScript or if loading fails, the original HTML remains readable. The alpha dependency is pinned, with no build-time precomputation. Demo posts retain `draft: true`.
+
 ## 📖 Markdown Extensions
 
 In addition to the default [GitHub Flavored Markdown](https://github.github.com/gfm/) support in Astro, there are some additional Markdown features:
@@ -274,6 +278,10 @@ All commands need to be executed in the project root directory:
 Special thanks to [saicaca](https://github.com/saicaca) for developing the [fuwari](https://github.com/saicaca/fuwari) template, which Firefly is based on for secondary development.
 
 The copyright of Firefly-related image assets belongs to [miHoYo](https://www.mihoyo.com/), the developer of the game ["Honkai: Star Rail"](https://sr.mihoyo.com/).
+
+The default font configuration uses Xiaomi's [MiSans](https://hyperos.mi.com/font/faq) typeface.
+
+Article detail titles, in-article headings, and About page headings use [LXGW WenKai](https://github.com/lxgw/LxgwWenKai/releases/tag/v1.522) Regular (400), licensed under SIL OFL 1.1 and subset to WOFF2 during the build. Configure them with `fontConfig.articleTitleFont` and `articleTitleWeight`. The reading-page and About banners use Medium (500), controlled separately by `articleBannerTitleWeight`.
 
 ### Tech Stack
 
