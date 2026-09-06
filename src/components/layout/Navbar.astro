@@ -123,6 +123,42 @@ const logoVariants = await Promise.all(
 		})),
 );
 ---
+<style>
+    .navbar-brand {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: transparent;
+        transition: transform 180ms ease;
+    }
+
+    .navbar-brand-logo {
+        background-color: var(--btn-content);
+        mask-image: var(--navbar-logo-url);
+        mask-size: contain;
+        mask-position: center;
+        mask-repeat: no-repeat;
+    }
+
+    .navbar-brand:focus-visible {
+        outline: 2px solid var(--primary);
+        outline-offset: 3px;
+    }
+
+    .navbar-brand:active {
+        transform: scale(0.97);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .navbar-brand {
+            transition: none;
+        }
+
+        .navbar-brand:active {
+            transform: none;
+        }
+    }
+</style>
 <div id="navbar" class="z-50" style={`--navbar-glass-blur: ${navbarBlur}px;`} data-transparent-mode={navbarTransparentMode} data-is-home={isHomePageCheck} data-full-width={navbarWidthFull}>
     <script is:inline define:vars={{
       bannerTMode: backgroundWallpaper.banner?.navbar?.transparentMode || "semi",
@@ -160,15 +196,22 @@ const logoVariants = await Promise.all(
         "overflow-visible! h-18 px-4"
     ]}>
         <div class="mx-auto h-full w-full max-w-(--page-width) grid grid-cols-[auto_minmax(0,1fr)_auto] items-center">
-            <a href={url('/')} class="btn-plain scale-animation rounded-lg h-13 px-3 md:px-5 font-bold active:scale-95">
+            <a href={url('/')} class="navbar-brand rounded-lg h-13 px-3 md:px-5 font-bold">
                 <div class:list={[
                     "flex flex-row items-center text-md",
-                    siteConfig.navbar.followTheme ? "text-(--primary)" : "dark:text-white text-black"
-                ]} style="font-family: var(--font-navbar-title, inherit)">
+                    siteConfig.navbar.followTheme ? "text-(--btn-content)" : "dark:text-white text-black"
+                ]} style='font-family: var(--font-navbar-title, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif)'>
                                     {logoConfig?.type === "icon" ? (
                                         <Icon name={logoConfig.value || "material-symbols:home-pin-outline"} class="navbar-logo text-[1.75rem] mb-1 mr-2" />
                                     ) : logoIsImage && logoVariants.length > 0 ? (
-                                        logoVariants.map((variant) => variant.image ? (
+                                        logoVariants.map((variant) => siteConfig.navbar.followTheme ? (
+                                            <span
+                                                role="img"
+                                                aria-label={logoAlt}
+                                                class={`${variant.class} navbar-brand-logo`}
+                                                style={{ "--navbar-logo-url": `url("${variant.image?.src || variant.src}")` }}
+                                            />
+                                        ) : variant.image ? (
                                             <Picture
                                                 src={variant.image}
                                                 alt={logoAlt}

@@ -121,7 +121,7 @@ export const siteConfig: SiteConfig = {
 		// 导航菜单对齐方式，left：左对齐，center：居中
 		menuAlign: "center",
 		// 导航栏图标和标题是否跟随主题色
-		followTheme: false,
+		followTheme: true,
 		// 导航栏模式navbarMode：
 		// "static"：不固定，随页面滚动消失
 		// "fixed"：固定在顶部常显
@@ -239,11 +239,11 @@ export const siteConfig: SiteConfig = {
 		// OpenGraph图片功能，注意开启后要渲染很长时间，不建议本地调试的时候开启
 		generateOgImages: false,
 
-		// 沉浸阅读配置：文章详情页右下角按钮，进入后只留文章卡片+左侧目录
+		// 沉浸阅读与文章阅读轨配置
 		immersiveReading: {
-			// 总开关：false 则不显示按钮
+			// 总开关：false 则不显示沉浸按钮与文章阅读轨
 			enable: true,
-			// 进入文章页是否默认开启沉浸阅读
+			// 没有已保存的用户偏好时，进入文章页是否默认开启沉浸阅读
 			defaultOn: false,
 			// 沉浸阅读中是否显示目录栏
 			tocEnabled: true,
