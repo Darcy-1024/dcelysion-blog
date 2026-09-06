@@ -2,6 +2,9 @@
 
 /* TOC 滚动容器 */
 .toc-scroll-container {
+	/* 普通与沉浸目录共用中间偏上的自动跟随触发线。 */
+	--toc-follow-line: 0.4;
+	scroll-padding-block: 4rem;
 	overflow-y: auto;
 	overflow-x: hidden;
 	-webkit-overflow-scrolling: touch;

@@ -1,0 +1,30 @@
+---
+import { siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+const enabled = siteConfig.post.immersiveReading?.enable !== false;
+---
+
+{
+	enabled && (
+		<div id="immersive-scroll-rail" class="immersive-scroll-rail" hidden>
+			<div
+				id="immersive-scroll-track"
+				class="immersive-scroll-track"
+				role="scrollbar"
+				tabindex="0"
+				aria-label={i18n(I18nKey.tableOfContents)}
+				aria-controls="swup-container"
+				aria-orientation="vertical"
+				aria-valuemin="0"
+				aria-valuemax="100"
+				aria-valuenow="0"
+				aria-valuetext="0%"
+			>
+				<div id="immersive-scroll-thumb" class="immersive-scroll-thumb" aria-hidden="true" />
+			</div>
+			<div id="immersive-scroll-markers" class="immersive-scroll-markers" />
+		</div>
+	)
+}

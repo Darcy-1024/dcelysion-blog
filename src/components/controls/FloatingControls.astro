@@ -1,12 +1,14 @@
 ---
 import type { MarkdownHeading } from "astro";
+import FloatingButton from "@/components/common/FloatingButton.astro";
 import { siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
 import BackToComment from "./BackToComment.astro";
 import BackToHome from "./BackToHome.astro";
 import BackToTop from "./BackToTop.astro";
 import FloatingTOC from "./FloatingTOC.astro";
 import ImmersiveReading from "./ImmersiveReading.astro";
-import ImmersiveTOC from "./ImmersiveTOC.astro";
 
 interface Props {
 	headings?: MarkdownHeading[];
@@ -16,6 +18,8 @@ interface Props {
 const { headings, encrypted } = Astro.props;
 const immersiveReadingEnabled =
 	siteConfig.post.immersiveReading?.enable !== false;
+const immersiveTocEnabled =
+	siteConfig.post.immersiveReading?.tocEnabled !== false;
 ---
 
 <div class="floating-controls-container">
@@ -23,7 +27,16 @@ const immersiveReadingEnabled =
   {immersiveReadingEnabled && (
     <>
       <ImmersiveReading />
-      <ImmersiveTOC headings={headings ?? []} encrypted={encrypted} />
+      {immersiveTocEnabled && (
+        <FloatingButton
+          id="immersive-toc-toggle-btn"
+          icon="material-symbols:format-list-bulleted"
+          toggleIcon="material-symbols:close"
+          ariaLabel={i18n(I18nKey.tocExpand)}
+          onclick="window.toggleImmersiveTOC()"
+          class="hide"
+        />
+      )}
     </>
   )}
   <BackToComment />

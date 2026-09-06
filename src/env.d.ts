@@ -15,6 +15,13 @@ declare global {
 		cleanup: () => void;
 	}
 
+	interface IImmersiveScrollRailManager {
+		activate: () => void;
+		refresh: () => void;
+		setActiveHeadingIds: (headingIds: string[]) => void;
+		deactivate: () => void;
+	}
+
 	interface Window {
 		SidebarTOC: {
 			manager: ITOCManager | null;
@@ -32,6 +39,7 @@ declare global {
 			tocBtn: HTMLElement | null;
 			toc: HTMLElement | null;
 			manager: ITOCManager | null;
+			rail: IImmersiveScrollRailManager | null;
 			prevScroll: number;
 			isImmersive: boolean;
 		};

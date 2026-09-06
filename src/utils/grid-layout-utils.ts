@@ -2,6 +2,8 @@
  * 主网格列布局与侧边栏可见性 / 吸顶间距管理（从 Layout.astro 迁出）。
  */
 
+import { refreshSidebarPlaylistFit } from "@/utils/sidebar-playlist-fit";
+
 const sidebarStickyState: Record<
 	"left" | "right",
 	{ topClass: "top-0" | "top-4"; hasVisibleTop: boolean }
@@ -45,6 +47,83 @@ function clearColPositioning(
 	}
 }
 
+function applyBothSidebarColumnPositions(
+	mainGrid: Element,
+	usePostPageTocLeftLayout: boolean,
+	tabletSidebar: string,
+): void {
+	const leftSidebar = document.getElementById("left-sidebar");
+	const rightSidebar = document.getElementById("right-sidebar");
+	const mainContent = document.getElementById("main-content-column");
+	const footer = mainGrid.querySelector(".footer");
+
+	clearColPositioning(leftSidebar, rightSidebar, mainContent, footer);
+
+	if (usePostPageTocLeftLayout) {
+		leftSidebar?.classList.add(
+			"md:col-span-1",
+			"md:col-start-2",
+			"xl:col-span-1",
+			"xl:col-start-3",
+		);
+		rightSidebar?.classList.add("xl:col-span-1", "xl:col-start-1");
+		mainContent?.classList.add(
+			"md:col-span-1",
+			"md:col-start-1",
+			"xl:col-span-1",
+			"xl:col-start-2",
+			"xl:col-end-3",
+		);
+		footer?.classList.add(
+			"md:col-span-1",
+			"md:col-start-1",
+			"xl:col-span-1",
+			"xl:col-start-2",
+		);
+		return;
+	}
+
+	if (tabletSidebar === "right") {
+		leftSidebar?.classList.add("xl:col-span-1", "xl:col-start-1");
+		rightSidebar?.classList.add(
+			"md:col-span-1",
+			"md:col-start-2",
+			"xl:col-span-1",
+			"xl:col-start-3",
+		);
+		mainContent?.classList.add(
+			"md:col-span-1",
+			"md:col-start-1",
+			"xl:col-span-1",
+			"xl:col-start-2",
+			"xl:col-end-3",
+		);
+		footer?.classList.add(
+			"md:col-span-1",
+			"md:col-start-1",
+			"xl:col-span-1",
+			"xl:col-start-2",
+		);
+		return;
+	}
+
+	leftSidebar?.classList.add("md:col-span-1", "md:col-start-1");
+	rightSidebar?.classList.add("xl:col-span-1", "xl:col-start-3");
+	mainContent?.classList.add(
+		"md:col-span-1",
+		"md:col-start-2",
+		"xl:col-span-1",
+		"xl:col-start-2",
+		"xl:col-end-3",
+	);
+	footer?.classList.add(
+		"md:col-span-1",
+		"md:col-start-2",
+		"xl:col-span-1",
+		"xl:col-start-2",
+	);
+}
+
 // 设置单列布局：grid 设为 grid-cols-1，清除子元素的多列定位类
 function applySingleColLayout(mainGrid: Element): void {
 	for (const cls of GRID_COL_CLASSES) mainGrid.classList.remove(cls);
@@ -72,6 +151,10 @@ export function updateMainGridCols(): void {
 	const tabletSidebar = mainGrid.getAttribute("data-tablet-sidebar") || "left";
 	const showBothSidebarsOnPostPage =
 		mainGrid.getAttribute("data-show-both-sidebars-on-post") === "true";
+	const postPageTocLeftLayoutEnabled =
+		mainGrid.getAttribute("data-post-page-toc-left-layout") === "true";
+	const usePostPageTocLeftLayout =
+		isPostPage && sidebarPosition === "both" && postPageTocLeftLayoutEnabled;
 
 	// 侧边栏禁用 或 文章详情页隐藏侧边栏时，保持单列布局
 	if (!sidebarEnabled || (isPostPage && sidebarHideOnPost)) {
@@ -84,7 +167,10 @@ export function updateMainGridCols(): void {
 
 	let newGridClasses: string;
 
-	if (sidebarPosition === "both" || shouldBothSidebars) {
+	if (usePostPageTocLeftLayout) {
+		newGridClasses =
+			"grid-cols-1 md:grid-cols-[1fr_17.5rem] xl:grid-cols-[17.5rem_1fr_17.5rem]";
+	} else if (sidebarPosition === "both" || shouldBothSidebars) {
 		const effectiveTabletSidebar =
 			shouldBothSidebars && sidebarPosition === "right"
 				? "right"
@@ -102,6 +188,14 @@ export function updateMainGridCols(): void {
 	for (const cls of GRID_COL_CLASSES) mainGrid.classList.remove(cls);
 	for (const cls of newGridClasses.split(" "))
 		if (cls) mainGrid.classList.add(cls);
+
+	if (sidebarPosition === "both") {
+		applyBothSidebarColumnPositions(
+			mainGrid,
+			usePostPageTocLeftLayout,
+			tabletSidebar,
+		);
+	}
 
 	// position为right时，swup导航不会替换静态元素的class，需手动更新列定位
 	if (sidebarPosition === "right") {
@@ -190,6 +284,7 @@ export function refreshSidebarStickyState(): void {
 	});
 
 	updateSidebarStickySpacing();
+	refreshSidebarPlaylistFit();
 }
 
 // 根据当前滚动位置动态更新侧边栏 sticky 顶部偏移。

@@ -13,6 +13,8 @@ const navbar = document.getElementById("navbar-wrapper");
 
 // 动态导航栏：记录上一次滚动位置，用于判断滚动方向（下滑隐藏 / 上滑显示）
 let lastScrollTop = 0;
+let lastPostContainer: HTMLElement | null | undefined;
+let lastNavbarMode: string | undefined;
 
 /** 优化的滚动处理函数（从 Layout.astro 迁出；visit:end 切页后也会调用） */
 export function scrollFunction(): void {
@@ -23,6 +25,33 @@ export function scrollFunction(): void {
 	const scrollTop = document.documentElement.scrollTop;
 	const bannerHeight = window.innerHeight * (BANNER_HEIGHT / 100);
 	const navbarElement = document.getElementById("navbar");
+	const postContainer = document.getElementById("post-container");
+	// 普通文章页复用动态导航；其他页面及沉浸阅读遵循全站配置。
+	const effectiveNavbarMode =
+		navbarMode === "fixed" &&
+		postContainer &&
+		!document.body.classList.contains("immersive-reading")
+			? "dynamic"
+			: navbarMode;
+	document.body.classList.toggle(
+		"sticky-navbar",
+		effectiveNavbarMode === "fixed",
+	);
+	document.body.classList.toggle(
+		"dynamic-navbar",
+		effectiveNavbarMode === "dynamic",
+	);
+	// Swup 替换文章 DOM、返回列表或切换阅读模式时，重新记录滚动起点。
+	if (
+		postContainer !== lastPostContainer ||
+		effectiveNavbarMode !== lastNavbarMode
+	) {
+		lastScrollTop = scrollTop;
+		navbar?.classList.remove("navbar-hidden");
+		document.body.classList.remove("dynamic-navbar-hidden");
+		lastPostContainer = postContainer;
+		lastNavbarMode = effectiveNavbarMode;
+	}
 
 	// 根据滚动位置动态更新侧边栏 sticky 间距
 	updateSidebarStickySpacing();
@@ -50,11 +79,11 @@ export function scrollFunction(): void {
 		});
 	}
 
-	if (navbarMode === "fixed" && navbar) {
+	if (effectiveNavbarMode === "fixed" && navbar) {
 		operations.push(() => {
 			navbar.classList.remove("navbar-hidden");
 		});
-	} else if (navbarMode === "dynamic" && navbar) {
+	} else if (effectiveNavbarMode === "dynamic" && navbar) {
 		// 动态：下滑隐藏 / 轻微上滑立即显示 / 滚回顶部(<80px)常显
 		const delta = scrollTop - lastScrollTop;
 		lastScrollTop = scrollTop;
@@ -124,6 +153,7 @@ let scrollTimeout: number;
 
 /** 注册滚动 / 窗口尺寸监听并初始化滚动状态（从 Layout.astro 迁出） */
 export function initScroll(): void {
+	window.addEventListener("immersiveReadingChange", scrollFunction);
 	// 使用优化的滚动性能处理
 	window.addEventListener(
 		"scroll",

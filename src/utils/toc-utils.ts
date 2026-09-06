@@ -16,6 +16,41 @@ export interface TOCConfig {
 	indicatorId: string;
 	maxLevel?: number;
 	scrollOffset?: number;
+	onActiveChange?: (headingIds: string[]) => void;
+}
+
+/**
+ * 获取当前视口内的标题 ID；没有标题可见时回退到最接近视口顶部的一项。
+ * 目录与文章阅读轨共用此判定，避免两处高亮状态漂移。
+ */
+export function getVisibleHeadingIds(headings: HTMLElement[]): string[] {
+	const visibleHeadingIds: string[] = [];
+
+	headings.forEach((heading) => {
+		if (!heading.id) return;
+		const rect = heading.getBoundingClientRect();
+		if (rect.top < window.innerHeight && rect.bottom > 0) {
+			visibleHeadingIds.push(heading.id);
+		}
+	});
+
+	if (visibleHeadingIds.length === 0 && headings.length > 0) {
+		let closestHeading: string | null = null;
+		let minDistance = Number.POSITIVE_INFINITY;
+
+		headings.forEach((heading) => {
+			if (!heading.id) return;
+			const distance = Math.abs(heading.getBoundingClientRect().top);
+			if (distance < minDistance) {
+				minDistance = distance;
+				closestHeading = heading.id;
+			}
+		});
+
+		if (closestHeading) visibleHeadingIds.push(closestHeading);
+	}
+
+	return visibleHeadingIds;
 }
 
 export class TOCManager {
@@ -26,12 +61,14 @@ export class TOCManager {
 	private contentId: string;
 	private indicatorId: string;
 	private scrollOffset: number;
+	private onActiveChange?: (headingIds: string[]) => void;
 
 	constructor(config: TOCConfig) {
 		this.contentId = config.contentId;
 		this.indicatorId = config.indicatorId;
 		this.maxLevel = config.maxLevel || 3;
 		this.scrollOffset = config.scrollOffset || 80;
+		this.onActiveChange = config.onActiveChange;
 	}
 
 	/**
@@ -148,50 +185,17 @@ export class TOCManager {
 	 * 获取可见的标题ID
 	 */
 	private getVisibleHeadingIds(): string[] {
-		const headings = this.getAllHeadings();
-		const visibleHeadingIds: string[] = [];
-
-		headings.forEach((heading) => {
-			if (heading.id) {
-				const rect = heading.getBoundingClientRect();
-				const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
-
-				if (isVisible) {
-					visibleHeadingIds.push(heading.id);
-				}
-			}
-		});
-
-		// 如果没有可见标题，选择最接近屏幕顶部的标题
-		if (visibleHeadingIds.length === 0 && headings.length > 0) {
-			let closestHeading: string | null = null;
-			let minDistance = Number.POSITIVE_INFINITY;
-
-			headings.forEach((heading) => {
-				if (heading.id) {
-					const rect = heading.getBoundingClientRect();
-					const distance = Math.abs(rect.top);
-
-					if (distance < minDistance) {
-						minDistance = distance;
-						closestHeading = heading.id;
-					}
-				}
-			});
-
-			if (closestHeading) {
-				visibleHeadingIds.push(closestHeading);
-			}
-		}
-
-		return visibleHeadingIds;
+		return getVisibleHeadingIds(this.getAllHeadings());
 	}
 
 	/**
 	 * 更新活动状态
 	 */
 	public updateActiveState(): void {
-		if (!this.tocItems || this.tocItems.length === 0) return;
+		if (!this.tocItems || this.tocItems.length === 0) {
+			this.onActiveChange?.([]);
+			return;
+		}
 
 		// 移除所有活动状态
 		this.tocItems.forEach((item) => {
@@ -210,6 +214,9 @@ export class TOCManager {
 		activeItems.forEach((item) => {
 			item.classList.add("visible");
 		});
+		this.onActiveChange?.(
+			activeItems.flatMap((item) => item.dataset.headingId ?? []),
+		);
 
 		// 更新活动指示器
 		this.updateActiveIndicator(activeItems);
@@ -270,24 +277,40 @@ export class TOCManager {
 		this.scrollTimeout = window.setTimeout(() => {
 			const containerRect = tocContainer.getBoundingClientRect();
 			const itemRect = activeItem.getBoundingClientRect();
+			const containerHeight = tocContainer.clientHeight;
+			if (!containerHeight) return;
+			const containerStyle = getComputedStyle(tocContainer);
+			const scrollPadding =
+				Number.parseFloat(containerStyle.scrollPaddingTop) || 0;
+			const followLine =
+				Number.parseFloat(
+					containerStyle.getPropertyValue("--toc-follow-line"),
+				) || 1;
+			const lowerBoundary = Math.max(
+				scrollPadding + itemRect.height,
+				Math.min(containerHeight - scrollPadding, containerHeight * followLine),
+			);
 
-			// 只在元素不在可视区域时才滚动
+			// 按共用样式中的跟随范围判断，普通与沉浸目录保持一致。
 			const isVisible =
-				itemRect.top >= containerRect.top &&
-				itemRect.bottom <= containerRect.bottom;
+				itemRect.top >= containerRect.top + scrollPadding &&
+				itemRect.bottom <= containerRect.top + lowerBoundary;
 
 			if (!isVisible) {
-				const itemOffsetTop = (activeItem as HTMLElement).offsetTop;
-				const containerHeight = tocContainer.clientHeight;
+				const itemOffsetTop =
+					tocContainer.scrollTop + itemRect.top - containerRect.top;
 				const itemHeight = activeItem.clientHeight;
 
-				// 计算目标滚动位置，将元素居中显示
+				// 放回跟随区域内部，避免滚完仍在触发线外反复触发。
 				const targetScroll =
-					itemOffsetTop - containerHeight / 2 + itemHeight / 2;
+					itemOffsetTop - (scrollPadding + lowerBoundary) / 2 + itemHeight / 2;
 
 				tocContainer.scrollTo({
 					top: targetScroll,
-					behavior: "smooth",
+					behavior: window.matchMedia("(prefers-reduced-motion: reduce)")
+						.matches
+						? "instant"
+						: "smooth",
 				});
 			}
 		}, 100);

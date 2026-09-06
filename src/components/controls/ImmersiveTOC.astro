@@ -1,6 +1,5 @@
 ---
 import type { MarkdownHeading } from "astro";
-import FloatingButton from "@/components/common/FloatingButton.astro";
 import { siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
@@ -23,32 +22,15 @@ const tocPosition = immersiveConfig?.tocPosition ?? "left";
 const items = encrypted ? [] : computeTocItems(headings, { maxLevel: 3 });
 ---
 
+{/* 沉浸阅读版心目录：宽屏占据左/右列，窄屏退化为抽屉 */}
 {
   tocEnabled && (
-    <>
-      <!-- 目录开关（沉浸态下显示，可折叠/展开目录栏） -->
-      <FloatingButton
-        id="immersive-toc-toggle-btn"
-        icon="material-symbols:format-list-bulleted"
-        toggleIcon="material-symbols:close"
-        ariaLabel={i18n(I18nKey.immersiveReading)}
-        onclick="window.toggleImmersiveTOC()"
-        class="hide"
-      />
-
-      <!-- 常驻目录栏：桌面/移动一致，默认展开（类 PDF） -->
-      <div id="immersive-toc" class="immersive-toc" data-position={tocPosition}>
-        <div class="immersive-toc-header">
-          <span class="immersive-toc-title">{i18n(I18nKey.tableOfContents)}</span>
-          <button
-            class="immersive-toc-toggle"
-            type="button"
-            aria-label={i18n(I18nKey.immersiveReading)}
-            onclick="window.toggleImmersiveTOC()"
-          >
-            ×
-          </button>
-        </div>
+    <aside
+        id="immersive-toc"
+        class="immersive-toc"
+        data-position={tocPosition}
+        aria-label={i18n(I18nKey.tableOfContents)}
+      >
         <div class="toc-scroll-container custom-scrollbar">
           <div
             class="toc-content"
@@ -98,7 +80,6 @@ const items = encrypted ? [] : computeTocItems(headings, { maxLevel: 3 });
             {/* 加密文章：留空，客户端解密后由 TOCManager 填充 */}
           </div>
         </div>
-      </div>
-    </>
+    </aside>
   )
 }

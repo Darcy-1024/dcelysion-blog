@@ -8,6 +8,8 @@ import NavMenuPanel from "@components/layout/NavMenuPanel.astro";
 import SideBar from "@components/layout/SideBar.astro";
 import type { MarkdownHeading } from "astro";
 import FloatingControls from "@/components/controls/FloatingControls.astro";
+import ImmersiveScrollRail from "@/components/controls/ImmersiveScrollRail.astro";
+import ImmersiveTOC from "@/components/controls/ImmersiveTOC.astro";
 import CategoryBar from "@/components/layout/CategoryBar.astro";
 import SidebarColumn from "@/components/layout/SidebarColumn.astro";
 import WallpaperSection from "@/components/layout/WallpaperSection.astro";
@@ -76,6 +78,7 @@ const sidebar = getEffectiveSidebarState({ isPostPage });
 const { hasWallpaper } = banner;
 const {
 	hideSidebarOnPostPage,
+	postPageTocLeftLayoutEnabled,
 	effectiveIsBothSidebars,
 	effectiveHasLeftComponents,
 	effectiveHasRightComponents,
@@ -98,7 +101,7 @@ const {
 <!-- Main content -->
 <div class="content-panel absolute w-full z-30 pointer-events-none">
     <!-- The pointer-events-none here prevent blocking the click event of the TOC -->
-    <div class="relative w-full xl:w-[92vw] max-w-(--page-width) mx-auto pointer-events-auto">
+    <div class="main-grid-shell relative w-full xl:w-[92vw] max-w-(--page-width) mx-auto pointer-events-auto">
         <div id="main-grid"
           class={`transition duration-700 w-full left-0 right-0 grid ${gridCols} grid-rows-[auto_1fr_auto] lg:grid-rows-[auto] mx-auto gap-4 px-2 md:px-4 ${!mobileShowSidebar ? 'mobile-no-sidebar' : ''}`}
           data-sidebar-enable={sidebarLayoutConfig.enable ? "true" : "false"}
@@ -106,6 +109,7 @@ const {
           data-sidebar-position={sidebarLayoutConfig.position}
           data-tablet-sidebar={sidebarLayoutConfig.tabletSidebar ?? "left"}
           data-show-both-sidebars-on-post={sidebarLayoutConfig.showBothSidebarsOnPostPage ? "true" : "false"}
+          data-post-page-toc-left-layout={postPageTocLeftLayoutEnabled ? "true" : "false"}
         >
 
             <SidebarColumn
@@ -121,9 +125,11 @@ const {
                 headings={headings}
                 encrypted={encrypted}
             />
-                    
+
+            <ImmersiveTOC headings={headings} encrypted={encrypted} />
+
             {/* 主内容区包装器 - 包含静态栏位和swup容器，作为单个grid item */}
-            <div class={staticBarClass}>
+            <div id="main-content-column" class={staticBarClass}>
                 {/* 分类导航栏 - 全站渲染并显示 */}
                 {shouldRenderCategoryBar && <div id="category-bar-wrapper"><CategoryBar currentPostCategory={postCategory} /></div>}
                 {/* 主内容区 - 始终渲染，确保 Swup 容器存在 */}
@@ -171,6 +177,7 @@ const {
     </div>
 </div>
 
+<ImmersiveScrollRail />
 <FloatingControls headings={headings} encrypted={encrypted} />
 
 <!-- 移动端导航抽屉：渲染为 <body> 直系子元素，脱离导航栏的 transform 包含块才能铺满视口 -->

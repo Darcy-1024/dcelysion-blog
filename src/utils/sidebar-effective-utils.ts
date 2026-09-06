@@ -14,6 +14,7 @@ export interface EffectiveSidebarContext {
 
 export interface EffectiveSidebarState {
 	hideSidebarOnPostPage: boolean;
+	postPageTocLeftLayoutEnabled: boolean;
 	shouldShowBothSidebarsOnPostPage: boolean;
 	shouldAddLeftSidebar: boolean;
 	shouldAddRightSidebar: boolean;
@@ -29,6 +30,18 @@ export interface EffectiveSidebarState {
 	mainContentClass: string;
 	staticBarClass: string;
 	footerClassName: string;
+}
+
+function replaceClassTokens(
+	className: string,
+	remove: string[],
+	add: string[],
+): string {
+	const removeSet = new Set(remove);
+	return [
+		...className.split(/\s+/).filter((token) => token && !removeSet.has(token)),
+		...add,
+	].join(" ");
 }
 
 /** 纯 footer 类构建器（从 MainGridLayout 的 frontmatter 迁出，逐字保留分支） */
@@ -109,6 +122,21 @@ export function getEffectiveSidebarState(
 	const effectiveTabletSidebar = shouldAddLeftSidebar
 		? ("right" as const)
 		: sidebarConfig.tabletSidebar;
+	const postPageTocLeftLayoutEnabled =
+		sidebarLayoutConfig.enable &&
+		sidebarLayoutConfig.position === "both" &&
+		effectiveTabletSidebar === "left" &&
+		sidebarLayoutConfig.rightComponents.some(
+			(component) =>
+				component.type === "sidebarToc" &&
+				component.enable &&
+				component.showOnPostPage !== false,
+		) &&
+		sidebarLayoutConfig.leftComponents.some(
+			(component) => component.enable && component.showOnPostPage !== false,
+		);
+	const usePostPageTocLeftLayout =
+		isPostPage && !hideSidebarOnPostPage && postPageTocLeftLayoutEnabled;
 
 	const updatedGridConfig: ResponsiveSidebarConfig = {
 		...sidebarConfig,
@@ -118,18 +146,51 @@ export function getEffectiveSidebarState(
 		tabletSidebar: effectiveTabletSidebar,
 	};
 
-	const { gridCols } = generateGridClasses(updatedGridConfig);
-	const sidebarClass = generateSidebarClasses(updatedGridConfig);
-	const rightSidebarClass =
+	let { gridCols } = generateGridClasses(updatedGridConfig);
+	let sidebarClass = generateSidebarClasses(updatedGridConfig);
+	let rightSidebarClass =
 		effectiveIsBothSidebars || sidebarLayoutConfig.position === "right"
 			? generateRightSidebarClasses(updatedGridConfig)
 			: "";
-	const mainContentClass = generateMainContentClasses(updatedGridConfig);
+	let mainContentClass = generateMainContentClasses(updatedGridConfig);
+	let footerClassName = buildFooterClass(updatedGridConfig);
+
+	if (usePostPageTocLeftLayout) {
+		gridCols =
+			"grid-cols-1 md:grid-cols-[1fr_17.5rem] xl:grid-cols-[17.5rem_1fr_17.5rem]";
+		sidebarClass = replaceClassTokens(
+			sidebarClass,
+			["md:col-start-1", "md:col-start-2", "xl:col-start-1", "xl:col-start-3"],
+			["md:col-start-2", "xl:col-start-3"],
+		);
+		rightSidebarClass = replaceClassTokens(
+			rightSidebarClass,
+			["md:col-start-1", "md:col-start-2", "xl:col-start-1", "xl:col-start-3"],
+			["xl:col-start-1"],
+		);
+		mainContentClass = replaceClassTokens(
+			mainContentClass,
+			[
+				"md:col-start-1",
+				"md:col-start-2",
+				"xl:col-start-1",
+				"xl:col-start-2",
+				"xl:col-end-3",
+			],
+			["md:col-start-1", "xl:col-start-2", "xl:col-end-3"],
+		);
+		footerClassName = replaceClassTokens(
+			footerClassName,
+			["md:col-start-1", "md:col-start-2", "xl:col-start-1", "xl:col-start-2"],
+			["md:col-start-1", "xl:col-start-2"],
+		);
+	}
+
 	const staticBarClass = mainContentClass.replace("transition-main", "").trim();
-	const footerClassName = buildFooterClass(updatedGridConfig);
 
 	return {
 		hideSidebarOnPostPage,
+		postPageTocLeftLayoutEnabled,
 		shouldShowBothSidebarsOnPostPage,
 		shouldAddLeftSidebar,
 		shouldAddRightSidebar,
