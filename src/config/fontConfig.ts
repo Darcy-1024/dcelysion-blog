@@ -28,6 +28,47 @@ import type { FontDefinition, FontSelectionConfig } from "@/types/fontConfig";
 // 本地开发调试的情况下，修改后需要每次重启开发服务器才能生效
 export const fontsList: FontDefinition[] = [
 	{
+		name: "LXGW WenKai",
+		cssVariable: "--font-lxgw-wenkai",
+		provider: "local",
+		weights: ["400", "500"],
+		styles: ["normal"],
+		display: "swap",
+		fallbacks: [],
+		options: {
+			variants: [
+				{
+					src: ["./public/assets/fonts/LXGWWenKai-Regular.ttf"],
+					weight: "400",
+					style: "normal",
+				},
+				{
+					src: ["./public/assets/fonts/LXGWWenKai-Medium.ttf"],
+					weight: "500",
+					style: "normal",
+				},
+			],
+		},
+	},
+	{
+		name: "MiSans VF",
+		cssVariable: "--font-misans",
+		provider: "local",
+		weights: ["150 700"],
+		styles: ["normal"],
+		// 正文字体的最终系统回退栈由 FontSetup.astro 统一追加
+		fallbacks: [],
+		options: {
+			variants: [
+				{
+					src: ["./public/assets/fonts/MiSansVF.ttf"],
+					weight: "150 700",
+					style: "normal",
+				},
+			],
+		},
+	},
+	{
 		name: "Zen Maru Gothic",
 		cssVariable: "--font-zen-maru-gothic",
 		provider: "fontsource",
@@ -49,19 +90,10 @@ export const fontsList: FontDefinition[] = [
 		name: "JetBrains Mono",
 		cssVariable: "--font-jetbrains-mono",
 		provider: "fontsource",
-		weights: ["400", "700"],
-		styles: ["normal"],
+		weights: ["100 800"],
+		styles: ["normal", "italic"],
 		subsets: ["latin", "cyrillic"],
-		fallbacks: [
-			"ui-monospace",
-			"SFMono-Regular",
-			"Menlo",
-			"Monaco",
-			"Consolas",
-			"Liberation Mono",
-			"Courier New",
-			"monospace",
-		],
+		fallbacks: [],
 	},
 	// ─── 本地字体示例 ───
 	// 使用步骤：
@@ -89,22 +121,33 @@ export const fontConfig: FontSelectionConfig = {
 	enable: true,
 	// 当前选择的字体 CSS 变量名（对应上方 fonts 中的 cssVariable）
 	// 使用 "system" 表示系统字体（不加载任何自定义字体）
-	selected: ["system"],
+	selected: ["--font-misans"],
 
 	// 各区域独立字体设置（填写上方 fonts 中的 cssVariable，留空则使用全局 selected 字体）
-	// 例如：bannerTitleFont: "--font-inter", 表示主页横幅主标题使用 Inter 字体
+	// 例如：bannerTitleFont: "--font-zen-maru-gothic", 表示主页横幅主标题使用 Zen Maru Gothic 字体
 	// 主页横幅主标题字体
 	bannerTitleFont: "--font-zen-maru-gothic",
 	// 主页横幅副标题字体
 	bannerSubtitleFont: "--font-inter",
 	// 导航栏标题字体
 	navbarTitleFont: "",
-	// 代码块字体（用于代码高亮和等宽字体场景）
+	// 文章及关于页的标题使用霞鹜文楷，避免浏览器合成粗体
+	articleTitleFont: "--font-lxgw-wenkai",
+	articleTitleWeight: 400,
+	articleBannerTitleWeight: 500,
+	// 代码块和行内代码使用 JetBrains Mono
 	codeFont: "--font-jetbrains-mono",
 
 	// 本地字体子集化配置（构建时由 scripts/subset-fonts.ts 处理）
 	// key 为 fonts 数组中对应的 cssVariable，value 为子集化选项
 	subsetFonts: {
+		"--font-lxgw-wenkai": {
+			extraChars: "",
+		},
+		"--font-misans": {
+			// 动态 JSON 中的文字也会由子集脚本自动收集
+			extraChars: "",
+		},
 		"--font-greatvibes": {
 			// 额外包含的字符
 			extraChars: "",

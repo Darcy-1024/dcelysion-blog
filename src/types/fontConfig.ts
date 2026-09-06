@@ -29,7 +29,7 @@ export interface CustomFontProvider {
 export type FontDefinition = {
 	/** 字体名称 */
 	name: string;
-	/** 对应的 CSS 变量名（如 "--font-inter"） */
+	/** 对应的 CSS 变量名（如 "--font-misans"） */
 	cssVariable: string;
 	/** 字体提供商（内置名称或自定义 provider 对象） */
 	provider: BuiltinFontProvider | CustomFontProvider;
@@ -67,6 +67,11 @@ export type FontSelectionConfig = {
 	bannerTitleFont?: string;
 	bannerSubtitleFont?: string;
 	navbarTitleFont?: string;
+	/** 文章和关于页的标题；留空则沿用全局字体和原有字重 */
+	articleTitleFont?: string;
+	articleTitleWeight?: number;
+	/** 文章和关于页横幅标题的共同字重；留空则沿用 articleTitleWeight */
+	articleBannerTitleWeight?: number;
 	/** 代码块字体 CSS 变量名（用于代码高亮和等宽字体场景） */
 	codeFont?: string;
 	/**

@@ -2,6 +2,7 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const ru: Translation = {
+	[Key.articleTypography]: "Улучшенная китайская типографика",
 	[Key.home]: "Главная",
 	[Key.about]: "О нас",
 	[Key.archive]: "Архив",

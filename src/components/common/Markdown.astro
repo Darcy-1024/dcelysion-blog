@@ -1,12 +1,20 @@
 ---
 import "@/styles/markdown.css";
 import "@/styles/markdown-extend.styl";
+import ArticleTypography from "@components/features/ArticleTypography.astro";
 
 interface Props {
 	class: string;
+	typography?: boolean;
 }
 const className = Astro.props.class;
 ---
-<div data-pagefind-body class={`prose dark:prose-invert prose-base max-w-none! custom-md ${className}`}>
-    <slot/>
-</div>
+{Astro.props.typography ? (
+    <ArticleTypography class={`prose dark:prose-invert prose-base max-w-none! custom-md ${className}`}>
+        <slot />
+    </ArticleTypography>
+) : (
+    <div data-pagefind-body class={`prose dark:prose-invert prose-base max-w-none! custom-md ${className}`}>
+        <slot />
+    </div>
+)}

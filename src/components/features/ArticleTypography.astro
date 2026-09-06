@@ -1,0 +1,52 @@
+---
+interface Props {
+	class: string;
+}
+---
+
+<article-typography>
+	<tiqian-prose data-pagefind-body class={Astro.props.class}>
+		<slot />
+	</tiqian-prose>
+</article-typography>
+
+<script>
+	// Custom-element callbacks cover Swup replacement and decrypted HTML.
+	// Only enabled articles fetch the engine; failed imports leave readable HTML.
+	class ArticleTypography extends HTMLElement {
+		private controller: AbortController | null = null;
+
+		connectedCallback() {
+			this.controller?.abort();
+			const controller = new AbortController();
+			this.controller = controller;
+			// Keep author-aligned endings, signatures and captions in native layout.
+			// Run before importing/upgrading Tiqian, including on Swup re-entry.
+			for (const paragraph of this.querySelectorAll("p, li")) {
+				const alignment = getComputedStyle(paragraph).textAlign;
+				if (["center", "right", "end", "-webkit-center", "-webkit-right"].includes(alignment)) {
+					paragraph.setAttribute("data-tiqian-skip", "");
+				}
+			}
+			void this.initialize(controller.signal);
+		}
+
+		private async initialize(signal: AbortSignal) {
+			try {
+				await import("@tiqian/prose/element");
+				if (signal.aborted || !this.isConnected) return;
+			} catch (error) {
+				console.warn("Article typography unavailable; using native layout.", error);
+			}
+		}
+
+		disconnectedCallback() {
+			this.controller?.abort();
+			this.controller = null;
+		}
+	}
+
+	if (!customElements.get("article-typography")) {
+		customElements.define("article-typography", ArticleTypography);
+	}
+</script>

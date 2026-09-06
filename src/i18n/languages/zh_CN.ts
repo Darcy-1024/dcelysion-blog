@@ -2,6 +2,7 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const zh_CN: Translation = {
+	[Key.articleTypography]: "优化中文排版",
 	[Key.home]: "主页",
 	[Key.about]: "关于我",
 	[Key.archive]: "归档",

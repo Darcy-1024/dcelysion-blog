@@ -1,5 +1,39 @@
 @reference "tailwindcss";
 
+/* Display-only spacing: preserve the article source, code and math. */
+#post-container .custom-md:lang(zh),
+.custom-md.about-content:lang(zh) {
+  text-autospace: normal;
+  line-break: strict;
+  word-break: normal;
+}
+
+#post-container .custom-md :is(pre, code, kbd, samp, .katex, .expressive-code),
+.custom-md.about-content :is(pre, code, kbd, samp, .katex, .expressive-code) {
+  text-autospace: no-autospace;
+  line-break: auto;
+}
+
+article-typography,
+tiqian-prose {
+  display: block;
+  min-width: 0;
+}
+
+/* Preserve the Tailwind list indent; do not clip hanging punctuation here. */
+tiqian-prose {
+  --tq-list-indent: 1.625em;
+}
+
+
+
+/* 关于页与普通文章共用正文尺度；沉浸模式保持独立的 18px / 32px。 */
+body:not(.immersive-reading) #post-container .custom-md,
+.custom-md.about-content {
+  font-size: 1.0625rem;
+  line-height: 1.875rem;
+}
+
 .custom-md {
   overflow-wrap: break-word;
 
@@ -221,4 +255,3 @@ body.wallpaper-transparent .custom-md {
     background-color: color-mix(in oklch, var(--btn-plain-bg-active) 68%, transparent);
   }
 }
-

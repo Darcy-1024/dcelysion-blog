@@ -402,7 +402,7 @@ const seriesData = await getSeriesPosts(entry);
 
       {entry.data.password ? (
         <EncryptedPost password={entry.data.password} slug={entry.id} hint={entry.data.passwordHint}>
-          <Markdown class="mb-6 markdown-content onload-animation">
+          <Markdown typography={entry.data.typography} class="mb-6 markdown-content onload-animation">
             <Content />
           </Markdown>
 
@@ -492,7 +492,7 @@ const seriesData = await getSeriesPosts(entry);
         </EncryptedPost>
       ) : (
         <>
-          <Markdown class="mb-6 markdown-content onload-animation">
+          <Markdown typography={entry.data.typography} class="mb-6 markdown-content onload-animation">
             <Content />
           </Markdown>
 

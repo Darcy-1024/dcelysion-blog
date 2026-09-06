@@ -19,6 +19,7 @@ type PostData = {
 	licenseName: string;
 	licenseUrl: string;
 	comment: boolean;
+	typography: boolean;
 	password: string;
 	passwordHint: string;
 	series: string;
@@ -59,6 +60,7 @@ const postsCollection: ContentCollection<PostData> = defineCollection({
 		licenseName: z.string().optional().default(""),
 		licenseUrl: z.string().optional().default(""),
 		comment: z.boolean().optional().default(true),
+		typography: z.boolean().optional().default(true),
 		password: z.string().optional().default(""),
 		passwordHint: z.string().optional().default(""),
 		series: z.string().optional().default(""),

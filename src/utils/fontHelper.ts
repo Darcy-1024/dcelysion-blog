@@ -11,28 +11,29 @@ import type { FontSelectionConfig } from "../types/fontConfig";
  *
  * 包括：
  * - selected 中的非 "system" 值
- * - bannerTitleFont / bannerSubtitleFont / navbarTitleFont 区域覆盖
+ * - bannerTitleFont / bannerSubtitleFont / navbarTitleFont / articleTitleFont 区域覆盖
  * - codeFont 代码块字体
  *
- * @returns 去重后的 CSS 变量名集合（如 "--font-inter"）
+ * @returns 去重后的 CSS 变量名集合（如 "--font-misans"）
  */
 export function collectUsedFontCssVars(
 	config: FontSelectionConfig,
 ): Set<string> {
 	const used = new Set<string>();
 
-	const sel = config.selected;
-	if (Array.isArray(sel)) {
-		for (const v of sel) {
-			if (v !== "system") used.add(v);
+	const selected = config.selected;
+	if (Array.isArray(selected)) {
+		for (const value of selected) {
+			if (value && value !== "system") used.add(value);
 		}
-	} else if (sel !== "system") {
-		used.add(sel);
+	} else if (selected && selected !== "system") {
+		used.add(selected);
 	}
 
 	if (config.bannerTitleFont) used.add(config.bannerTitleFont);
 	if (config.bannerSubtitleFont) used.add(config.bannerSubtitleFont);
 	if (config.navbarTitleFont) used.add(config.navbarTitleFont);
+	if (config.articleTitleFont) used.add(config.articleTitleFont);
 	if (config.codeFont) used.add(config.codeFont);
 
 	return used;

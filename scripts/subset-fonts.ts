@@ -1,5 +1,5 @@
 // 字体子集化构建后脚本
-// 在 astro build 之后运行，扫描 dist/ 中所有 HTML 页面，收集实际使用的字符，
+// 在 astro build 之后运行，扫描 dist/ 中所有 HTML 和 JSON 输出，收集实际使用的字符，
 // 为标记了 subset: true 的本地字体生成轻量 woff2 子集文件。
 
 import crypto from "node:crypto";
@@ -118,16 +118,49 @@ function extractTextFromHtml(html: string): string {
 	return text;
 }
 
+/** 从 JSON 中递归提取字符串值，覆盖构建后由浏览器动态加载的本地内容。 */
+function extractTextFromJson(json: string): string {
+	const strings: string[] = [];
+
+	function visit(value: unknown): void {
+		if (typeof value === "string") {
+			strings.push(value);
+			return;
+		}
+		if (Array.isArray(value)) {
+			for (const item of value) visit(item);
+			return;
+		}
+		if (value && typeof value === "object") {
+			for (const item of Object.values(value)) visit(item);
+		}
+	}
+
+	try {
+		visit(JSON.parse(json));
+	} catch {
+		return "";
+	}
+	return strings.join(" ");
+}
+
 /**
- * 扫描 dist/ 中所有 HTML 文件，提取页面中实际使用的所有字符
+ * 扫描 dist/ 中所有 HTML 和 JSON 文件，提取实际使用的所有字符
  */
 async function collectChars(): Promise<string> {
 	const htmlFiles = await glob(`${DIST_DIR}/**/*.html`);
+	const jsonFiles = await glob(`${DIST_DIR}/**/*.json`);
 	const charSet = new Set<string>();
 
 	for (const file of htmlFiles) {
 		const html = await fs.readFile(file, "utf-8");
 		const text = extractTextFromHtml(html);
+		for (const c of text) charSet.add(c);
+	}
+
+	for (const file of jsonFiles) {
+		const json = await fs.readFile(file, "utf-8");
+		const text = extractTextFromJson(json);
 		for (const c of text) charSet.add(c);
 	}
 
@@ -203,7 +236,7 @@ async function main() {
 	);
 
 	// 2. 收集页面字符
-	console.log("🔍 Collecting characters from dist/...");
+	console.log("🔍 Collecting characters from dist HTML and JSON output...");
 	const pageChars = await collectChars();
 	console.log(`   Collected ${pageChars.length} unique characters.`);
 

@@ -2,6 +2,7 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const ja: Translation = {
+	[Key.articleTypography]: "中国語組版を最適化",
 	[Key.home]: "ホーム",
 	[Key.about]: "について",
 	[Key.archive]: "アーカイブ",

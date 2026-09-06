@@ -2,6 +2,7 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const ko: Translation = {
+	[Key.articleTypography]: "중국어 조판 최적화",
 	[Key.home]: "홈",
 	[Key.about]: "소개",
 	[Key.archive]: "아카이브",

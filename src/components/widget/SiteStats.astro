@@ -104,18 +104,18 @@ const stats = [
 		dynamic: true,
 		id: "running-days",
 	},
-		{
-			icon: "mingcute:heartbeat-line",
-			label: i18n(I18nKey.siteStatsLastUpdate),
-			value: 0, // 将由客户端更新
-			suffix: i18n(I18nKey.siteStatsDaysAgo).replace("{days}", ""),
-			dynamic: true,
-			id: "last-update",
-		},
-	].filter((stat) => {
-		if (hideLastActivity && stat.id === "last-update") return false;
-		return true;
-	});
+	{
+		icon: "mingcute:heartbeat-line",
+		label: i18n(I18nKey.siteStatsLastUpdate),
+		value: 0, // 将由客户端更新
+		suffix: i18n(I18nKey.siteStatsDaysAgo).replace("{days}", ""),
+		dynamic: true,
+		id: "last-update",
+	},
+].filter((stat) => {
+	if (hideLastActivity && stat.id === "last-update") return false;
+	return true;
+});
 ---
 
 <WidgetLayout name={i18n(I18nKey.siteStats)} showTitle={showTitle} id="site-stats" class={className} style={style}>
@@ -124,7 +124,7 @@ const stats = [
       <div class="flex items-center justify-between px-3 py-1.5">
         <div class="flex items-center gap-2.5">
           <div class="text-(--primary) text-xl">
-            <Icon name={stat.icon} />
+            <Icon name={stat.icon} is:inline />
           </div>
           <span class="text-neutral-700 dark:text-neutral-300 font-medium text-sm">
             {stat.label}
@@ -132,7 +132,7 @@ const stats = [
         </div>
         <div class="flex items-center">
           <span
-            class="text-base font-bold text-neutral-900 dark:text-neutral-100"
+            class="text-base font-medium text-neutral-900 dark:text-neutral-100"
             data-stat-id={stat.id}
           >
             {stat.formatted ? formatNumber(stat.value) : stat.value}

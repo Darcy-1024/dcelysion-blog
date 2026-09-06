@@ -19,12 +19,11 @@ const allCssVars = fontConfig.enable
 	: new Set<string>();
 
 // 统一解析 selected 为数组（用于后续 body font-family 和 preload 判断）
-const selectedIds: string[] =
-	fontConfig.enable && fontConfig.selected
-		? Array.isArray(fontConfig.selected)
-			? fontConfig.selected
-			: [fontConfig.selected]
-		: [];
+const selectedIds = fontConfig.enable
+	? Array.isArray(fontConfig.selected)
+		? fontConfig.selected
+		: [fontConfig.selected]
+	: [];
 
 // 生成 body 的 font-family 值
 // 每个字体的 fallback 由其在 fonts 中的 fallbacks 字段控制
@@ -53,8 +52,11 @@ const navbarTitleFontVar = fontConfig.enable
 	? fontConfig.navbarTitleFont || ""
 	: "";
 const codeFontVar = fontConfig.enable ? fontConfig.codeFont || "" : "";
+const articleTitleFontVar = fontConfig.enable
+	? fontConfig.articleTitleFont || ""
+	: "";
 // --font-code 由 fontConfig.codeFont 决定，行内代码和代码块统一引用它
-// 末尾始终带 MONO_FONT_STACK 保底，避免 codeFont 为空时 var() 解析失败导致字体回退到正文字体
+// 末尾始终带 MONO_FONT_STACK 保底，避免配置为空或字体加载失败时回退到正文字体
 const codeFontFamily = codeFontVar
 	? `var(${codeFontVar}, ${MONO_FONT_STACK})`
 	: MONO_FONT_STACK;
@@ -78,6 +80,21 @@ const codeFontFamily = codeFontVar
     ${bannerSubtitleFontVar ? `--font-banner-subtitle: var(${bannerSubtitleFontVar}, inherit);` : ""}
     ${navbarTitleFontVar ? `--font-navbar-title: var(${navbarTitleFontVar}, inherit);` : ""}
   }
+
+  ${articleTitleFontVar ? `
+  .banner-post-title,
+  body:has(.about-content) .banner-page-title,
+  #post-container [data-pagefind-meta="title"],
+  #post-container .custom-md :is(h1, h2, h3, h4, h5, h6),
+  .custom-md.about-content :is(h1, h2, h3, h4, h5, h6) {
+    font-family: var(${articleTitleFontVar}), ${bodyFontFamily};
+    font-weight: ${fontConfig.articleTitleWeight ?? 400};
+  }
+  .banner-post-title,
+  body:has(.about-content) .banner-page-title {
+    font-weight: ${fontConfig.articleBannerTitleWeight ?? fontConfig.articleTitleWeight ?? 400};
+  }
+  ` : ""}
 
   ${
 		fontConfig.enable &&
