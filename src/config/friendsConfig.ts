@@ -39,7 +39,7 @@ export const friendsConfig: FriendLink[] = [
 		siteurl: "https://docs-firefly.cuteleaf.cn",
 		tags: ["Docs"],
 		weight: 9,
-		enabled: true,
+		enabled: false,
 	},
 	{
 		title: "Astro",
@@ -48,7 +48,7 @@ export const friendsConfig: FriendLink[] = [
 		siteurl: "https://github.com/withastro/astro",
 		tags: ["Framework"],
 		weight: 8,
-		enabled: true,
+		enabled: false,
 	},
 ];
 
