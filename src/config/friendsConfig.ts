@@ -30,7 +30,7 @@ export const friendsConfig: FriendLink[] = [
 		siteurl: "https://blog.cuteleaf.cn",
 		tags: ["Blog"],
 		weight: 10, // 权重，数字越大排序越靠前
-		enabled: true, // 是否启用
+		enabled: false, // 是否启用
 	},
 	{
 		title: "Firefly Docs",
