@@ -116,7 +116,7 @@ export const siteConfig: SiteConfig = {
 		// wordmark: true 用完整字标替代图标和标题，保留图片原色
 		logo: {
 			type: "image",
-			value: "/assets/brand/dcelysion-portal-v2.webp",
+			value: "/assets/brand/dcelysion-portal-v3.png",
 			alt: "DcElysion",
 			wordmark: true,
 		},
