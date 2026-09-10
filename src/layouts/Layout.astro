@@ -305,6 +305,7 @@ const siteLogo = await getSiteLogo();
       define:vars={{
         PAGE_WIDTH,
         configHue,
+        isThemeColorSwitchable: displaySettingsConfig.themeColorSwitchable,
         defaultMode: siteConfig.themeColor.defaultMode ?? "light",
         defaultWallpaperMode: backgroundWallpaper.mode,
         isWallpaperSwitchable:
@@ -355,8 +356,10 @@ const siteLogo = await getSiteLogo();
         isDark ? darkTheme : lightTheme
       );
 
-      // Load the hue from local storage
-      const hue = localStorage.getItem("hue") || configHue;
+      // Only honor a saved hue while theme color customization is enabled
+      const hue = isThemeColorSwitchable
+        ? localStorage.getItem("hue") || configHue
+        : configHue;
       document.documentElement.style.setProperty("--hue", hue);
 
       // 设置卡片透明度（全屏透明模式下使用），优先使用用户自定义值

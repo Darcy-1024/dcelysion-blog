@@ -181,7 +181,11 @@ async function computeSiteLogo(): Promise<{
 	if (logo) {
 		if (logo.type === "url") return { url: logo.value };
 		if (logo.type === "image") {
-			const info = await getLocalImageInfo(logo.value, "", siteConfig.site_url);
+			const info = await toAbsoluteImageInfo(
+				logo.value,
+				"",
+				siteConfig.site_url,
+			);
 			return info
 				? { url: info.url, width: info.width, height: info.height }
 				: null;

@@ -72,7 +72,10 @@ const links: NavBarLink[] = resolveNavMenuLinks();
 const logoConfig = siteConfig.navbar.logo;
 const logoAlt = logoConfig?.alt || siteConfig.title;
 const logoIsImage = logoConfig?.type === "image" || logoConfig?.type === "url";
-const logoBaseClass = "navbar-logo h-7 w-7 mb-1 mr-2 object-contain";
+const logoIsWordmark = logoIsImage && logoConfig?.wordmark === true;
+const logoBaseClass = logoIsWordmark
+	? "navbar-logo navbar-wordmark object-contain"
+	: "navbar-logo h-7 w-7 mb-1 mr-2 object-contain";
 
 const logoFiles = import.meta.glob<ImageMetadata>(
 	"../../**/*.{png,jpg,jpeg,webp,avif,gif,svg}",
@@ -140,6 +143,21 @@ const logoVariants = await Promise.all(
         mask-repeat: no-repeat;
     }
 
+    .navbar-brand :global(.navbar-wordmark) {
+        width: clamp(8.5rem, 38vw, 12rem);
+        height: 3.5rem;
+        object-fit: contain;
+    }
+
+    .navbar-brand-wordmark {
+        padding-inline: 0.25rem;
+    }
+
+    .navbar-wordmark-menu :global(.dropdown-container > .btn-plain) {
+        padding-inline: 0.5rem;
+        white-space: nowrap;
+    }
+
     .navbar-brand:focus-visible {
         outline: 2px solid var(--primary);
         outline-offset: 3px;
@@ -196,7 +214,7 @@ const logoVariants = await Promise.all(
         "overflow-visible! h-18 px-4"
     ]}>
         <div class="mx-auto h-full w-full max-w-(--page-width) grid grid-cols-[auto_minmax(0,1fr)_auto] items-center">
-            <a href={url('/')} class="navbar-brand rounded-lg h-13 px-3 md:px-5 font-bold">
+            <a href={url('/')} aria-label={navbarTitle} class:list={["navbar-brand rounded-lg h-13 px-3 md:px-5 font-bold", { "navbar-brand-wordmark": logoIsWordmark }]}>
                 <div class:list={[
                     "flex flex-row items-center text-md",
                     siteConfig.navbar.followTheme ? "text-(--btn-content)" : "dark:text-white text-black"
@@ -204,7 +222,7 @@ const logoVariants = await Promise.all(
                                     {logoConfig?.type === "icon" ? (
                                         <Icon name={logoConfig.value || "material-symbols:home-pin-outline"} class="navbar-logo text-[1.75rem] mb-1 mr-2" />
                                     ) : logoIsImage && logoVariants.length > 0 ? (
-                                        logoVariants.map((variant) => siteConfig.navbar.followTheme ? (
+                                        logoVariants.map((variant) => siteConfig.navbar.followTheme && !logoIsWordmark ? (
                                             <span
                                                 role="img"
                                                 aria-label={logoAlt}
@@ -219,7 +237,7 @@ const logoVariants = await Promise.all(
                                                 data-logo-theme={variant.theme}
                                                 formats={getImageFormats()}
                                                 fallbackFormat={getFallbackFormat()}
-                                                widths={[28, 56]}
+                                                widths={logoIsWordmark ? [192, 384, 576] : [28, 56]}
                                                 loading="eager"
                                                 fetchpriority="high"
                                             />
@@ -229,11 +247,12 @@ const logoVariants = await Promise.all(
                                     ) : (
                                         <Icon name="material-symbols:home-pin-outline" class="navbar-logo text-[1.75rem] mb-1 mr-2" />
                                     )}
-                    {navbarTitle}
+                    {!logoIsWordmark && navbarTitle}
                 </div>
             </a>
             <div class:list={[
                 "hidden lg:flex items-center space-x-1 col-start-2",
+                { "navbar-wordmark-menu": logoIsWordmark },
                 isNavbarMenuCentered
                     ? "justify-center"
                     : "justify-start pl-2"

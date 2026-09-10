@@ -73,6 +73,7 @@ export type SiteConfig = {
 			value: string; // icon名、本地图片路径或网络图片url
 			valueDark?: string; // 暗色模式下的图片，仅 image / url 类型生效，不设置则亮暗色共用 value
 			alt?: string; // 图片alt文本
+			wordmark?: boolean; // 完整字标：以横向图片替代图标和标题，保留图片原色
 		};
 		title?: string; // 导航栏标题，如果不设置则使用 title
 		widthFull?: boolean; // 导航栏是否占满屏幕宽度
