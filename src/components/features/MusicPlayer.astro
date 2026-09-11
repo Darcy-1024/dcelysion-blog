@@ -145,6 +145,19 @@ const widgetId =
 </div>
 
 <style>
+    /* Use MiSans first; other fonts only handle glyphs it does not provide. */
+    .music-player-widget {
+        font-family:
+            var(--font-misans),
+            "Yu Gothic UI",
+            "Meiryo",
+            "Hiragino Kaku Gothic ProN",
+            "Noto Sans JP",
+            "Microsoft YaHei",
+            sans-serif;
+        font-synthesis: none;
+    }
+
     @keyframes spin-slow {
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
