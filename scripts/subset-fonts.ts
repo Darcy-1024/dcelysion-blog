@@ -8,6 +8,7 @@ import path from "node:path";
 import { glob } from "glob";
 import subsetFont from "subset-font";
 import { fontConfig, fontsList } from "../src/config";
+import { musicPlayerConfig } from "../src/config/musicConfig";
 import { collectUsedFontCssVars, toPublicPath } from "../src/utils/fontHelper";
 import { resolveSiteRoot } from "./site-root";
 
@@ -162,6 +163,16 @@ async function collectChars(): Promise<string> {
 		const json = await fs.readFile(file, "utf-8");
 		const text = extractTextFromJson(json);
 		for (const c of text) charSet.add(c);
+	}
+
+	// 播放器歌单在构建后通过内联脚本动态注入，HTML 提取会跳过 script 内容；
+	// 将本地歌名、艺术家和内嵌歌词补入字符集，避免生产子集逐字回退到系统字体。
+	if (musicPlayerConfig.mode === "local") {
+		for (const song of musicPlayerConfig.local?.playlist ?? []) {
+			for (const value of [song.name, song.artist, song.lrc ?? ""]) {
+				for (const c of value) charSet.add(c);
+			}
+		}
 	}
 
 	return [...charSet].join("");
