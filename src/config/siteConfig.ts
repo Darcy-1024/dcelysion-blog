@@ -88,12 +88,12 @@ export const siteConfig: SiteConfig = {
 	// 如果启用了OpenGraph图片功能，数组中需要包含png格式的favicon图标
 	favicon: [
 		{
-			src: "/favicon/dc-infinity-32.png",
+			src: "/favicon/dc-mark-v2-32.png",
 			sizes: "32x32",
 		},
 		{
 			// 图标文件路径
-			src: "/favicon/dc-infinity-64.png",
+			src: "/favicon/dc-mark-v2-64.png",
 			sizes: "64x64",
 			// 可选，指定主题 'light' | 'dark'
 			// theme: "light",
@@ -117,6 +117,7 @@ export const siteConfig: SiteConfig = {
 		logo: {
 			type: "image",
 			value: "/assets/brand/dcelysion-portal-v3.png",
+			valueDark: "/assets/brand/dcelysion-portal-v3-dark.png",
 			alt: "DcElysion",
 			wordmark: true,
 		},
