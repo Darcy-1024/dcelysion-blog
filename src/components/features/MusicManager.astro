@@ -97,10 +97,12 @@ const managerConfigStr = JSON.stringify({
     }
 
     // ── Audio element (persistent, attached to body) ────────
+    var connection = navigator.connection || navigator.mozConnection || navigator.webkitConnection;
+    var backgroundPreloadEnabled = !connection || connection.saveData !== true;
     var audio = document.createElement('audio');
     audio.crossOrigin = 'anonymous';
     audio.style.display = 'none';
-    audio.preload = 'none'; // 阻止浏览器预加载和自动恢复播放
+    audio.preload = backgroundPreloadEnabled ? 'auto' : 'none';
     document.body.appendChild(audio);
     audio.pause(); // 确保不自动播放
 
@@ -207,11 +209,15 @@ const managerConfigStr = JSON.stringify({
     var currentTrackUrls = [];
     var currentTrackUrlIndex = 0;
     var errorSkipTimeout = null;
+    var playbackRequested = false;
 
     function tryPlayCurrentTrackUrl(autoPlay, ver) {
         if (ver !== loadVersion) return;
         var playUrl = currentTrackUrls[currentTrackUrlIndex];
-        audio.src = playUrl;
+        if (audio.getAttribute('src') !== playUrl || audio.error) {
+            audio.src = playUrl;
+            if (backgroundPreloadEnabled || autoPlay) audio.load();
+        }
 
         if (autoPlay) {
             audio.play().then(function () {
@@ -236,6 +242,7 @@ const managerConfigStr = JSON.stringify({
         state.currentIndex = index;
         var track = state.playlist[index];
         var ver = ++loadVersion;
+        playbackRequested = !!autoPlay;
 
         if (errorSkipTimeout) {
             clearTimeout(errorSkipTimeout);
@@ -269,6 +276,11 @@ const managerConfigStr = JSON.stringify({
     // ── Playback controls ────────────────────────────────────
     function togglePlay() {
         if (audio.paused) {
+            playbackRequested = true;
+            if (audio.error) {
+                loadTrack(state.currentIndex, true);
+                return;
+            }
             audio.play().then(function () {
                 state.isPlaying = true;
                 emit('fm:play-state', { isPlaying: true });
@@ -277,6 +289,7 @@ const managerConfigStr = JSON.stringify({
                 console.warn('Playback failed:', e);
             });
         } else {
+            playbackRequested = false;
             audio.pause();
             state.isPlaying = false;
             emit('fm:play-state', { isPlaying: false });
@@ -344,7 +357,7 @@ const managerConfigStr = JSON.stringify({
     }
 
     function playTrackByIndex(index) {
-        if (index === state.currentIndex && !audio.paused) {
+        if (index === state.currentIndex) {
             togglePlay();
         } else {
             loadTrack(index, true);
@@ -389,7 +402,9 @@ const managerConfigStr = JSON.stringify({
         if (currentTrackUrlIndex < currentTrackUrls.length - 1) {
             currentTrackUrlIndex++;
             console.warn('Playback failed, trying fallback URL: ' + currentTrackUrls[currentTrackUrlIndex]);
-            tryPlayCurrentTrackUrl(true, ver);
+            tryPlayCurrentTrackUrl(playbackRequested, ver);
+        } else if (!playbackRequested) {
+            console.warn('Audio preload failed; playback will retry after user interaction.');
         } else {
             state.error = 'Audio playback error';
             emit('fm:error', { message: '播放失败，即将自动跳过...' });

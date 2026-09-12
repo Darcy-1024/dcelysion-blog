@@ -66,3 +66,13 @@ Gallery previews are generated explicitly with `pnpm gallery-previews`; this is 
 `prune-pio-assets.ts` deletes unused 看板娘 assets from `dist/` after the Astro build (Astro copies all of `public/` regardless of config). It drops `dist/pio/models/live2d` plus the orphaned `Live2DWidget` client chunk when `live2dWidgetConfig.enable` is false, `dist/pio/models/spine` and `dist/pio/static` when `spineModelConfig.enable` is false, and all of `dist/pio` when both are off (~15 MiB). While Live2D is disabled, Vite's chunk warning limit is 700 KiB for this known intermediate orphan; enabling it restores the default 500 KiB limit. The pruning script no-ops when both models are enabled.
 
 `prepare-sites-dist.ts` runs last and generates `dist/server/index.js`, the entry for OpenAI Sites to serve the static output via an `ASSETS` binding.
+
+## Windows 检查阻碍的处理
+
+- 遇到 `split writable root sets`、`helper_unknown_error` 或 `setup refresh`，先判断是否在命令启动前失败。这属于 Codex 沙箱启动问题；同一错误出现后不要靠换引号、换工作目录或重复启动构建碰运气。只对已授权的具体操作走工具审批；审批拒绝时停下该操作。Windows 后端配置应结合当前官方文档和探针验证，不能通过关闭隔离来修复。
+- 修改 Codex 沙箱配置后，现有任务可能仍使用启动时的配置。用新进程验证配置读取，并在应用重新加载后复测普通命令和文件修改；一次 CLI 成功不代表当前任务或浏览器已恢复。
+- PowerShell 中含正则、SVG、引号或多行逻辑的 JavaScript，不拼成长串 `node -e`。使用单引号 here-string 写入临时脚本再运行，或通过标准输入执行；临时脚本使用项目依赖时放在项目内的临时目录并在完成后清理。先检查语法，再运行有写入的脚本。
+- `rg` 返回 1 可能只是没有匹配，需结合输出判断；Windows 文件通配优先使用 `rg -g`，不要假设 shell 会展开 `astro.config.*`。限定源码路径，避免扫描压缩资源或输出 base64 到检查日志。
+- 首次需要额外 CLI 时先用 `Get-Command` 探测。没有 `gh` 时，公开仓库的只读检查可直接用 GitHub REST API；需要身份权限时使用已授权连接，不能把工具缺失当成部署失败。Actions 为空时先确认实际托管平台，不反复轮询无关的 Pages 工作流。
+- Astro 若因遥测目录权限失败，仅为该命令设置 `$env:ASTRO_TELEMETRY_DISABLED='1'`；`uv_os_get_passwd` / `ENOMEM` 需先排查沙箱身份与运行环境，不据此修改业务代码或重装依赖。开发服务器等到 ready 后再访问目标路由；同一工作区不要并发安装依赖或运行会写相同产物的构建。
+- 生成步骤失败后，先确认目标文件存在再预览或读取；调用库方法前核对本项目版本是否提供该 API。历史日志按任务和错误摘录，避免整份工具输出进入上下文。
