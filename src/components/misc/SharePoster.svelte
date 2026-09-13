@@ -218,6 +218,10 @@ async function generatePoster() {
 		const width = 425 * scale;
 		const padding = 24 * scale;
 		const logoBox = 22 * scale; // 站点 Logo 尺寸
+		await document.fonts.ready;
+		const posterFontFamily = getComputedStyle(document.body).fontFamily;
+		const posterFont = (size: number, weight = 400) =>
+			`${weight} ${size * scale}px ${posterFontFamily}`;
 
 		// 1. Prepare resources
 		const qrCodeUrl = await QRCode.toDataURL(url, {
@@ -259,7 +263,7 @@ async function generatePoster() {
 		currentY += padding; // Gap after cover
 
 		// Title
-		ctx.font = `700 ${24 * scale}px 'Roboto', sans-serif`;
+		ctx.font = posterFont(24, 700);
 		const titleLines = getLines(ctx, title, contentWidth);
 		const titleLineHeight = 30 * scale;
 		const titleHeight = titleLines.length * titleLineHeight;
@@ -269,7 +273,7 @@ async function generatePoster() {
 		// Description
 		let descHeight = 0;
 		if (description) {
-			ctx.font = `${14 * scale}px 'Roboto', sans-serif`;
+			ctx.font = posterFont(14);
 			const descLines = getLines(ctx, description, contentWidth - 16 * scale); // minus border width and gap
 			// Limit to 6 lines
 			const maxDescLines = 6;
@@ -384,7 +388,7 @@ async function generatePoster() {
 		ctx.textAlign = "right";
 		ctx.textBaseline = "middle";
 		ctx.fillStyle = "rgba(31, 41, 55, 0.68)";
-		ctx.font = `${11 * scale}px 'Roboto', sans-serif`;
+		ctx.font = posterFont(11);
 		const dateWidth = dateText ? ctx.measureText(dateText).width : 0;
 		if (dateText) {
 			ctx.fillText(dateText, width - padding, headerCenterY);
@@ -392,7 +396,7 @@ async function generatePoster() {
 
 		ctx.textAlign = "left";
 		ctx.fillStyle = headerTextColor;
-		ctx.font = `700 ${16 * scale}px 'Roboto', sans-serif`;
+		ctx.font = posterFont(16, 700);
 
 		// 站点 Logo，效果对齐导航栏：Logo 在前，标题紧随其后
 		const logoGap = 8 * scale;
@@ -434,7 +438,7 @@ async function generatePoster() {
 		// Draw Title
 		ctx.textBaseline = "top";
 		ctx.textAlign = "left";
-		ctx.font = `700 ${24 * scale}px 'Roboto', sans-serif`;
+		ctx.font = posterFont(24, 700);
 		ctx.fillStyle = "#111827";
 		titleLines.forEach((line) => {
 			ctx.fillText(line, padding, drawY);
@@ -458,7 +462,7 @@ async function generatePoster() {
 			);
 			ctx.fill();
 
-			ctx.font = `${14 * scale}px 'Roboto', sans-serif`;
+			ctx.font = posterFont(14);
 			ctx.fillStyle = "#4b5563";
 			const descLines = getLines(ctx, description, contentWidth - 16 * scale);
 			const maxDescLines = 6;
@@ -531,11 +535,11 @@ async function generatePoster() {
 		ctx.textAlign = "left";
 		ctx.textBaseline = "top";
 		ctx.fillStyle = "#9ca3af";
-		ctx.font = `${12 * scale}px 'Roboto', sans-serif`;
+		ctx.font = posterFont(12);
 		ctx.fillText(i18n(I18nKey.author), authorTextX, textCenterY - 20 * scale);
 
 		ctx.fillStyle = "#1f2937";
-		ctx.font = `700 ${20 * scale}px 'Roboto', sans-serif`;
+		ctx.font = posterFont(20, 700);
 		ctx.fillText(
 			fitText(ctx, author, authorMaxWidth),
 			authorTextX,
@@ -570,7 +574,7 @@ async function generatePoster() {
 		ctx.textAlign = "center";
 		ctx.textBaseline = "top";
 		ctx.fillStyle = "#9ca3af";
-		ctx.font = `${10 * scale}px 'Roboto', sans-serif`;
+		ctx.font = posterFont(10);
 		ctx.fillText(
 			fitText(ctx, i18n(I18nKey.scanToRead), qrSize),
 			qrX + qrSize / 2,

@@ -52,7 +52,7 @@ const widgetId =
 
         <!-- Time Display & Volume -->
         <div class="flex items-center gap-3 text-neutral-400 h-5">
-            <div class="text-[10px] font-mono flex items-center gap-1 shrink-0 h-full" aria-live="polite">
+            <div class="text-[10px] flex items-center gap-1 shrink-0 h-full" aria-live="polite">
                 <span class="current-time">0:00</span>
                 <span class="opacity-50" aria-hidden="true">/</span>
                 <span class="total-time">0:00</span>
@@ -145,16 +145,9 @@ const widgetId =
 </div>
 
 <style>
-    /* Use MiSans first; other fonts only handle glyphs it does not provide. */
+    /* Follow the global body font selected by FontSetup.astro. */
     .music-player-widget {
-        font-family:
-            var(--font-misans),
-            "Yu Gothic UI",
-            "Meiryo",
-            "Hiragino Kaku Gothic ProN",
-            "Noto Sans JP",
-            "Microsoft YaHei",
-            sans-serif;
+        font-family: inherit;
         font-synthesis: none;
     }
 

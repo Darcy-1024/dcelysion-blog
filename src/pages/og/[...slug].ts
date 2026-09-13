@@ -2,7 +2,6 @@ import type { CollectionEntry } from "astro:content";
 import { getCollection } from "astro:content";
 import * as fs from "node:fs";
 import type { APIContext, GetStaticPaths } from "astro";
-import { googleFonts } from "takumi-js/helpers";
 import { ImageResponse } from "takumi-js/response";
 import { profileConfig } from "@/config/profileConfig";
 import { siteConfig } from "@/config/siteConfig";
@@ -28,7 +27,7 @@ export const getStaticPaths: GetStaticPaths = async () => {
 	});
 };
 
-const fontCache = new Map<string, Promise<string>>(); //new Map();
+const miSansFont = fs.readFileSync("./public/assets/fonts/MiSansVF.ttf");
 
 // Detect image format from magic bytes, returns mime type or null if unknown
 const detectImageFormat = (buffer: Buffer): string | null => {
@@ -215,8 +214,7 @@ export async function GET({
 					display: "flex",
 					flexDirection: "column",
 					backgroundColor: backgroundColor,
-					fontFamily:
-						'"Noto Sans SC", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif',
+					fontFamily: '"MiSans VF", sans-serif',
 					padding: "60px",
 				},
 				children: [
@@ -417,16 +415,7 @@ export async function GET({
 					},
 				],
 			},
-			fonts: googleFonts({
-				families: [
-					{
-						name: "Noto Sans SC",
-						weight: "100..900",
-						style: "normal",
-					},
-				],
-				cache: fontCache,
-			}),
+			fonts: [{ name: "MiSans VF", data: miSansFont }],
 			headers: {
 				"Content-Type": "image/png",
 				"Cache-Control": "public, max-age=31536000, immutable",

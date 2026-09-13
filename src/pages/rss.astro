@@ -38,7 +38,7 @@ const recentPosts = posts.slice(0, 6);
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <code class="bg-(--card-bg) px-3 py-2 rounded-lg text-sm font-mono text-75 border border-(--line-divider) break-all">
+                    <code class="rss-feed-url bg-(--card-bg) px-3 py-2 rounded-lg text-sm text-75 border border-(--line-divider) break-all">
                         {Astro.site}rss.xml
                     </code>
                     <button 
@@ -158,3 +158,9 @@ const recentPosts = posts.slice(0, 6);
         }
     </script>
 </MainGridLayout>
+
+<style>
+    .rss-feed-url {
+        font-family: var(--font-code);
+    }
+</style>
