@@ -149,6 +149,15 @@ const logoVariants = await Promise.all(
         object-fit: contain;
     }
 
+    :global(html.dark) .navbar-brand :global(.navbar-wordmark) {
+        filter:
+            drop-shadow(0.3px 0 0 rgba(48, 40, 56, 0.12))
+            drop-shadow(-0.3px 0 0 rgba(48, 40, 56, 0.12))
+            drop-shadow(0 0.3px 0 rgba(48, 40, 56, 0.12))
+            drop-shadow(0 -0.3px 0 rgba(48, 40, 56, 0.12))
+            drop-shadow(0 1px 3px rgba(0, 0, 0, 0.4));
+    }
+
     .navbar-brand-wordmark {
         padding-inline: 0.25rem;
     }
