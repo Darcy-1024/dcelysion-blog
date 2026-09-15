@@ -10,6 +10,7 @@ description: "在本博客创建或修改动态（src/content/dynamic），处�
 ## 内容约定
 
 - 正文、标点、表情保持用户原样；图片按用户指定顺序，否则按附件顺序。不擅自润色或添加标签。
+- 发布前检查正文是否有语法错误、语句不通顺或标点使用错误。发现疑似问题时，说明对应原句、问题和建议改法；注意区分错误与用户有意保留的口语、语气和风格。除非用户已明确授权修正，否则不直接改动正文；没有发现问题时也在交付结果中简要说明。
 - 在 `src/content/dynamic/` 创建不冲突的 `YYYY-MM-DD-HHmmss.md`；时间取 `siteConfig.timezone`，配置不可用才回退 `Asia/Shanghai`。
 - 默认公开、不置顶、不填写位置。仅按用户要求添加 `draft`、`pinned` 或 `location`。最小 frontmatter：
 
