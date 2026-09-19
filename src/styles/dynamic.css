@@ -393,7 +393,10 @@ dynamic-feed {
 }
 
 .dynamic-gallery-grid[data-count="5"],
-.dynamic-gallery-grid[data-count="6"] {
+.dynamic-gallery-grid[data-count="6"],
+.dynamic-gallery-grid[data-count="7"],
+.dynamic-gallery-grid[data-count="8"],
+.dynamic-gallery-grid[data-count="9"] {
 	grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
