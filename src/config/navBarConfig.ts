@@ -65,6 +65,9 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 			// 关于页面
 			LinkPresets.About,
 
+			// 项目
+			LinkPresets.Projects,
+
 			// 书签导航
 			LinkPresets.Booknav,
 
@@ -192,6 +195,12 @@ export const LinkPresets: Record<string, NavBarLink> = {
 		url: "/dynamic/",
 		icon: "material-symbols:forum-rounded",
 		pageKey: "dynamic",
+	},
+	Projects: {
+		name: "项目",
+		url: "/projects/",
+		icon: "material-symbols:rocket-launch",
+		pageKey: "projects",
 	},
 	Gallery: {
 		name: "相册",

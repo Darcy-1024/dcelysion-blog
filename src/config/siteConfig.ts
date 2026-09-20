@@ -19,6 +19,8 @@ const pages = resolvePageToggles({
 
 	// 动态页面开关
 	dynamic: true,
+	// 项目展示页开关
+	projects: false,
 	// 相册页面开关
 	gallery: true,
 	// 书签导航页面开关
@@ -241,8 +243,14 @@ export const siteConfig: SiteConfig = {
 		showLastModified: true,
 		// 文章过期阈值（天数），超过此天数才显示"上次编辑"卡片
 		outdatedThreshold: 30,
-		// 是否开启分享海报生成功能
-		sharePoster: true,
+		// 是否显示文章页的分享按钮
+		share: true,
+		// 是否显示上一篇/下一篇文章导航
+		postNavigation: true,
+		// 是否显示相关文章推荐
+		relatedPosts: true,
+		// 是否显示随机文章推荐
+		randomPosts: true,
 		// OpenGraph图片功能，注意开启后要渲染很长时间，不建议本地调试的时候开启
 		generateOgImages: false,
 
@@ -347,6 +355,14 @@ export const siteConfig: SiteConfig = {
 			"*.myanimelist.net",
 			"*.vndb.org",
 		],
+	},
+
+	// ── 订阅 (RSS / Atom) 配置 ──────────────────────────────────
+	feed: {
+		// 订阅条目内容模式：
+		// - "full": 包含文章正文全文（默认）
+		// - "summary": 仅包含文章摘要/描述，不含正文，体积更小
+		contentMode: "full",
 	},
 
 	// 站点语言，在本配置文件顶部SITE_LANG定义

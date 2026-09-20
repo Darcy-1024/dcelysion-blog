@@ -1,6 +1,5 @@
 ---
 import Live2DWidget from "@components/features/Live2DWidget.astro";
-
 import SpineModel from "@components/features/SpineModel.astro";
 import Footer from "@components/layout/Footer.astro";
 import HeaderTopRow from "@components/layout/HeaderTopRow.astro";
@@ -34,6 +33,9 @@ interface Props {
 	setOGTypeArticle?: boolean;
 	postSlug?: string;
 	postCoverImage?: string;
+	ogImageWidth?: number;
+	ogImageHeight?: number;
+	ogImageAlt?: string;
 	postCategory?: string;
 	headings?: MarkdownHeading[];
 	encrypted?: boolean;
@@ -45,6 +47,7 @@ interface Props {
 		words?: number;
 		minutes?: number;
 	};
+	heading?: string;
 }
 
 const backgroundImages = getBackgroundImages();
@@ -56,10 +59,14 @@ const {
 	setOGTypeArticle,
 	postSlug,
 	postCoverImage,
+	ogImageWidth,
+	ogImageHeight,
+	ogImageAlt,
 	postCategory,
 	headings = [],
 	encrypted = false,
 	bannerPostMeta,
+	heading,
 } = Astro.props;
 
 const isHomePageCheck = isHomePage(Astro.url.pathname);
@@ -91,7 +98,7 @@ const {
 } = sidebar;
 ---
 
-<Layout title={title} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle} postSlug={postSlug} postCoverImage={postCoverImage} hasWallpaper={hasWallpaper}>
+<Layout title={title} description={description} lang={lang} setOGTypeArticle={setOGTypeArticle} postSlug={postSlug} postCoverImage={postCoverImage} ogImageWidth={ogImageWidth} ogImageHeight={ogImageHeight} ogImageAlt={ogImageAlt} hasWallpaper={hasWallpaper}>
 
 <slot slot="head" name="head" />
 <HeaderTopRow navbarMode={navbarMode} navbarWidthFull={navbarWidthFull} />
@@ -99,7 +106,7 @@ const {
 <WallpaperSection state={banner} backgroundImages={backgroundImages} title={title} bannerPostMeta={bannerPostMeta} />
 
 <!-- Main content -->
-<div class="content-panel absolute w-full z-30 pointer-events-none">
+<div id="content-panel" class="content-panel absolute w-full z-30 pointer-events-none">
     <!-- The pointer-events-none here prevent blocking the click event of the TOC -->
     <div class="main-grid-shell relative w-full xl:w-[92vw] max-w-(--page-width) mx-auto pointer-events-auto">
         <div id="main-grid"
@@ -128,18 +135,14 @@ const {
 
             <ImmersiveTOC headings={headings} encrypted={encrypted} />
 
-            {/* 主内容区包装器 - 包含静态栏位和swup容器，作为单个grid item */}
             <div id="main-content-column" class={staticBarClass}>
-                {/* 分类导航栏 - 全站渲染并显示 */}
                 {shouldRenderCategoryBar && <div id="category-bar-wrapper"><CategoryBar currentPostCategory={postCategory} /></div>}
-                {/* 主内容区 - 始终渲染，确保 Swup 容器存在 */}
                 <main
                     id="swup-container"
                     class="transition-main"
                     data-current-post-category={postCategory || ""}
                 >
-                {/* 为每个页面提供一个隐藏的h1标题，用于SEO和可访问性 */}
-                {isPostPage ? <div class="sr-only">{title}</div> : <h1 class="sr-only">{title}</h1>}
+                {isPostPage ? <div class="sr-only">{title}</div> : <h1 class="sr-only">{heading || title}</h1>}
                 <div id="content-wrapper" class="onload-animation transition-leaving">
                     <slot></slot>
                 </div>
@@ -160,7 +163,6 @@ const {
                 encrypted={encrypted}
             />
 
-            {/* 移动端底部组件 - 768px及以下显示 */}
             {sidebarLayoutConfig.mobileBottomComponents && sidebarLayoutConfig.mobileBottomComponents.length > 0 && (
                 <div id="mobile-bottom-sidebar" class="col-span-1 block md:hidden mt-4">
 					<SideBar side="bottom" headings={headings} encrypted={encrypted}></SideBar>
@@ -168,11 +170,11 @@ const {
             )}
 
             <div class={footerClassName}>
-                <Footer></Footer>
+                <Footer />
             </div>
         </div>
 
-        <SpineModel></SpineModel>
+        <SpineModel />
         {live2dWidgetConfig.enable && <Live2DWidget config={live2dWidgetConfig} />}
     </div>
 </div>
@@ -180,17 +182,6 @@ const {
 <ImmersiveScrollRail />
 <FloatingControls headings={headings} encrypted={encrypted} />
 
-<!-- 移动端导航抽屉：渲染为 <body> 直系子元素，脱离导航栏的 transform 包含块才能铺满视口 -->
 <NavMenuPanel links={resolveNavMenuLinks()} />
 
-<!--
-    触屏设备上让代码块的复制按钮默认隐藏，点一下代码块才显形。
-    expressive-code 没给 <pre> 加 tabindex，点击代码区不会产生焦点，
-    所以纯 CSS 的 :focus-within 拿不到这个状态，只能在这里补一个类。
-    显隐规则见 src/styles/expressive-code.css 的 @media (hover: none) 段。
--->
-
-
 </Layout>
-
-</style>

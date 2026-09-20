@@ -8,7 +8,7 @@
 > 
 > ![Node.js >= 22](https://img.shields.io/badge/node.js-%3E%3D22-brightgreen) 
 ![pnpm >= 11](https://img.shields.io/badge/pnpm-%3E%3D11-blue)
-![Astro](https://img.shields.io/badge/Astro-7.2.0-orange)
+![Astro](https://img.shields.io/badge/Astro-7.3.2-orange)
 ![TypeScript](https://img.shields.io/badge/TypeScript-6.0.3-blue)
 >
 > [![Stars](https://img.shields.io/github/stars/CuteLeaf/Firefly?style=social)](https://github.com/CuteLeaf/Firefly/stargazers)
@@ -190,7 +190,7 @@ src/
 │   ├── effectsConfig.ts          # アニメーションエフェクト設定（桜など）
 │   ├── expressiveCodeConfig.ts   # コードハイライト設定
 │   ├── fontConfig.ts             # フォント設定
-│   ├── footerConfig.ts           # フッター設定
+│   ├── FooterConfig.html           # フッター設定
 │   ├── friendsConfig.ts          # 友人リンク設定
 │   ├── galleryConfig.ts          # ギャラリー設定
 │   ├── licenseConfig.ts          # ライセンス設定
