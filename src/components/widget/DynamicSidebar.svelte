@@ -6,19 +6,11 @@
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { onMount } from "svelte";
+import type { DynamicEntry } from "@/types/dynamic";
 import { formatDynamicDate } from "@/utils/date-utils";
 import { fetchWithDedup } from "@/utils/fetch-dedup";
 import { fetchMemos } from "@/utils/memos-adapter";
 import { url } from "@/utils/url-utils";
-
-interface DynamicEntry {
-	id: string;
-	published: number;
-	html: string;
-	images?: Array<{ alt: string; src: string; title?: string }>;
-	searchText?: string;
-	pinned?: boolean;
-}
 
 interface MemosConfig {
 	enable: boolean;

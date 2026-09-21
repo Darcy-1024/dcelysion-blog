@@ -64,7 +64,7 @@ export function registerDynamicGallery(): void {
 			this.images = elements.map((element) => ({
 				alt: element.alt,
 				element,
-				src: element.currentSrc || element.src,
+				src: element.dataset.originalSrc || element.currentSrc || element.src,
 			}));
 			this.buildGrid();
 			this.buildThumbnails();
@@ -125,7 +125,7 @@ export function registerDynamicGallery(): void {
 				"[data-gallery-thumbnails]",
 			);
 			if (!thumbnails) return;
-			this.images.forEach(({ element, alt }, index) => {
+			this.images.forEach(({ element, alt, src }, index) => {
 				const button = document.createElement("button");
 				button.type = "button";
 				button.className = "page-gallery-thumbnail";
@@ -141,6 +141,20 @@ export function registerDynamicGallery(): void {
 				const thumbnail = element.cloneNode(true) as HTMLImageElement;
 				thumbnail.alt = alt;
 				thumbnail.removeAttribute("id");
+				thumbnail.removeAttribute("data-original-src");
+				thumbnail.sizes = "(max-width: 420px) 3.25rem, 3.75rem";
+				thumbnail.addEventListener(
+					"error",
+					() => {
+						thumbnail.removeAttribute("srcset");
+						thumbnail.removeAttribute("sizes");
+						thumbnail.dataset.previewFallback = "true";
+						if (thumbnail.src !== new URL(src, document.baseURI).href) {
+							thumbnail.src = src;
+						}
+					},
+					{ once: true },
+				);
 				button.append(thumbnail);
 				thumbnails.append(button);
 			});
@@ -209,6 +223,8 @@ export function registerDynamicGallery(): void {
 			const image = this.images[this.activeIndex];
 			const main = this.querySelector<HTMLImageElement>("[data-gallery-main]");
 			if (!main) return;
+			main.removeAttribute("srcset");
+			main.removeAttribute("sizes");
 			main.src = image.src;
 			main.alt = image.alt;
 			main.dataset.galleryIndex = String(this.activeIndex);

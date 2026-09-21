@@ -1,26 +1,11 @@
 <script lang="ts">
 import { onMount, tick } from "svelte";
 import ClientPagination from "@/components/common/ClientPagination.svelte";
+import type { DynamicEntry, DynamicImage } from "@/types/dynamic";
 import { formatTimezoneOffset } from "@/utils/date-utils";
 import { fetchMemos } from "@/utils/memos-adapter";
 import { registerDynamicGallery } from "./dynamic-gallery";
 import { registerDynamicInlineComments } from "./dynamic-inline-comments";
-
-type DynamicImage = {
-	alt: string;
-	src: string;
-	title?: string;
-};
-
-type DynamicData = {
-	id: string;
-	published: number;
-	html: string;
-	images: DynamicImage[];
-	searchText: string;
-	pinned?: boolean;
-	location?: string;
-};
 
 interface MemosConfig {
 	enable: boolean;
@@ -52,8 +37,8 @@ const {
 	memos,
 }: Props = $props();
 
-let entries = $state<DynamicData[]>([]);
-let filtered = $state<DynamicData[]>([]);
+let entries = $state<DynamicEntry[]>([]);
+let filtered = $state<DynamicEntry[]>([]);
 let currentPage = $state(1);
 let loading = $state(true);
 let failed = $state(false);
@@ -118,7 +103,59 @@ function populateYears() {
 	}
 }
 
-function createItem(entry: DynamicData) {
+function getImageSizes(imageCount: number, index: number): string {
+	if (imageCount === 1) {
+		return "(max-width: 48rem) calc(100vw - 5.75rem), 36rem";
+	}
+	if (imageCount === 3 && index === 0) {
+		return "(max-width: 48rem) calc((100vw - 6rem) * 0.6667), 28rem";
+	}
+	if (imageCount === 5) {
+		return index === 0
+			? "(max-width: 48rem) calc((100vw - 6rem) / 2), 21rem"
+			: "(max-width: 48rem) calc((100vw - 6.75rem) / 4), 10.5rem";
+	}
+	if (imageCount === 2 || imageCount === 4) {
+		return "(max-width: 48rem) calc((100vw - 6rem) / 2), 14rem";
+	}
+	return "(max-width: 48rem) calc((100vw - 6.5rem) / 3), 14rem";
+}
+
+function setImageSource(
+	element: HTMLImageElement,
+	image: DynamicImage,
+	imageCount: number,
+	index: number,
+) {
+	element.alt = image.alt;
+	element.loading = "lazy";
+	element.decoding = "async";
+	element.dataset.originalSrc = image.src;
+	if (image.title) element.title = image.title;
+
+	if (!image.preview) {
+		element.src = image.src;
+		return;
+	}
+
+	element.width = image.preview.width;
+	element.height = image.preview.height;
+	element.sizes = getImageSizes(imageCount, index);
+	if (image.preview.srcSet) element.srcset = image.preview.srcSet;
+	element.addEventListener(
+		"error",
+		() => {
+			element.removeAttribute("srcset");
+			element.removeAttribute("sizes");
+			element.dataset.previewFallback = "true";
+			element.src = image.src;
+		},
+		{ once: true },
+	);
+	element.src = image.preview.src;
+}
+
+function createItem(entry: DynamicEntry) {
 	if (!template) return null;
 	const fragment = template.content.cloneNode(true) as DocumentFragment;
 	const root = fragment.querySelector<HTMLElement>("[data-dynamic-entry]");
@@ -202,14 +239,11 @@ function createItem(entry: DynamicData) {
 	if (content) {
 		content.id = `${anchorId}-content`;
 		content.innerHTML = entry.html;
-		for (const image of entry.images) {
+		entry.images.forEach((image, index) => {
 			const element = document.createElement("img");
-			element.src = image.src;
-			element.alt = image.alt;
-			element.loading = "lazy";
-			if (image.title) element.title = image.title;
+			setImageSource(element, image, entry.images.length, index);
 			content.append(element);
-		}
+		});
 		const gallery = root.querySelector<HTMLElement>("dynamic-gallery");
 		if (gallery) gallery.dataset.sourceId = content.id;
 	}
@@ -237,7 +271,7 @@ function createItem(entry: DynamicData) {
 	return fragment;
 }
 
-async function renderItems(items: DynamicData[]) {
+async function renderItems(items: DynamicEntry[]) {
 	await tick();
 	if (!list || !template) return;
 	list.replaceChildren();
@@ -290,7 +324,7 @@ onMount(() => {
 			} else {
 				const response = await fetch(source);
 				if (!response.ok) throw new Error(`HTTP ${response.status}`);
-				entries = (await response.json()) as DynamicData[];
+				entries = (await response.json()) as DynamicEntry[];
 			}
 			// 更新页面计数
 			const countEl = document.querySelector("[data-dynamic-page-count]");

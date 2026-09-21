@@ -4,6 +4,7 @@
  * @author: CuteLeaf <xiaye@msn.com>
  */
 import { Marked } from "marked";
+import type { DynamicEntry, DynamicImage } from "@/types/dynamic";
 
 interface MemoAttachment {
 	name: string;
@@ -34,21 +35,7 @@ interface MemosApiResponse {
 	nextPageToken: string;
 }
 
-export interface DynamicImage {
-	alt: string;
-	src: string;
-	title?: string;
-}
-
-export interface DynamicEntry {
-	id: string;
-	published: number;
-	html: string;
-	images: DynamicImage[];
-	searchText: string;
-	pinned?: boolean;
-	location?: string;
-}
+export type { DynamicEntry, DynamicImage } from "@/types/dynamic";
 
 /**
  * 专用的 marked 实例，用于把 Memos 的 Markdown 渲染为 HTML
