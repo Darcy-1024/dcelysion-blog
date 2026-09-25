@@ -1,0 +1,13 @@
+:root { color-scheme: light dark; font: 16px/1.6 system-ui, sans-serif; }
+[hidden] { display: none !important; }
+body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f4f6f8; color: #19232d; }
+main { box-sizing: border-box; width: min(100% - 2rem, 28rem); padding: 2rem; border-radius: .75rem; background: white; box-shadow: 0 8px 30px #15253620; }
+form { display: grid; gap: .6rem; margin-top: 1.3rem; }
+label { font-weight: 600; }
+input:not([type=checkbox]) { box-sizing: border-box; width: 100%; padding: .7rem; border: 1px solid #65717d; border-radius: .35rem; font: inherit; }
+button { margin-top: .6rem; padding: .75rem 1rem; border: 0; border-radius: .35rem; color: white; background: #125b9a; font: inherit; cursor: pointer; }
+button:disabled { opacity: .6; cursor: wait; }
+a { color: #125b9a; }
+.toggle { display: flex; align-items: center; gap: .5rem; font-weight: 400; }
+#status { min-height: 1.6em; }
+@media (prefers-color-scheme: dark) { body { background: #111820; color: #e7edf4; } main { background: #202b36; } a { color: #8ec8ff; } input:not([type=checkbox]) { background: #111820; color: #fff; } }

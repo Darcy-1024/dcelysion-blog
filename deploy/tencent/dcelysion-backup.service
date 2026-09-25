@@ -1,0 +1,11 @@
+[Unit]
+Description=Back up DcElysion comment database
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+ExecStart=/opt/dcelysion/backup.sh
+ExecStart=/opt/dcelysion/offsite-backup.sh
+User=root
+UMask=0077

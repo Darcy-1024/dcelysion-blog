@@ -1,0 +1,10 @@
+FROM mirror.ccs.tencentyun.com/lizheming/waline@sha256:24e30c56bf02fd6ecf20d7b8d6197d4be759b269ff85a24c79b8dd5903ea748f
+
+WORKDIR /app
+COPY waline-overlay/src/ /app/src/
+COPY password-reset/package.json password-reset/package-lock.json /app/password-reset/
+RUN npm ci --omit=dev --ignore-scripts --prefix /app/password-reset
+COPY password-reset/service.js /app/password-reset/service.js
+
+# Waline's authentication overlay uses the base image's fixed JWT dependency.
+RUN node -e "require.resolve('jsonwebtoken'); require.resolve('/app/password-reset/node_modules/pg')"

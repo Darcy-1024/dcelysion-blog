@@ -33,6 +33,11 @@
   color: var(--tk-accent);
 }
 
+/* Twikoo 运行时样式可能晚于此文件注入，暗色标题需明确覆盖默认黑色。 */
+:root.dark .twikoo .tk-comments-title {
+  color: var(--tk-text) !important;
+}
+
 /* 全局边框：评论模块内部元素边框统一跟随主题分割线 */
 .twikoo,
 .twikoo * {

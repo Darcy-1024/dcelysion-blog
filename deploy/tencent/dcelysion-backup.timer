@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily DcElysion database backup
+
+[Timer]
+OnCalendar=*-*-* 03:30:00 Asia/Shanghai
+RandomizedDelaySec=5m
+Persistent=true
+
+[Install]
+WantedBy=timers.target

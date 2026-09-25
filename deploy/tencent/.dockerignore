@@ -1,0 +1,9 @@
+*
+!Dockerfile.waline-reset
+!waline-overlay/
+!waline-overlay/src/
+!waline-overlay/src/**
+!password-reset/
+!password-reset/package.json
+!password-reset/package-lock.json
+!password-reset/service.js

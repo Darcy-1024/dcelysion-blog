@@ -560,8 +560,8 @@ const ogImageAlt = propsOgImageAlt ?? pageTitle;
     <MusicManager />
     <slot />
 
-    <!-- 播放器视图脚本：必须在 <slot /> 之后（解析到它时所有 widget 的 DOM 要已存在），
-         且在 MusicManager 之后（swup 重跑按文档顺序，window.__fireflyMusic 得先就位） -->
+    <!-- 播放器视图配置位于 widget DOM 之后；视图模块显式调用 MusicManager 的幂等入口，
+         并在 Swup 替换侧栏时挂载新 widget，不依赖两个独立脚本的执行顺序。 -->
     {(musicPlayerConfig.showInNavbar || musicPlayerConfig.showInSidebar !== false) && (
       <MusicPlayerView />
     )}

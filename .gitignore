@@ -30,6 +30,7 @@ pnpm-debug.log*
 .vercel
 
 package-lock.json
+!deploy/tencent/password-reset/package-lock.json
 bun.lockb
 yarn.lock
 

@@ -1,0 +1,114 @@
+name: dcelysion
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "3"
+
+services:
+  postgres:
+    image: mirror.ccs.tencentyun.com/library/postgres@sha256:b0f9560a2de083e2cc7382e75f808c7381a32852a7ec49117deedb300e552b24
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: waline
+      POSTGRES_USER: waline
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      TZ: UTC
+    volumes:
+      - ./data/postgres:/var/lib/postgresql/data
+      - ./vendor/waline.pgsql:/docker-entrypoint-initdb.d/10-waline.sql:ro
+    networks:
+      - database
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U waline -d waline"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    logging: *logging
+
+  waline:
+    build:
+      context: .
+      dockerfile: Dockerfile.waline-reset
+    image: dcelysion/waline-reset:1.41.6-r1
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8360:8360"
+    environment:
+      TZ: UTC
+      PG_HOST: postgres
+      PG_PORT: "5432"
+      PG_DB: waline
+      PG_USER: waline
+      PG_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      PG_SSL: "false"
+      JWT_TOKEN: ${JWT_TOKEN:?Set JWT_TOKEN in .env}
+      SITE_NAME: DcElysion
+      SITE_URL: ${SITE_URL:-https://blog.dcelysion.cn}
+      SERVER_URL: ${SERVER_URL:-https://comments.dcelysion.cn}
+      SECURE_DOMAINS: ${SECURE_DOMAINS:-blog.dcelysion.cn,comments.dcelysion.cn,localhost,127.0.0.1}
+      WALINE_ADMIN_MODULE_ASSET_URL: /admin-assets/0.34.2/admin.js
+      LOGIN: enable
+      COMMENT_AUDIT: ${COMMENT_AUDIT:-false}
+      IPQPS: "60"
+      AKISMET_KEY: "false"
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SENDER_EMAIL: ${SMTP_USER:-}
+      SENDER_NAME: DcElysion
+      AUTHOR_EMAIL: ${AUTHOR_EMAIL:-}
+    networks:
+      - database
+      - outbound
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *logging
+
+  password-reset:
+    image: dcelysion/waline-reset:1.41.6-r1
+    command: ["node", "/app/password-reset/service.js"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:8362:8362"
+    environment:
+      TZ: UTC
+      PG_HOST: postgres
+      PG_PORT: "5432"
+      PG_DB: waline
+      PG_USER: waline
+      PG_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      SERVER_URL: ${SERVER_URL:-https://comments.dcelysion.cn}
+      PASSWORD_RESET_ORIGIN: ${PASSWORD_RESET_ORIGIN:-https://comments.dcelysion.cn}
+      SITE_NAME: DcElysion
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SENDER_EMAIL: ${SMTP_USER:-}
+      SENDER_NAME: DcElysion
+    networks:
+      - database
+      - outbound
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *logging
+
+networks:
+  database:
+    internal: true
+  outbound:

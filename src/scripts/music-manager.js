@@ -1,0 +1,479 @@
+// biome-ignore-all lint/correctness/noInnerDeclarations: Preserve var scoping in the existing player state machine during extraction.
+export function ensureMusicManager() {
+	// Singleton guard – only create once
+	if (window.__fireflyMusic) return window.__fireflyMusic;
+
+	var carrier = document.getElementById("firefly-music-config");
+	if (!carrier?.dataset.config) return window.__fireflyMusic;
+	var config = JSON.parse(carrier.dataset.config);
+
+	// ── Helpers ──────────────────────────────────────────────
+	function formatTime(seconds) {
+		if (!seconds || Number.isNaN(seconds)) return "0:00";
+		var min = Math.floor(seconds / 60);
+		var sec = Math.floor(seconds % 60);
+		return `${min}:${sec < 10 ? "0" : ""}${sec}`;
+	}
+
+	function parseLRC(lrc) {
+		if (!lrc) return [];
+		var lines = lrc.split("\n");
+		var result = [];
+		var timeReg = /\[(\d{2}):(\d{2})\.(\d{2,3})\]/g;
+		lines.forEach((line) => {
+			var matches = Array.from(line.matchAll(timeReg));
+			if (matches.length > 0) {
+				var text = line.replace(timeReg, "").trim();
+				if (text) {
+					matches.forEach((match) => {
+						var m = Number.parseInt(match[1], 10);
+						var s = Number.parseInt(match[2], 10);
+						var ms = Number.parseInt(match[3], 10);
+						var time = m * 60 + s + ms / (match[3].length === 3 ? 1000 : 100);
+						result.push({ time: time, text: text });
+					});
+				}
+			}
+		});
+		return result.sort((a, b) => a.time - b.time);
+	}
+
+	// ── Audio element (persistent, attached to body) ────────
+	var connection =
+		navigator.connection ||
+		navigator.mozConnection ||
+		navigator.webkitConnection;
+	var backgroundPreloadEnabled = connection?.saveData !== true;
+	var audio = document.createElement("audio");
+	audio.crossOrigin = "anonymous";
+	audio.style.display = "none";
+	audio.preload = backgroundPreloadEnabled ? "auto" : "none";
+	document.body.appendChild(audio);
+	audio.pause(); // 确保不自动播放
+
+	// ── State ────────────────────────────────────────────────
+	var loadVersion = 0; // incremented on each loadTrack to discard stale play() results
+	var state = {
+		playlist: [],
+		currentIndex: 0,
+		isPlaying: false,
+		playMode: 0, // 0: list, 1: one, 2: random
+		volume:
+			localStorage.getItem("music-player-volume") !== null
+				? Number.parseFloat(localStorage.getItem("music-player-volume"))
+				: config.volume || 0.7,
+		isMuted: false,
+		lyrics: [],
+		currentLrcIndex: -1,
+		initialized: false,
+		initializing: false,
+		error: null,
+	};
+
+	// Map config playMode string to number
+	if (config.playMode === "random") state.playMode = 2;
+	else if (config.playMode === "one") state.playMode = 1;
+	else state.playMode = 0;
+
+	// ── Event helpers ────────────────────────────────────────
+	function emit(name, detail) {
+		window.dispatchEvent(new CustomEvent(name, { detail: detail || {} }));
+	}
+
+	// ── Meting fetch ─────────────────────────────────────────
+	async function fetchMetingData() {
+		if (!config.meting) return;
+		var m = config.meting;
+		var apis = [m.api].concat(m.fallbackApis || []);
+
+		for (var i = 0; i < apis.length; i++) {
+			var baseApi = apis[i];
+			if (!baseApi) continue;
+			try {
+				var fetchUrl = baseApi
+					.replace(":server", m.server)
+					.replace(":type", m.type)
+					.replace(":id", m.id)
+					.replace(":r", Math.random());
+				if (m.auth) fetchUrl += `&auth=${m.auth}`;
+
+				var res = await fetch(fetchUrl);
+				if (!res.ok) throw new Error(`HTTP ${res.status}`);
+				var data = await res.json();
+
+				if (Array.isArray(data) && data.length > 0) {
+					state.playlist = data.map((item) => ({
+						name: item.title || item.name || "Unknown",
+						artist: item.author || item.artist || "Unknown",
+						url: item.url,
+						pic: item.pic || item.cover || "",
+						lrc: item.lrc,
+					}));
+					return;
+				}
+			} catch (e) {
+				console.warn(`Meting API failed for ${baseApi}`, e);
+			}
+		}
+		throw new Error("All Meting APIs failed");
+	}
+
+	// ── Lyrics ───────────────────────────────────────────────
+	function loadLyrics(track) {
+		state.lyrics = [];
+		state.currentLrcIndex = -1;
+
+		if (!track.lrc) {
+			emit("fm:lyrics", { lyrics: [], status: "none" });
+			return;
+		}
+
+		var isLrcUrl =
+			/^(https?:)?\/\//.test(track.lrc) ||
+			track.lrc.startsWith("/") ||
+			/\.(lrc|txt)(\?|#|$)/i.test(track.lrc);
+
+		if (isLrcUrl) {
+			emit("fm:lyrics", { lyrics: [], status: "loading" });
+			fetch(track.lrc)
+				.then((r) => r.text())
+				.then((text) => {
+					state.lyrics = parseLRC(text);
+					emit("fm:lyrics", { lyrics: state.lyrics, status: "loaded" });
+				})
+				.catch(() => {
+					state.lyrics = [];
+					emit("fm:lyrics", { lyrics: [], status: "failed" });
+				});
+		} else {
+			state.lyrics = parseLRC(track.lrc);
+			emit("fm:lyrics", {
+				lyrics: state.lyrics,
+				status: state.lyrics.length > 0 ? "loaded" : "none",
+			});
+		}
+	}
+
+	var currentTrackUrls = [];
+	var currentTrackUrlIndex = 0;
+	var errorSkipTimeout = null;
+	var playbackRequested = false;
+
+	function tryPlayCurrentTrackUrl(autoPlay, ver) {
+		if (ver !== loadVersion) return;
+		var playUrl = currentTrackUrls[currentTrackUrlIndex];
+		if (audio.getAttribute("src") !== playUrl || audio.error) {
+			audio.src = playUrl;
+			if (backgroundPreloadEnabled || autoPlay) audio.load();
+		}
+
+		if (autoPlay) {
+			audio
+				.play()
+				.then(() => {
+					if (ver !== loadVersion) return; // stale, discard
+					state.isPlaying = true;
+					state.error = null;
+					emit("fm:play-state", { isPlaying: true });
+				})
+				.catch((e) => {
+					if (ver !== loadVersion) return; // stale, discard
+					if (e.name === "AbortError") return; // interrupted by new load
+					console.warn("Autoplay blocked:", e);
+				});
+		} else {
+			state.isPlaying = false;
+			emit("fm:play-state", { isPlaying: false });
+		}
+	}
+
+	// ── Track loading ────────────────────────────────────────
+	function loadTrack(index, autoPlay) {
+		if (index < 0 || index >= state.playlist.length) return;
+		state.currentIndex = index;
+		var track = state.playlist[index];
+		var ver = ++loadVersion;
+		playbackRequested = !!autoPlay;
+
+		if (errorSkipTimeout) {
+			clearTimeout(errorSkipTimeout);
+			errorSkipTimeout = null;
+		}
+
+		currentTrackUrls = [track.url];
+		currentTrackUrlIndex = 0;
+
+		var matchId = track.url.match(/[?&]id=([^&]+)/);
+		var matchServer = track.url.match(/[?&]server=([^&]+)/);
+		if (matchId && matchServer && config.meting?.fallbackApis) {
+			config.meting.fallbackApis.forEach((fallback) => {
+				var fallbackUrl = fallback
+					.replace(":server", matchServer[1])
+					.replace(":type", "url")
+					.replace(":id", matchId[1]);
+				if (currentTrackUrls.indexOf(fallbackUrl) === -1) {
+					currentTrackUrls.push(fallbackUrl);
+				}
+			});
+		}
+
+		loadLyrics(track);
+
+		emit("fm:track", { index: index, track: track, autoPlay: !!autoPlay });
+
+		tryPlayCurrentTrackUrl(autoPlay, ver);
+	}
+
+	// ── Playback controls ────────────────────────────────────
+	function togglePlay() {
+		if (audio.paused) {
+			playbackRequested = true;
+			if (audio.error) {
+				loadTrack(state.currentIndex, true);
+				return;
+			}
+			audio
+				.play()
+				.then(() => {
+					state.isPlaying = true;
+					emit("fm:play-state", { isPlaying: true });
+				})
+				.catch((e) => {
+					if (e.name === "AbortError") return;
+					console.warn("Playback failed:", e);
+				});
+		} else {
+			playbackRequested = false;
+			audio.pause();
+			state.isPlaying = false;
+			emit("fm:play-state", { isPlaying: false });
+		}
+	}
+
+	function playNext(auto) {
+		if (state.playMode === 1 && auto) {
+			audio.currentTime = 0;
+			audio.play();
+			return;
+		}
+		var nextIndex;
+		if (state.playMode === 2) {
+			nextIndex = Math.floor(Math.random() * state.playlist.length);
+		} else {
+			nextIndex = (state.currentIndex + 1) % state.playlist.length;
+		}
+		loadTrack(nextIndex, true);
+	}
+
+	function playPrev() {
+		var prevIndex;
+		if (state.playMode === 2) {
+			prevIndex = Math.floor(Math.random() * state.playlist.length);
+		} else {
+			prevIndex =
+				(state.currentIndex - 1 + state.playlist.length) %
+				state.playlist.length;
+		}
+		loadTrack(prevIndex, true);
+	}
+
+	function setPlayMode(mode) {
+		state.playMode = mode;
+		emit("fm:mode", { playMode: mode });
+	}
+
+	function cyclePlayMode() {
+		setPlayMode((state.playMode + 1) % 3);
+	}
+
+	function setVolume(val) {
+		const volume = Math.max(0, Math.min(1, val));
+		state.volume = volume;
+		state.isMuted = false;
+		audio.volume = volume;
+		audio.muted = false;
+		localStorage.setItem("music-player-volume", volume.toString());
+		emit("fm:volume", { volume, isMuted: false });
+	}
+
+	function toggleMute() {
+		state.isMuted = !state.isMuted;
+		audio.muted = state.isMuted;
+		emit("fm:volume", { volume: state.volume, isMuted: state.isMuted });
+	}
+
+	function seek(percent) {
+		if (!audio.duration) return;
+		audio.currentTime = Math.max(0, Math.min(1, percent)) * audio.duration;
+	}
+
+	function seekToTime(time) {
+		if (!audio.duration) return;
+		audio.currentTime = Math.max(0, Math.min(time, audio.duration));
+	}
+
+	function playTrackByIndex(index) {
+		if (index === state.currentIndex) {
+			togglePlay();
+		} else {
+			loadTrack(index, true);
+		}
+	}
+
+	// ── Audio events → broadcast ─────────────────────────────
+	audio.addEventListener("timeupdate", () => {
+		if (Number.isNaN(audio.duration)) return;
+		var ct = audio.currentTime;
+		var dur = audio.duration;
+		var pct = (ct / dur) * 100;
+
+		emit("fm:time", {
+			currentTime: ct,
+			duration: dur,
+			progress: pct,
+			currentTimeStr: formatTime(ct),
+			durationStr: formatTime(dur),
+		});
+
+		// Lyrics sync
+		if (state.lyrics.length > 0) {
+			var idx = -1;
+			for (var i = 0; i < state.lyrics.length; i++) {
+				if (ct >= state.lyrics[i].time) idx = i;
+				else break;
+			}
+			if (idx !== state.currentLrcIndex) {
+				state.currentLrcIndex = idx;
+				emit("fm:lrc-index", { index: idx });
+			}
+		}
+	});
+
+	audio.addEventListener("ended", () => {
+		playNext(true);
+	});
+
+	audio.addEventListener("error", () => {
+		var ver = loadVersion;
+		if (currentTrackUrlIndex < currentTrackUrls.length - 1) {
+			currentTrackUrlIndex++;
+			console.warn(
+				"Playback failed, trying fallback URL: " +
+					currentTrackUrls[currentTrackUrlIndex],
+			);
+			tryPlayCurrentTrackUrl(playbackRequested, ver);
+		} else if (!playbackRequested) {
+			console.warn(
+				"Audio preload failed; playback will retry after user interaction.",
+			);
+		} else {
+			state.error = "Audio playback error";
+			emit("fm:error", { message: "播放失败，即将自动跳过..." });
+
+			if (errorSkipTimeout) clearTimeout(errorSkipTimeout);
+			errorSkipTimeout = setTimeout(() => {
+				if (ver === loadVersion) {
+					playNext(true);
+				}
+			}, 2000);
+		}
+	});
+
+	// ── Init (idempotent) ────────────────────────────────────
+	async function init() {
+		if (state.initialized || state.initializing) return;
+		state.initializing = true;
+
+		try {
+			if (config.mode === "meting" && config.meting) {
+				await fetchMetingData();
+			} else if (config.mode === "local") {
+				state.playlist = config.localPlaylist || [];
+			}
+
+			if (state.playlist.length > 0) {
+				// Apply volume
+				audio.volume = state.volume;
+
+				var startIndex = 0;
+				if (state.playMode === 2) {
+					startIndex = Math.floor(Math.random() * state.playlist.length);
+				}
+
+				state.initialized = true;
+
+				emit("fm:init", {
+					playlist: state.playlist,
+					playMode: state.playMode,
+					volume: state.volume,
+					isMuted: state.isMuted,
+				});
+
+				loadTrack(startIndex, false);
+			} else {
+				state.initialized = true;
+				emit("fm:init", {
+					playlist: [],
+					playMode: state.playMode,
+					volume: state.volume,
+					isMuted: state.isMuted,
+				});
+				emit("fm:error", { message: config.i18n.noSongs });
+			}
+		} catch (e) {
+			console.error("Music Manager init error:", e);
+			state.initialized = true;
+			emit("fm:init", {
+				playlist: [],
+				playMode: state.playMode,
+				volume: state.volume,
+				isMuted: state.isMuted,
+			});
+			emit("fm:error", { message: config.i18n.error });
+		} finally {
+			state.initializing = false;
+		}
+	}
+
+	// ── Public API ───────────────────────────────────────────
+	window.__fireflyMusic = {
+		init: init,
+		getState: () => {
+			var track = state.playlist[state.currentIndex] || null;
+			return {
+				playlist: state.playlist,
+				currentIndex: state.currentIndex,
+				track: track,
+				isPlaying: state.isPlaying,
+				playMode: state.playMode,
+				volume: state.volume,
+				isMuted: state.isMuted,
+				currentTime: audio.currentTime,
+				duration: audio.duration || 0,
+				progress: audio.duration
+					? (audio.currentTime / audio.duration) * 100
+					: 0,
+				currentTimeStr: formatTime(audio.currentTime),
+				durationStr: formatTime(audio.duration),
+				lyrics: state.lyrics,
+				currentLrcIndex: state.currentLrcIndex,
+				initialized: state.initialized,
+				error: state.error,
+				config: config,
+			};
+		},
+		togglePlay: togglePlay,
+		playNext: () => {
+			playNext(false);
+		},
+		playPrev: playPrev,
+		cyclePlayMode: cyclePlayMode,
+		setVolume: setVolume,
+		toggleMute: toggleMute,
+		seek: seek,
+		seekToTime: seekToTime,
+		playTrackByIndex: playTrackByIndex,
+		loadTrack: loadTrack,
+	};
+	return window.__fireflyMusic;
+}

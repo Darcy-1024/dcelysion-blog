@@ -1,3 +1,5 @@
+import type { WalineInitOptions } from "@waline/client";
+
 export type CommentConfig = {
 	/**
 	 * 当前启用的评论系统类型
@@ -24,6 +26,7 @@ export type CommentConfig = {
 	waline?: {
 		serverURL: string;
 		lang?: string;
+		locale?: WalineInitOptions["locale"];
 		emoji: string[];
 		login?: "enable" | "force" | "disable";
 		visitorCount?: boolean; // 是否统计访问量，true 启用访问量，false 关闭
