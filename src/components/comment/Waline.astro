@@ -26,6 +26,36 @@ const config = {
 </script>
 
 <style is:global>
+  /* Scoped variables override Waline defaults without changing other providers. */
+  #waline {
+    --waline-theme-color: var(--primary);
+    --waline-active-color: var(--btn-content);
+    --waline-color: color-mix(in oklch, var(--card-bg) 12%, #000 88%);
+    --waline-light-grey: var(--content-meta);
+    --waline-dark-grey: var(--content-meta);
+    --waline-bg-color: var(--card-bg);
+    --waline-bg-color-light: var(--btn-regular-bg);
+    --waline-bg-color-hover: var(--btn-regular-bg-hover);
+    --waline-border-color: var(--line-color);
+    --waline-disable-bg-color: var(--btn-regular-bg);
+    --waline-disable-color: var(--content-meta);
+    --waline-info-bg-color: var(--btn-regular-bg);
+    --waline-info-color: var(--content-meta);
+    color: var(--waline-color);
+  }
+
+  html.dark #waline {
+    --waline-color: color-mix(in oklch, var(--card-bg) 12%, #fff 88%);
+  }
+
+  #waline .wl-count {
+    color: var(--primary);
+  }
+
+  #waline .wl-btn.primary {
+    color: var(--card-bg);
+  }
+
   /* 各分类表情数量不同，切换时面板布局会跟着变，下面逐项消除 */
 
   .wl-tab-wrapper {
