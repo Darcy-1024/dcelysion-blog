@@ -316,6 +316,7 @@ export const ru: Translation = {
 	[Key.backToHome]: "Вернуться на главную",
 
 	// RSS Страница
+	[Key.subscribe]: "Подписка",
 	[Key.rss]: "RSS лента",
 	[Key.rssDescription]: "Подпишитесь, чтобы получать последние обновления",
 	[Key.rssSubtitle]:

@@ -8,51 +8,72 @@ import { i18n } from "@/i18n/translation";
 
 const posts = await getSortedPosts();
 const recentPosts = posts.slice(0, 6);
+const title = i18n(I18nKey.subscribe);
+const feeds = [
+	{
+		format: "rss",
+		label: I18nKey.rssLink,
+		hint: I18nKey.rssCopyToReader,
+		copied: I18nKey.rssCopied,
+	},
+	{
+		format: "atom",
+		label: I18nKey.atomLink,
+		hint: I18nKey.atomCopyToReader,
+		copied: I18nKey.atomCopied,
+	},
+];
 ---
 
-<MainGridLayout title={i18n(I18nKey.rss)} description={i18n(I18nKey.rssDescription)}>
+<MainGridLayout title={title} description={i18n(I18nKey.rssDescription)}>
     <div class="onload-animation">
-        <!-- RSS 标题和介绍 -->
+        <!-- 订阅标题和介绍 -->
         <div class="card-base rounded-(--radius-large) p-8 mb-6">
             <div class="text-center">
                 <div class="inline-flex items-center justify-center w-16 h-16 bg-(--primary) rounded-2xl mb-4">
                     <Icon name="material-symbols:rss-feed" class="text-white text-3xl" />
                 </div>
-                <div class="text-3xl font-bold text-(--primary) mb-3">{i18n(I18nKey.rss)}</div>
+                <div class="text-3xl font-bold text-(--primary) mb-3">{title}</div>
                 <p class="text-75 max-w-2xl mx-auto">
-                    {i18n(I18nKey.rssSubtitle)}
+                    {i18n(I18nKey.rssDescription)}
                 </p>
             </div>
         </div>
 
-        <!-- RSS 链接复制区域 -->
+        <!-- 两种格式共用同一个订阅入口 -->
+        {feeds.map((feed) => (
         <div class="card-base rounded-(--radius-large) p-6 mb-6">
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+            <div class="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-4">
                 <div class="flex items-center">
                     <div class="w-12 h-12 bg-(--primary) rounded-xl flex items-center justify-center mr-4">
                         <Icon name="material-symbols:link" class="text-white text-xl" />
                     </div>
                     <div>
-                        <h3 class="font-semibold text-90 mb-1">{i18n(I18nKey.rssLink)}</h3>
-                        <p class="text-sm text-75">{i18n(I18nKey.rssCopyToReader)}</p>
+                        <h3 class="font-semibold text-90 mb-1">{i18n(feed.label)}</h3>
+                        <p class="text-sm text-75">{i18n(feed.hint)}</p>
                     </div>
                 </div>
                 <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
                     <code class="rss-feed-url bg-(--card-bg) px-3 py-2 rounded-lg text-sm text-75 border border-(--line-divider) break-all">
-                        {Astro.site}rss.xml
+                        {Astro.site}{feed.format}.xml
                     </code>
+                    <feed-copy class="shrink-0">
                     <button 
-                        id="copy-rss-btn"
+                        id={`copy-${feed.format}-btn`}
+                        type="button"
                         class="px-4 py-2 bg-(--primary) text-white rounded-lg hover:opacity-80 transition-all duration-200 font-medium text-sm whitespace-nowrap"
-                        data-url={`${Astro.site}rss.xml`}
-                        data-copied-text={i18n(I18nKey.rssCopied)}
+                        data-url={`${Astro.site}${feed.format}.xml`}
+                        data-copied-text={i18n(feed.copied)}
                         data-failed-text={i18n(I18nKey.rssCopyFailed)}
                     >
                         {i18n(I18nKey.rssCopyLink)}
                     </button>
+                    </feed-copy>
                 </div>
             </div>
         </div>
+
+        ))}
 
         <!-- 最新文章预览 -->
         <div class="card-base rounded-(--radius-large) p-6 mb-6">
@@ -107,54 +128,49 @@ const recentPosts = posts.slice(0, 6);
     </div>
 
     <script>
-        function initRssCopy() {
-            const copyBtn = document.getElementById('copy-rss-btn');
-            if (!copyBtn) return;
-            
-            // 移除旧的事件监听器（通过克隆节点的方式）
-            const newBtn = copyBtn.cloneNode(true);
-            copyBtn.parentNode?.replaceChild(newBtn, copyBtn);
-            
-            // 绑定新的事件监听器
-            newBtn.addEventListener('click', async function (event) {
-                const btn = event.currentTarget as HTMLElement;
-                const url = btn.getAttribute('data-url');
-                if (!url) return;
+        class FeedCopy extends HTMLElement {
+            private timer?: ReturnType<typeof setTimeout>;
+            private button: HTMLButtonElement | null = null;
+            private originalText = "";
+
+            connectedCallback() {
+                this.button = this.querySelector("button");
+                this.originalText = this.button?.textContent ?? "";
+                this.button?.addEventListener("click", this.copy);
+            }
+
+            disconnectedCallback() {
+                this.button?.removeEventListener("click", this.copy);
+                clearTimeout(this.timer);
+                this.reset();
+            }
+
+            private reset = () => {
+                if (!this.button) return;
+                this.button.textContent = this.originalText;
+                this.button.disabled = false;
+            };
+
+            private copy = async () => {
+                const button = this.button;
+                const url = button?.dataset.url;
+                if (!button || !url) return;
+                button.disabled = true;
+                let message: string | undefined;
                 try {
                     await navigator.clipboard.writeText(url);
-                    const originalText = btn.textContent;
-                    btn.textContent = btn.getAttribute('data-copied-text') || '';
-                    btn.style.backgroundColor = 'var(--success-color, #10b981)';
-
-                    setTimeout(() => {
-                        btn.textContent = originalText;
-                        btn.style.backgroundColor = '';
-                    }, 2000);
-                } catch (err) {
-                    console.error("Copy failed:", err);
-                    const originalText = btn.textContent;
-                    btn.textContent = btn.getAttribute('data-failed-text') || '';
-                    setTimeout(() => {
-                        btn.textContent = originalText;
-                    }, 2000);
+                    message = button.dataset.copiedText;
+                } catch {
+                    message = button.dataset.failedText;
                 }
-            });
+                if (!this.isConnected) return;
+                button.textContent = message ?? this.originalText;
+                this.timer = setTimeout(this.reset, 2000);
+            };
         }
-        
-        // 立即初始化（支持直接访问页面和刷新）
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initRssCopy);
-        } else {
-            // DOM 已加载，直接初始化
-            setTimeout(initRssCopy, 0);
-        }
-        
-        // 支持 Swup 客户端路由（如果存在）
-        if (typeof window !== 'undefined' && (window as any).swup) {
-            (window as any).swup.hooks.on('content:replace', () => {
-                // 延迟执行以确保 DOM 已更新
-                setTimeout(initRssCopy, 100);
-            });
+
+        if (!customElements.get("feed-copy")) {
+            customElements.define("feed-copy", FeedCopy);
         }
     </script>
 </MainGridLayout>

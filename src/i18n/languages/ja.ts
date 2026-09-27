@@ -315,6 +315,7 @@ export const ja: Translation = {
 	[Key.backToHome]: "ホームに戻る",
 
 	// RSSページ
+	[Key.subscribe]: "購読",
 	[Key.rss]: "RSSフィード",
 	[Key.rssDescription]: "最新の更新を購読する",
 	[Key.rssSubtitle]: "RSSで購読して、最新の記事と更新を第一时间で取得する",

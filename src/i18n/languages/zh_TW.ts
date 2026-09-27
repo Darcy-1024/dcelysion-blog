@@ -312,6 +312,7 @@ export const zh_TW: Translation = {
 	[Key.backToHome]: "返回首頁",
 
 	// RSS頁面
+	[Key.subscribe]: "訂閱",
 	[Key.rss]: "RSS 訂閱",
 	[Key.rssDescription]: "訂閱獲取最新更新",
 	[Key.rssSubtitle]: "通過 RSS 訂閱，第一時間獲取最新文章和動態",

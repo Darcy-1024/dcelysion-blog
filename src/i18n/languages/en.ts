@@ -316,6 +316,7 @@ export const en: Translation = {
 	[Key.backToHome]: "Back to Home",
 
 	// RSS Page
+	[Key.subscribe]: "Subscribe",
 	[Key.rss]: "RSS Feed",
 	[Key.rssDescription]: "Subscribe to get latest updates",
 	[Key.rssSubtitle]:

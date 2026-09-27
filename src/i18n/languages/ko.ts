@@ -315,6 +315,7 @@ export const ko: Translation = {
 	[Key.backToHome]: "홈으로 돌아가기",
 
 	// RSS Page
+	[Key.subscribe]: "구독",
 	[Key.rss]: "RSS 피드",
 	[Key.rssDescription]: "최신 소식을 구독하세요",
 	[Key.rssSubtitle]: "RSS를 구독하여 최신 글과 업데이트를 즉시 받아보세요",

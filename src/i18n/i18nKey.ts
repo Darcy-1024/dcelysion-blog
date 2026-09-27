@@ -307,6 +307,7 @@ enum I18nKey {
 	backToHome = "backToHome",
 
 	// RSS页面
+	subscribe = "subscribe",
 	rss = "rss",
 	rssDescription = "rssDescription",
 	rssSubtitle = "rssSubtitle",

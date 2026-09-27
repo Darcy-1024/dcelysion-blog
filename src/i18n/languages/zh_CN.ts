@@ -310,6 +310,7 @@ export const zh_CN: Translation = {
 	[Key.backToHome]: "返回首页",
 
 	// RSS页面
+	[Key.subscribe]: "订阅",
 	[Key.rss]: "RSS 订阅",
 	[Key.rssDescription]: "订阅获取最新更新",
 	[Key.rssSubtitle]: "通过 RSS 订阅，第一时间获取最新文章和动态",
