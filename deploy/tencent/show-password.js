@@ -61,9 +61,26 @@
     const label = form.querySelector('label[for="link"]');
     if (label && label.textContent !== next) label.textContent = next;
   }
+  function annotateLogin(form) {
+    if (!location.pathname.endsWith("/ui/login")) return;
+    const identity = form?.querySelector('input#email[name="email"]');
+    if (!identity) return;
+    const language = (localStorage.getItem("i18nextLng") || navigator.language).toLowerCase();
+    const label = language.startsWith("zh")
+      ? language.includes("tw") || language.includes("hk")
+        ? "信箱或暱稱"
+        : "邮箱或昵称"
+      : "Email or nickname";
+    if (identity.type !== "text") identity.type = "text";
+    if (identity.placeholder !== label) identity.placeholder = label;
+    if (identity.autocomplete !== "username") identity.autocomplete = "username";
+    const identityLabel = form.querySelector('label[for="email"]');
+    if (identityLabel && identityLabel.textContent !== label) identityLabel.textContent = label;
+  }
   function mount() {
     const form = document.querySelector('.typecho-login form[name="login"]');
     annotateWebsite(form);
+    annotateLogin(form);
     const password = form?.querySelector('input#password[name="password"]');
     if (!password) return;
 

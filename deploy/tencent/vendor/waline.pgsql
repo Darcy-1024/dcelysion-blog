@@ -68,3 +68,5 @@ CREATE TABLE wl_users (
   updatedAt timestamp(0) without time zone NULL DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (id)
 ) ;
+
+CREATE UNIQUE INDEX wl_users_display_name_unique ON wl_users (display_name);

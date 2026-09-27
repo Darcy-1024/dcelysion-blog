@@ -1,4 +1,5 @@
 const BaseRest = require('./rest.js');
+const { isValidNickname, isNicknameTaken, isNicknameUniqueViolation } = require('../lib/nickname.js');
 
 module.exports = class UserController extends BaseRest {
   constructor(...args) {
@@ -68,6 +69,13 @@ module.exports = class UserController extends BaseRest {
       return this.fail(this.locale('USER_EXIST'));
     }
 
+    if (!isValidNickname(data.display_name)) {
+      return this.fail(this.locale('Nickname must be at least 2 characters and have no leading or trailing spaces.'));
+    }
+    if (await isNicknameTaken(this.modelInstance, data.display_name, resp[0]?.objectId)) {
+      return this.fail(this.locale('Nickname is already in use. Choose another nickname.'));
+    }
+
     const count = await this.modelInstance.count();
 
     const { SMTP_HOST, SMTP_SERVICE, SENDER_EMAIL, SENDER_NAME, SMTP_USER, SITE_NAME } =
@@ -83,10 +91,17 @@ module.exports = class UserController extends BaseRest {
     data.type = think.isEmpty(count) ? 'administrator' : normalType;
 
     // oxlint-disable-next-line unicorn/prefer-ternary
-    if (think.isEmpty(resp)) {
-      await this.modelInstance.add(data);
-    } else {
-      await this.modelInstance.update(data, { email: data.email });
+    try {
+      if (think.isEmpty(resp)) {
+        await this.modelInstance.add(data);
+      } else {
+        await this.modelInstance.update(data, { email: data.email });
+      }
+    } catch (error) {
+      if (isNicknameUniqueViolation(error)) {
+        return this.fail(this.locale('Nickname is already in use. Choose another nickname.'));
+      }
+      throw error;
     }
 
     if (!/^verify:/iu.test(data.type)) {
@@ -153,7 +168,13 @@ module.exports = class UserController extends BaseRest {
       updateData.email = email;
     }
 
-    if (display_name) {
+    if (display_name !== undefined) {
+      if (!isValidNickname(display_name)) {
+        return this.fail(this.locale('Nickname must be at least 2 characters and have no leading or trailing spaces.'));
+      }
+      if (await isNicknameTaken(this.modelInstance, display_name, this.id || objectId)) {
+        return this.fail(this.locale('Nickname is already in use. Choose another nickname.'));
+      }
       updateData.display_name = display_name;
     }
 
@@ -187,9 +208,16 @@ module.exports = class UserController extends BaseRest {
       return this.success();
     }
 
-    await this.modelInstance.update(updateData, {
-      objectId: this.id || objectId,
-    });
+    try {
+      await this.modelInstance.update(updateData, {
+        objectId: this.id || objectId,
+      });
+    } catch (error) {
+      if (isNicknameUniqueViolation(error)) {
+        return this.fail(this.locale('Nickname is already in use. Choose another nickname.'));
+      }
+      throw error;
+    }
 
     return this.success();
   }

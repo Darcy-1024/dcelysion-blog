@@ -21,6 +21,7 @@ import {
 import { getBannerVisibilityState } from "@/utils/banner-visibility-utils";
 import { getBackgroundImages, isHomePage } from "@/utils/layout-utils";
 import { resolveNavMenuLinks } from "@/utils/nav-menu-utils";
+import { mainGridLayoutVarsToStyle } from "@/utils/responsive-utils";
 import { getEffectiveSidebarState } from "@/utils/sidebar-effective-utils";
 import Layout from "./Layout.astro";
 
@@ -85,16 +86,12 @@ const sidebar = getEffectiveSidebarState({ isPostPage });
 const { hasWallpaper } = banner;
 const {
 	hideSidebarOnPostPage,
-	postPageTocLeftLayoutEnabled,
 	effectiveIsBothSidebars,
 	effectiveHasLeftComponents,
 	effectiveHasRightComponents,
-	gridCols,
-	sidebarClass,
-	rightSidebarClass,
-	staticBarClass,
-	footerClassName,
+	layoutVars,
 	mobileShowSidebar,
+	gridDataAttrs,
 } = sidebar;
 ---
 
@@ -110,13 +107,9 @@ const {
     <!-- The pointer-events-none here prevent blocking the click event of the TOC -->
     <div class="main-grid-shell relative w-full xl:w-[92vw] max-w-(--page-width) mx-auto pointer-events-auto">
         <div id="main-grid"
-          class={`transition duration-700 w-full left-0 right-0 grid ${gridCols} grid-rows-[auto_1fr_auto] lg:grid-rows-[auto] mx-auto gap-4 px-2 md:px-4 ${!mobileShowSidebar ? 'mobile-no-sidebar' : ''}`}
-          data-sidebar-enable={sidebarLayoutConfig.enable ? "true" : "false"}
-          data-grid-hide-sidebar-on-post={hideSidebarOnPostPage ? "true" : "false"}
-          data-sidebar-position={sidebarLayoutConfig.position}
-          data-tablet-sidebar={sidebarLayoutConfig.tabletSidebar ?? "left"}
-          data-show-both-sidebars-on-post={sidebarLayoutConfig.showBothSidebarsOnPostPage ? "true" : "false"}
-          data-post-page-toc-left-layout={postPageTocLeftLayoutEnabled ? "true" : "false"}
+		  class={`transition duration-700 w-full left-0 right-0 grid grid-rows-[auto_1fr_auto] lg:grid-rows-[auto] mx-auto px-2 md:px-4 ${!mobileShowSidebar ? 'mobile-no-sidebar' : ''}`}
+		  style={mainGridLayoutVarsToStyle(layoutVars)}
+		  {...gridDataAttrs}
         >
 
             <SidebarColumn
@@ -127,20 +120,21 @@ const {
                 effectiveIsBothSidebars={effectiveIsBothSidebars}
                 effectiveHasLeftComponents={effectiveHasLeftComponents}
                 effectiveHasRightComponents={effectiveHasRightComponents}
-                sidebarClass={sidebarClass}
-                rightSidebarClass={rightSidebarClass}
+				sidebarClass="mb-4 onload-animation"
+				rightSidebarClass="mb-4 onload-animation"
                 headings={headings}
                 encrypted={encrypted}
             />
 
             <ImmersiveTOC headings={headings} encrypted={encrypted} />
 
-            <div id="main-content-column" class={staticBarClass}>
+			<div id="main-content-column" class="min-w-0 overflow-hidden">
                 {shouldRenderCategoryBar && <div id="category-bar-wrapper"><CategoryBar currentPostCategory={postCategory} /></div>}
                 <main
                     id="swup-container"
                     class="transition-main"
                     data-current-post-category={postCategory || ""}
+					data-page-kind={isPostPage ? "post" : "default"}
                 >
                 {isPostPage ? <div class="sr-only">{title}</div> : <h1 class="sr-only">{heading || title}</h1>}
                 <div id="content-wrapper" class="onload-animation transition-leaving">
@@ -157,8 +151,8 @@ const {
                 effectiveIsBothSidebars={effectiveIsBothSidebars}
                 effectiveHasLeftComponents={effectiveHasLeftComponents}
                 effectiveHasRightComponents={effectiveHasRightComponents}
-                sidebarClass={sidebarClass}
-                rightSidebarClass={rightSidebarClass}
+				sidebarClass="mb-4 onload-animation"
+				rightSidebarClass="mb-4 onload-animation"
                 headings={headings}
                 encrypted={encrypted}
             />
@@ -169,7 +163,7 @@ const {
                 </div>
             )}
 
-            <div class={footerClassName}>
+			<div class="footer onload-animation">
                 <Footer />
             </div>
         </div>

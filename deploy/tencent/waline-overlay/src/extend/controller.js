@@ -3,11 +3,16 @@ const { PasswordHash } = require('phpass');
 
 const defaultLocales = require('../locales/index.js');
 const chineseMail = require('../locales/zh-CN.json');
+const labelAnonymousComments = require('../lib/anonymous-label.js');
 
 const defaultLang = 'en-us';
+const isCommentRequest = (path) => /(?:^|\/)comment(?:\/|$)/u.test(path);
 
 module.exports = {
   success(...args) {
+    if (isCommentRequest(this.ctx.path)) {
+      args[0] = labelAnonymousComments(args[0]);
+    }
     this.ctx.success(...args);
 
     return think.prevent();
@@ -18,6 +23,9 @@ module.exports = {
     return think.prevent();
   },
   jsonOrSuccess(...args) {
+    if (this.ctx.state.deprecated && isCommentRequest(this.ctx.path)) {
+      args[0] = labelAnonymousComments(args[0]);
+    }
     return this[this.ctx.state.deprecated ? 'json' : 'success'](...args);
   },
   locale(message, variables) {

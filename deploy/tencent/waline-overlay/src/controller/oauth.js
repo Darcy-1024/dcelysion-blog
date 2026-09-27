@@ -1,4 +1,5 @@
 const sessionToken = require('../lib/session-token.js');
+const { isValidNickname, isNicknameTaken, isNicknameUniqueViolation } = require('../lib/nickname.js');
 
 module.exports = class OAuthController extends think.Controller {
   constructor(ctx) {
@@ -98,7 +99,22 @@ module.exports = class OAuthController extends think.Controller {
       type: think.isEmpty(count) ? 'administrator' : 'guest',
     };
 
-    const cmtUser = await this.modelInstance.add(data);
+    if (!isValidNickname(data.display_name)) {
+      return this.fail(this.locale('Nickname must be at least 2 characters and have no leading or trailing spaces.'));
+    }
+    if (await isNicknameTaken(this.modelInstance, data.display_name)) {
+      return this.fail(this.locale('Nickname is already in use. Choose another nickname.'));
+    }
+
+    let cmtUser;
+    try {
+      cmtUser = await this.modelInstance.add(data);
+    } catch (error) {
+      if (isNicknameUniqueViolation(error)) {
+        return this.fail(this.locale('Nickname is already in use. Choose another nickname.'));
+      }
+      throw error;
+    }
 
     if (!redirect) {
       return this.success();

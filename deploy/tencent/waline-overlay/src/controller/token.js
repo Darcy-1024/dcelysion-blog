@@ -1,4 +1,5 @@
 const sessionToken = require('../lib/session-token.js');
+const findLoginUser = require('../lib/login-identity.js');
 const speakeasy = require('speakeasy');
 
 const BaseRest = require('./rest.js');
@@ -15,21 +16,21 @@ module.exports = class extends BaseRest {
 
   async postAction() {
     const { email, password, code } = this.post();
-    const user = await this.modelInstance.select({ email });
+    const loginUser = await findLoginUser(this.modelInstance, email);
 
-    const isVerifyUser = /^verify:/iu.test(user?.[0]?.type);
-    const isBannedUser = user?.[0]?.type === 'banned';
-    if (think.isEmpty(user) || isVerifyUser || isBannedUser) {
+    const isVerifyUser = /^verify:/iu.test(loginUser?.type);
+    const isBannedUser = loginUser?.type === 'banned';
+    if (!loginUser || isVerifyUser || isBannedUser) {
       return this.fail();
     }
 
-    const checkPassword = this.checkPassword(password, user[0].password);
+    const checkPassword = this.checkPassword(password, loginUser.password);
 
     if (!checkPassword) {
       return this.fail();
     }
 
-    const twoFactorAuthSecret = user[0]['2fa'];
+    const twoFactorAuthSecret = loginUser['2fa'];
 
     if (twoFactorAuthSecret) {
       const verified = speakeasy.totp.verify({
@@ -45,11 +46,11 @@ module.exports = class extends BaseRest {
     }
 
     let avatarUrl =
-      user[0].avatar ||
+      loginUser.avatar ||
       (await think.service('avatar').stringify({
-        mail: user[0].email,
-        nick: user[0].display_name,
-        link: user[0].url,
+        mail: loginUser.email,
+        nick: loginUser.display_name,
+        link: loginUser.url,
       }));
     const { avatarProxy } = think.config();
 
@@ -57,12 +58,12 @@ module.exports = class extends BaseRest {
       avatarUrl = `${avatarProxy}?url=${encodeURIComponent(avatarUrl)}`;
     }
 
-    user[0].avatar = avatarUrl;
+    loginUser.avatar = avatarUrl;
 
     return this.success({
-      ...user[0],
+      ...loginUser,
       password: null,
-      token: sessionToken.sign(user[0], this.config('jwtKey')),
+      token: sessionToken.sign(loginUser, this.config('jwtKey')),
     });
   }
 

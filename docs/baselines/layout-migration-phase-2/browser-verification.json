@@ -1,0 +1,41 @@
+{
+  "capturedAt": "2026-09-27T02:46:33+08:00",
+  "implementationBaseline": "acabc4ea7b6bef6b1c774586799e0c58a7951640",
+  "historicalBaseline": "16c92fc1698cda873ebcbd4c1598a1ce026db256",
+  "articlePath": "/posts/guide/firefly-layout-system/",
+  "geometry": {
+    "home1440": { "contentX": 361.94, "contentWidth": 700.79 },
+    "article1440Soft": { "contentX": 369.6, "contentWidth": 700.79, "leftLogicalX": 1086.4, "rightLogicalX": 73.6 },
+    "article1440Direct": { "contentX": 369.6, "contentWidth": 700.79, "leftLogicalX": 1086.4, "rightLogicalX": 73.6 },
+    "article1024": { "contentX": 16, "contentWidth": 696 },
+    "article1200": { "contentX": 16, "contentWidth": 872 },
+    "article1280": { "contentX": 363.2, "contentWidth": 553.59 },
+    "article1920": { "contentX": 472, "contentWidth": 976 }
+  },
+  "ordinaryBreakpoints": [
+    { "requestedViewport": 767, "documentClientWidth": 752, "leftVisible": false, "rightVisible": false, "mobileBottomVisible": true },
+    { "requestedViewport": 768, "documentClientWidth": 753, "leftVisible": true, "rightVisible": false, "mobileBottomVisible": false },
+    { "requestedViewport": 1279, "documentClientWidth": 1279, "leftVisible": true, "rightVisible": false, "mobileBottomVisible": false },
+    { "requestedViewport": 1280, "documentClientWidth": 1280, "leftVisible": true, "rightVisible": true, "mobileBottomVisible": false }
+  ],
+  "immersive": {
+    "eligible1023": false,
+    "eligible1024": true,
+    "toc1199": { "position": "fixed", "top": "16px", "width": 280, "contentWidth": 872 },
+    "toc1200": { "position": "sticky", "top": "56px", "width": 280, "contentWidth": 872 },
+    "historyBackKeptImmersive": true,
+    "historyBackRailFirstLabels": ["📖 概述", "一、侧边栏布局系统", "1.1 单侧边栏模式"]
+  },
+  "music": {
+    "audioElements": 1,
+    "nav": { "items": 9, "clientHeight": 192, "scrollHeight": 378, "maxHeight": "192px", "scrollTop": 186 },
+    "sidebarBeforeImmersive": { "items": 9, "clientHeight": 192, "scrollHeight": 378, "scrollTop": 74.67 },
+    "sidebarAfterImmersive": { "visible": true, "open": true, "items": 9, "clientHeight": 111, "scrollHeight": 378, "maxHeight": "111px", "scrollTop": 186 },
+    "sidebarStickyAfterExit": { "position": "sticky", "top": "88px", "y": 88 }
+  },
+  "navigation": {
+    "homeToArticle": "soft navigation retained one audio element and matched direct article geometry",
+    "articleToArticle": "sidebar TOC, immersive TOC and reading rail updated to Firefly Wiki Link headings",
+    "historyBack": "returned to layout-system article with matching geometry and rail headings"
+  }
+}

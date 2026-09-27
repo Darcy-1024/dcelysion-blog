@@ -13,6 +13,10 @@
 body.immersive-reading {
 	background-color: var(--page-bg) !important;
 	--content-top: 1rem !important;
+	/* 与普通网格共用 layout-base.css 的列、正文位置和间距消费规则。 */
+	--main-grid-active-cols: minmax(0, min(100%, var(--immersive-reading-width)));
+	--main-grid-active-content-column: 1;
+	--main-grid-active-gap: 0;
 }
 
 /* 右侧自绘阅读轨启用时隐藏原生根滚动条；滚轮和键盘滚动仍由浏览器处理。 */
@@ -86,14 +90,9 @@ body.immersive-reading #swup-container {
 /* 共同版心：目录关闭时正文居中；目录打开后在 1200px 以上形成左右双列。 */
 body.immersive-reading #main-grid {
 	display: grid !important;
-	grid-template-columns: minmax(
-		0,
-		min(100%, var(--immersive-reading-width))
-	) !important;
 	grid-template-rows: auto !important;
 	justify-content: center !important;
 	align-items: start !important;
-	gap: 0 !important;
 	width: min(100%, var(--immersive-shell-width)) !important;
 	max-width: var(--immersive-shell-width) !important;
 	margin: 0 auto !important;
@@ -101,7 +100,6 @@ body.immersive-reading #main-grid {
 }
 
 body.immersive-reading #main-content-column {
-	grid-column: 1 !important;
 	grid-row: 1 !important;
 	min-width: 0 !important;
 	width: 100% !important;
@@ -147,26 +145,19 @@ body.immersive-reading .immersive-toc .toc-badge {
 
 /* 宽屏共同版心：默认目录在左；配置为 right 时镜像排列。 */
 @media (min-width: 1200px) {
-	body.immersive-reading.immersive-toc-open #main-grid {
-		grid-template-columns:
+	body.immersive-reading.immersive-toc-open {
+		--main-grid-active-cols:
 			minmax(0, var(--immersive-toc-width))
-			minmax(0, var(--immersive-reading-width)) !important;
-		column-gap: var(--immersive-column-gap) !important;
+			minmax(0, var(--immersive-reading-width));
+		--main-grid-active-content-column: 2;
+		--main-grid-active-column-gap: var(--immersive-column-gap);
 	}
 
-	body.immersive-reading.immersive-toc-open #main-content-column {
-		grid-column: 2 !important;
-	}
-
-	body.immersive-reading.immersive-toc-right.immersive-toc-open #main-grid {
-		grid-template-columns:
+	body.immersive-reading.immersive-toc-right.immersive-toc-open {
+		--main-grid-active-cols:
 			minmax(0, var(--immersive-reading-width))
-			minmax(0, var(--immersive-toc-width)) !important;
-	}
-
-	body.immersive-reading.immersive-toc-right.immersive-toc-open
-		#main-content-column {
-		grid-column: 1 !important;
+			minmax(0, var(--immersive-toc-width));
+		--main-grid-active-content-column: 1;
 	}
 
 	body.immersive-reading .immersive-toc {

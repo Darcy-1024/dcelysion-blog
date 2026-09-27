@@ -1,0 +1,36 @@
+{
+  "source": "c55b production preview at 127.0.0.1:4322",
+  "article": "/posts/welcome/",
+  "normalArticle1440": {
+    "directAfterLeavingSavedImmersivePreference": {
+      "pageKind": "post",
+      "gridColumnsPx": [280, 700.792, 280],
+      "content": { "x": 369.6, "width": 700.79, "column": 2 },
+      "footer": { "x": 369.6, "width": 700.79, "column": 2 },
+      "leftSidebar": { "x": 1086.4, "width": 280, "column": 3 },
+      "rightSidebar": { "x": 73.6, "width": 280, "column": 1 },
+      "audioElements": 1
+    },
+    "homeToArticleSwup": {
+      "pageKind": "post",
+      "gridColumnsPx": [280, 700.792, 280],
+      "content": { "x": 369.6, "width": 700.79, "column": 2 },
+      "footer": { "x": 369.6, "width": 700.79, "column": 2 },
+      "leftSidebar": { "x": 1086.4, "width": 280, "column": 3 },
+      "rightSidebar": { "x": 73.6, "width": 280, "column": 1 },
+      "audioElements": 1
+    }
+  },
+  "normalArticleBreakpoints": [
+    { "viewport": 767, "columnsPx": [738], "leftDisplay": "none", "rightDisplay": "none", "bottomDisplay": "block", "contentWidth": 738, "footerWidth": 738 },
+    { "viewport": 768, "columnsPx": [424.667, 280], "leftDisplay": "block", "rightDisplay": "none", "bottomDisplay": "none", "contentX": 16, "contentWidth": 424.67, "footerX": 16, "footerWidth": 424.67 },
+    { "viewport": 1279, "columnsPx": [951.333, 280], "leftDisplay": "block", "rightDisplay": "none", "contentWidth": 951.33, "footerWidth": 951.33 },
+    { "viewport": 1280, "columnsPx": [280, 553.594, 280], "leftDisplay": "block", "rightDisplay": "block", "contentWidth": 553.59, "footerWidth": 553.59 },
+    { "viewport": 1920, "shellWidth": 1600, "columnsPx": [280, 976, 280], "contentWidth": 976, "footerWidth": 976 }
+  ],
+  "immersiveCompatibility": [
+    { "viewport": 1199, "columnsPx": [872], "tocPosition": "fixed", "footerDisplay": "none", "audioElements": 1 },
+    { "viewport": 1200, "columnsPx": [280, 872], "tocPosition": "sticky", "footerDisplay": "none" },
+    { "viewport": 1200, "afterExitColumnsPx": [872, 280], "contentWidth": 872, "footerWidth": 872, "leftDisplay": "block", "rightDisplay": "none", "audioElements": 1 }
+  ]
+}

@@ -1,5 +1,89 @@
 /* Layout 基础布局样式（从 Layout.astro 内联 <style is:global> 迁出） */
 
+/* 普通配置由 resolveSidebarLayout 写入；沉浸态通过继承的 active 变量切换同一消费层。 */
+#main-grid {
+  grid-template-columns: var(
+    --main-grid-active-cols,
+    repeat(1, minmax(0, 1fr))
+  );
+  gap: var(--main-grid-active-gap, var(--main-grid-gap, 1rem));
+  column-gap: var(
+    --main-grid-active-column-gap,
+    var(--main-grid-active-gap, var(--main-grid-gap, 1rem))
+  );
+}
+
+#main-grid #left-sidebar,
+#main-grid #right-sidebar {
+  display: none;
+}
+
+@media (min-width: 768px) {
+  #main-grid {
+    grid-template-columns: var(
+      --main-grid-active-cols,
+      var(--main-grid-cols-md, 1fr)
+    );
+  }
+
+  #main-grid #left-sidebar,
+  #main-grid #right-sidebar {
+    grid-row: 1 / 3;
+    max-width: var(--main-grid-sidebar-width, 17.5rem);
+  }
+
+  #main-grid #left-sidebar {
+    display: var(--main-grid-left-display-md, none);
+    grid-column-start: var(--main-grid-left-column-md, 1);
+  }
+
+  #main-grid #right-sidebar {
+    display: var(--main-grid-right-display-md, none);
+    grid-column-start: var(--main-grid-right-column-md, 2);
+  }
+
+  #main-grid #main-content-column {
+    grid-column-start: var(
+      --main-grid-active-content-column,
+      var(--main-grid-content-column-md, 1)
+    );
+  }
+
+  #main-grid > .footer {
+    grid-column-start: var(--main-grid-footer-column-md, 1);
+  }
+}
+
+@media (min-width: 1280px) {
+  #main-grid {
+    grid-template-columns: var(
+      --main-grid-active-cols,
+      var(--main-grid-cols-xl, 1fr)
+    );
+  }
+
+  #main-grid #left-sidebar {
+    display: var(--main-grid-left-display-xl, none);
+    grid-column-start: var(--main-grid-left-column-xl, 1);
+  }
+
+  #main-grid #right-sidebar {
+    display: var(--main-grid-right-display-xl, none);
+    grid-column-start: var(--main-grid-right-column-xl, 3);
+  }
+
+  #main-grid #main-content-column {
+    grid-column-start: var(
+      --main-grid-active-content-column,
+      var(--main-grid-content-column-xl, 1)
+    );
+  }
+
+  #main-grid > .footer {
+    grid-column-start: var(--main-grid-footer-column-xl, 1);
+  }
+}
+
 @layer components {
   /* 内容面板：单一 top 属性定位（--content-top 由模式/首页/设备在解析期解析） */
   .content-panel {

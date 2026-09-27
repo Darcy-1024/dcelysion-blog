@@ -1,0 +1,23 @@
+{
+  "source": "c55b production preview at 127.0.0.1:4322; temporary right-position development preview at 127.0.0.1:4323",
+  "leftLayoutArticle": "/posts/welcome/",
+  "rightMirrorAndPlaylistArticle": "/posts/ai-smarter-or-dumber/",
+  "normal1200": { "pageKind": "post", "columnsPx": [872, 280], "contentColumn": 1, "contentWidth": 872, "footerWidth": 872, "activeColumns": "" },
+  "immersiveLeft": [
+    { "viewport": 1023, "active": false, "columnsPx": [680, 280], "footerDisplay": "block" },
+    { "viewport": 1024, "active": true, "columnsPx": [872], "tocPosition": "fixed", "contentColumn": 1 },
+    { "viewport": 1199, "active": true, "columnsPx": [872], "tocPosition": "fixed", "columnGapPx": 0 },
+    { "viewport": 1200, "active": true, "columnsPx": [280, 872], "tocPosition": "sticky", "contentColumn": 2, "columnGapPx": 16, "rowGapPx": 0, "footerDisplay": "none" },
+    { "viewport": 1279, "active": true, "columnsPx": [280, 872], "contentColumn": 2 },
+    { "viewport": 1280, "active": true, "columnsPx": [280, 872], "contentColumn": 2 },
+    { "viewport": 1280, "tocOpen": false, "columnsPx": [872], "contentX": 204, "gridX": 40, "gridWidth": 1200, "contentColumn": 1 }
+  ],
+  "immersiveRightTemporaryConfig": [
+    { "viewport": 1199, "columnsPx": [872], "tocPosition": "fixed", "tocX": 903.33, "contentColumn": 1 },
+    { "viewport": 1200, "columnsPx": [872, 280], "tocPosition": "sticky", "tocColumn": 2, "contentColumn": 1, "columnGapPx": 16 },
+    { "viewport": 1200, "tocOpen": false, "columnsPx": [872], "contentColumn": 1 }
+  ],
+  "welcomeArticleExit1280": { "scrollYBefore": 787.33, "scrollYAfter": 787.33 },
+  "aiArticlePlaylistExit1280": { "playlistBefore": { "scrollTop": 168, "clientHeight": 192, "scrollHeight": 378 }, "playlistAfter": { "scrollTop": 168, "clientHeight": 192, "scrollHeight": 378 }, "playlistOpenAfter": true },
+  "swupHistory": { "homePageKind": "default", "homeImmersive": false, "homeActiveColumns": "", "returnedArticlePageKind": "post", "returnedArticleImmersive": true, "articleToArticleTocLinks": 5, "articleToArticleRailMarkers": 5, "audioElementsAtSamples": 1 }
+}

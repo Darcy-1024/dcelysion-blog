@@ -94,7 +94,7 @@ pnpm build
 ### `src/layouts/`：页面骨架
 
 - `Layout.astro` 是最底层 HTML 外壳，负责 `<head>`、SEO、favicon、全局 CSS、字体、分析服务、主题初始化、全局音乐/特效、Swup 生命周期和通用浏览器增强。
-- `MainGridLayout.astro` 构建可变壁纸/横幅、导航栏、分类栏、主内容区、左右侧边栏、页脚、悬浮控件和看板娘。它根据页面类型、设备和 `sidebarConfig` 计算网格。
+- `MainGridLayout.astro` 构建可变壁纸/横幅、导航栏、分类栏、主内容区、左右侧边栏、页脚、悬浮控件和看板娘。普通网格由 `resolveSidebarLayout()` 统一计算输入变量，SSR 写到 `#main-grid`，Swup 换页时更新同一组变量；`layout-base.css` 按 768/1280 断点消费。沉浸阅读以 `body` 状态类提供独立的生效列、正文列号和间距变量，沿用同一网格消费规则；1024px 是进入资格，1200px 是目录由浮层转为 sticky 双列的断点。退出后撤销状态类，即恢复当前普通输入变量。
 
 普通站内页面优先使用 `MainGridLayout`；只有需要极简外壳的嵌入页面才直接使用 `Layout`。不要随意改动这些稳定 DOM 标识：`#swup-container`、`#banner-overlay-container`、`#banner-dim-container`、`#left-sidebar-dynamic`、`#right-sidebar-dynamic`、`#floating-toc-wrapper`，它们是 Swup 多容器切换契约的一部分。
 

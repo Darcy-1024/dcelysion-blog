@@ -1,10 +1,7 @@
 import { sidebarLayoutConfig } from "@/config";
 import {
-	generateGridClasses,
-	generateMainContentClasses,
-	generateRightSidebarClasses,
-	generateSidebarClasses,
-	getResponsiveSidebarConfig,
+	computeMainGridLayoutVars,
+	type MainGridLayoutVars,
 	type ResponsiveSidebarConfig,
 } from "@/utils/responsive-utils";
 
@@ -12,9 +9,23 @@ export interface EffectiveSidebarContext {
 	isPostPage: boolean;
 }
 
+/** SSR 与 Swup 共享的纯布局计算输入。 */
+export interface SidebarLayoutInput {
+	isPostPage: boolean;
+	enabled: boolean;
+	position: "left" | "right" | "both";
+	tabletSidebar: "left" | "right";
+	hideSidebarOnPostPage: boolean;
+	showBothSidebarsOnPostPage: boolean;
+	postPageTocLeftLayoutEnabled: boolean;
+	hasLeftComponents: boolean;
+	hasRightComponents: boolean;
+}
+
 export interface EffectiveSidebarState {
 	hideSidebarOnPostPage: boolean;
 	postPageTocLeftLayoutEnabled: boolean;
+	usePostPageTocLeftLayout: boolean;
 	shouldShowBothSidebarsOnPostPage: boolean;
 	shouldAddLeftSidebar: boolean;
 	shouldAddRightSidebar: boolean;
@@ -24,108 +35,109 @@ export interface EffectiveSidebarState {
 	effectiveTabletSidebar: "left" | "right";
 	mobileShowSidebar: boolean;
 	updatedGridConfig: ResponsiveSidebarConfig;
-	gridCols: string;
-	sidebarClass: string;
-	rightSidebarClass: string;
-	mainContentClass: string;
-	staticBarClass: string;
-	footerClassName: string;
-}
-
-function replaceClassTokens(
-	className: string,
-	remove: string[],
-	add: string[],
-): string {
-	const removeSet = new Set(remove);
-	return [
-		...className.split(/\s+/).filter((token) => token && !removeSet.has(token)),
-		...add,
-	].join(" ");
-}
-
-/** 纯 footer 类构建器（从 MainGridLayout 的 frontmatter 迁出，逐字保留分支） */
-export function buildFooterClass(config: ResponsiveSidebarConfig): string {
-	const footerClass = ["footer", "col-span-1", "onload-animation"];
-
-	if (
-		config.isBothSidebars &&
-		config.hasLeftComponents &&
-		config.hasRightComponents
-	) {
-		// 双侧栏：Footer 在平板与桌面都跟随内容列
-		if (config.tabletSidebar === "right") {
-			footerClass.push(
-				"md:col-start-1 md:col-span-1 xl:col-start-2 xl:col-span-1",
-			);
-		} else {
-			footerClass.push(
-				"md:col-start-2 md:col-span-1 xl:col-start-2 xl:col-span-1",
-			);
-		}
-	} else if (config.hasLeftComponents && !config.hasRightComponents) {
-		// 仅左侧栏：内容列在第2列
-		footerClass.push(
-			"md:col-start-2 md:col-span-1 xl:col-start-2 xl:col-span-1",
-		);
-	} else {
-		// 仅右侧栏或无侧栏：内容列在第1列
-		footerClass.push(
-			"md:col-start-1 md:col-span-1 xl:col-start-1 xl:col-span-1",
-		);
-	}
-
-	return footerClass.join(" ");
+	gridDataAttrs: Record<string, string>;
+	layoutVars: MainGridLayoutVars;
 }
 
 /**
- * 计算文章页临时双侧栏等「有效侧栏配置」及网格 / footer 类（SSR，纯配置读）。
- * 从 MainGridLayout.astro 的 frontmatter 迁出，逐字保留原逻辑。
+ * 唯一布局真源：只根据显式输入计算列、侧栏、正文与 footer 的变量。
+ * 不读取配置、DOM 或 window，因此 SSR 与 Swup 可安全共用。
  */
+export function resolveSidebarLayout(
+	input: SidebarLayoutInput,
+): EffectiveSidebarState {
+	const layoutActive =
+		input.enabled && !(input.isPostPage && input.hideSidebarOnPostPage);
+	const baseHasLeft =
+		input.enabled && input.position !== "right" && input.hasLeftComponents;
+	const baseHasRight =
+		input.enabled && input.position !== "left" && input.hasRightComponents;
+	const shouldShowBothSidebarsOnPostPage =
+		layoutActive &&
+		input.isPostPage &&
+		input.position !== "both" &&
+		input.showBothSidebarsOnPostPage;
+	const shouldAddRightSidebar =
+		shouldShowBothSidebarsOnPostPage && input.position === "left";
+	const shouldAddLeftSidebar =
+		shouldShowBothSidebarsOnPostPage && input.position === "right";
+	const effectiveIsBothSidebars =
+		(input.enabled && input.position === "both") ||
+		shouldShowBothSidebarsOnPostPage;
+	const effectiveHasLeftComponents =
+		baseHasLeft || (shouldAddLeftSidebar && input.hasLeftComponents);
+	const effectiveHasRightComponents =
+		baseHasRight || (shouldAddRightSidebar && input.hasRightComponents);
+	const effectiveTabletSidebar = shouldAddLeftSidebar
+		? ("right" as const)
+		: input.tabletSidebar;
+	const usePostPageTocLeftLayout =
+		layoutActive &&
+		input.isPostPage &&
+		input.position === "both" &&
+		input.postPageTocLeftLayoutEnabled;
+
+	const updatedGridConfig: ResponsiveSidebarConfig = {
+		isBothSidebars: layoutActive && effectiveIsBothSidebars,
+		hasLeftComponents: layoutActive && effectiveHasLeftComponents,
+		hasRightComponents: layoutActive && effectiveHasRightComponents,
+		mobileShowSidebar: false,
+		tabletShowSidebar: layoutActive,
+		desktopShowSidebar: layoutActive,
+		position: input.position,
+		tabletSidebar: effectiveTabletSidebar,
+	};
+
+	return {
+		hideSidebarOnPostPage: input.hideSidebarOnPostPage,
+		postPageTocLeftLayoutEnabled: input.postPageTocLeftLayoutEnabled,
+		usePostPageTocLeftLayout,
+		shouldShowBothSidebarsOnPostPage,
+		shouldAddLeftSidebar,
+		shouldAddRightSidebar,
+		effectiveIsBothSidebars,
+		effectiveHasLeftComponents,
+		effectiveHasRightComponents,
+		effectiveTabletSidebar,
+		mobileShowSidebar: false,
+		updatedGridConfig,
+		gridDataAttrs: {
+			"data-sidebar-enable": input.enabled ? "true" : "false",
+			"data-grid-hide-sidebar-on-post": input.hideSidebarOnPostPage
+				? "true"
+				: "false",
+			"data-sidebar-position": input.position,
+			"data-tablet-sidebar": input.tabletSidebar,
+			"data-show-both-sidebars-on-post": input.showBothSidebarsOnPostPage
+				? "true"
+				: "false",
+			"data-post-page-toc-left-layout": input.postPageTocLeftLayoutEnabled
+				? "true"
+				: "false",
+			"data-has-left-components": input.hasLeftComponents ? "true" : "false",
+			"data-has-right-components": input.hasRightComponents ? "true" : "false",
+		},
+		layoutVars: computeMainGridLayoutVars(
+			updatedGridConfig,
+			usePostPageTocLeftLayout,
+		),
+	};
+}
+
+/** 配置读取薄适配：把站点配置归一化后交给纯布局计算。 */
 export function getEffectiveSidebarState(
 	ctx: EffectiveSidebarContext,
 ): EffectiveSidebarState {
-	const { isPostPage } = ctx;
-
-	const sidebarConfig = getResponsiveSidebarConfig();
-
-	const hideSidebarOnPostPage =
-		sidebarLayoutConfig.hideSidebarOnPostPage === true;
-
-	const shouldShowBothSidebarsOnPostPage: boolean =
-		sidebarLayoutConfig.enable &&
-		!hideSidebarOnPostPage &&
-		isPostPage &&
-		sidebarLayoutConfig.position !== "both" &&
-		!!sidebarLayoutConfig.showBothSidebarsOnPostPage;
-
-	// position为left时，对侧为右侧；position为right时，对侧为左侧
-	const shouldAddRightSidebar: boolean =
-		shouldShowBothSidebarsOnPostPage && sidebarLayoutConfig.position === "left";
-	const shouldAddLeftSidebar: boolean =
-		shouldShowBothSidebarsOnPostPage &&
-		sidebarLayoutConfig.position === "right";
-
-	const effectiveIsBothSidebars: boolean =
-		sidebarConfig.isBothSidebars || shouldShowBothSidebarsOnPostPage;
-	const effectiveHasRightComponents: boolean =
-		sidebarConfig.hasRightComponents ||
-		(shouldAddRightSidebar &&
-			sidebarLayoutConfig.rightComponents.some((comp) => comp.enable));
-	const effectiveHasLeftComponents: boolean =
-		sidebarConfig.hasLeftComponents ||
-		(shouldAddLeftSidebar &&
-			sidebarLayoutConfig.leftComponents.some((comp) => comp.enable));
-
-	// 使用effective值重新生成网格类
-	// 当position为right且文章页临时显示左侧栏时，tabletSidebar应为right（保持显示主侧栏）
-	const effectiveTabletSidebar = shouldAddLeftSidebar
-		? ("right" as const)
-		: sidebarConfig.tabletSidebar;
+	const hasLeftComponents = sidebarLayoutConfig.leftComponents.some(
+		(component) => component.enable,
+	);
+	const hasRightComponents = sidebarLayoutConfig.rightComponents.some(
+		(component) => component.enable,
+	);
 	const postPageTocLeftLayoutEnabled =
 		sidebarLayoutConfig.enable &&
 		sidebarLayoutConfig.position === "both" &&
-		effectiveTabletSidebar === "left" &&
+		(sidebarLayoutConfig.tabletSidebar ?? "left") === "left" &&
 		sidebarLayoutConfig.rightComponents.some(
 			(component) =>
 				component.type === "sidebarToc" &&
@@ -135,76 +147,17 @@ export function getEffectiveSidebarState(
 		sidebarLayoutConfig.leftComponents.some(
 			(component) => component.enable && component.showOnPostPage !== false,
 		);
-	const usePostPageTocLeftLayout =
-		isPostPage && !hideSidebarOnPostPage && postPageTocLeftLayoutEnabled;
 
-	const updatedGridConfig: ResponsiveSidebarConfig = {
-		...sidebarConfig,
-		isBothSidebars: effectiveIsBothSidebars,
-		hasLeftComponents: effectiveHasLeftComponents,
-		hasRightComponents: effectiveHasRightComponents,
-		tabletSidebar: effectiveTabletSidebar,
-	};
-
-	let { gridCols } = generateGridClasses(updatedGridConfig);
-	let sidebarClass = generateSidebarClasses(updatedGridConfig);
-	let rightSidebarClass =
-		effectiveIsBothSidebars || sidebarLayoutConfig.position === "right"
-			? generateRightSidebarClasses(updatedGridConfig)
-			: "";
-	let mainContentClass = generateMainContentClasses(updatedGridConfig);
-	let footerClassName = buildFooterClass(updatedGridConfig);
-
-	if (usePostPageTocLeftLayout) {
-		gridCols =
-			"grid-cols-1 md:grid-cols-[1fr_17.5rem] xl:grid-cols-[17.5rem_1fr_17.5rem]";
-		sidebarClass = replaceClassTokens(
-			sidebarClass,
-			["md:col-start-1", "md:col-start-2", "xl:col-start-1", "xl:col-start-3"],
-			["md:col-start-2", "xl:col-start-3"],
-		);
-		rightSidebarClass = replaceClassTokens(
-			rightSidebarClass,
-			["md:col-start-1", "md:col-start-2", "xl:col-start-1", "xl:col-start-3"],
-			["xl:col-start-1"],
-		);
-		mainContentClass = replaceClassTokens(
-			mainContentClass,
-			[
-				"md:col-start-1",
-				"md:col-start-2",
-				"xl:col-start-1",
-				"xl:col-start-2",
-				"xl:col-end-3",
-			],
-			["md:col-start-1", "xl:col-start-2", "xl:col-end-3"],
-		);
-		footerClassName = replaceClassTokens(
-			footerClassName,
-			["md:col-start-1", "md:col-start-2", "xl:col-start-1", "xl:col-start-2"],
-			["md:col-start-1", "xl:col-start-2"],
-		);
-	}
-
-	const staticBarClass = mainContentClass.replace("transition-main", "").trim();
-
-	return {
-		hideSidebarOnPostPage,
+	return resolveSidebarLayout({
+		isPostPage: ctx.isPostPage,
+		enabled: sidebarLayoutConfig.enable,
+		position: sidebarLayoutConfig.position,
+		tabletSidebar: sidebarLayoutConfig.tabletSidebar ?? "left",
+		hideSidebarOnPostPage: sidebarLayoutConfig.hideSidebarOnPostPage === true,
+		showBothSidebarsOnPostPage:
+			sidebarLayoutConfig.showBothSidebarsOnPostPage === true,
 		postPageTocLeftLayoutEnabled,
-		shouldShowBothSidebarsOnPostPage,
-		shouldAddLeftSidebar,
-		shouldAddRightSidebar,
-		effectiveIsBothSidebars,
-		effectiveHasLeftComponents,
-		effectiveHasRightComponents,
-		effectiveTabletSidebar,
-		mobileShowSidebar: sidebarConfig.mobileShowSidebar,
-		updatedGridConfig,
-		gridCols,
-		sidebarClass,
-		rightSidebarClass,
-		mainContentClass,
-		staticBarClass,
-		footerClassName,
-	};
+		hasLeftComponents,
+		hasRightComponents,
+	});
 }

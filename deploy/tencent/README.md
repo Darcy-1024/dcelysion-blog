@@ -1,8 +1,25 @@
 # 腾讯云私有部署记录
 
-> 2026-09-26：邮箱找回和中文邮件服务已部署至腾讯云私有环境；公网仍使用 Twikoo，待备案完成后再切换 Waline。下文 2026-09-25 状态保留为历史记录。
+> 2026-09-27：邮箱或昵称登录、匿名评论标签及 CSS 变量布局已部署至腾讯云私有预览；公网仍使用 Twikoo，待备案完成后再切换 Waline。下文 2026-09-25 状态保留为历史记录。
 
 本目录用于将 DcElysion 静态博客、Waline 注册登录/评论/留言和 R2 媒体迁移到 Ubuntu 轻量应用服务器。域名备案尚未完成，当前保持私有预览，**尚未完成正式公网切换**。
+
+## 邮箱或昵称登录（私有预览已部署）
+
+Waline 登录页已加入“邮箱或昵称”、昵称精确匹配登录，以及注册、资料改名和 OAuth 新建账户的昵称唯一性检查。邮箱优先匹配；所有账号状态都占用昵称。登录时遇到存量重名昵称会拒绝，仍可使用邮箱。
+
+2026-09-27 已在目标服务器执行 `sudo bash install-nickname-login.sh`。脚本先备份数据库、构建服务镜像，再执行 `002_unique_login_nickname.sql`，最后重启 Waline 并启用版本化登录页脚本。部署前只读检查无重名昵称，唯一索引已创建。若以后其他环境已有相同昵称，唯一索引迁移会失败并回滚；先只读查询 `SELECT display_name, count(*) FROM wl_users GROUP BY display_name HAVING count(*) > 1;`，由账号所有者确认处理方式，不自动更名。私有页面和资源可访问，实际邮箱、昵称及二步验证登录、重名注册提示尚需账号持有人验收。注册邮箱和找回密码仍要求邮箱。
+
+## 匿名评论标签（私有预览已部署）
+
+Waline 服务端响应会给发表时未关联账号（`wl_comment.user_id IS NULL`）的评论添加展示用「匿名」标签。填写昵称或邮箱仍属匿名；昵称保持原样，空昵称仍由前端显示“匿名用户”。注册用户（包括 `guest` 角色）保留原有标签；账号后来删除但评论仍有 `user_id` 时不改判为匿名。标签只在响应中生成，不更新历史评论。文章、留言和动态共用此接口；2026-09-27 已重建并重启私有 Waline 服务，公网尚未切换。历史 9 条评论及数据库账号关联保持不变。
+
+## 2026-09-27 私有预览发布
+
+- Waline 部署前确认存量昵称无重复；数据库备份 `waline-20260927T053836Z.dump` 已由脚本校验，配置快照位于 `/opt/dcelysion/config-backups/nickname-login-20260927T053836-1885996`。镜像构建、唯一索引迁移、容器重启、就绪检查和 Nginx 语法检查通过。
+- 静态版本已切换至 `/srv/dcelysion/releases/20260927-4d03528b6ca7`，发布包 SHA-256 为 `4d03528b6ca76bb7b99d1339c611049629b9d087df77d1ae5a04c717f4f55eaf`。安装脚本校验包、页面和首页引用后切换；私有首页、文章、管理登录页和新版脚本均返回 HTTP 200，文章 HTML 含 CSS 布局变量。
+- 数据库仍有原 9 条历史评论，昵称唯一索引存在；私有留言 API 返回的 6 条可见历史评论均带「匿名」标签。布局变量测试 7 项、登录与标签测试 6 项、找回密码回归 11 项通过；Astro 检查 268 文件无诊断、TypeScript 检查和腾讯云配置完整构建通过。
+- 尚未使用真实账号验收邮箱／昵称／二步验证登录及重名注册提示；未向真实评论或邮件服务写入测试数据。CSS 布局的详细浏览器断点与 Swup 验证见 `docs/baselines/layout-migration-phase-2` 至 `layout-migration-phase-4`。
 
 ## 历史状态（2026-09-25）
 
@@ -93,7 +110,7 @@ systemctl list-timers dcelysion-backup.timer
 
 ## 上游来源
 
-`vendor/waline.pgsql` 来自 [Waline 官方仓库固定提交](https://github.com/walinejs/waline/blob/43a1e85edcb07b03e26713223eb89dd81cbaa0c4/assets/waline.pgsql)，SHA-256 为 `44c5c4f841a46afc504d5423f71aa5222231e31b92523a6b05cde327bfa9c91c`。上游 LICENSE 为 GPL-2.0，已附 `vendor/LICENSE`（取自 1.41.6 npm 包）；镜像摘要见 compose 文件。
+`vendor/waline.pgsql` 基于 [Waline 官方仓库固定提交](https://github.com/walinejs/waline/blob/43a1e85edcb07b03e26713223eb89dd81cbaa0c4/assets/waline.pgsql)（上游原件 SHA-256 为 `44c5c4f841a46afc504d5423f71aa5222231e31b92523a6b05cde327bfa9c91c`），本地追加昵称唯一索引后文件 SHA-256 为 `bb459df2ef022cdf669337b97fe46da4f6e469c1467c2e4d6d29909e9895f915`。上游 LICENSE 为 GPL-2.0，已附 `vendor/LICENSE`（取自 1.41.6 npm 包）；镜像摘要见 compose 文件。
 
 参考：[Waline 数据库](https://waline.js.org/guide/database.html)、[环境变量](https://waline.js.org/reference/server/env.html)、[腾讯云备案期间说明](https://cloud.tencent.com/document/product/243/19637)。
 
@@ -101,7 +118,7 @@ systemctl list-timers dcelysion-backup.timer
 
 管理脚本固定为 `@waline/admin@0.34.2`，通过 `WALINE_ADMIN_MODULE_ASSET_URL=/admin-assets/0.34.2/admin.js` 加载。Nginx 将该路径映射至 `/srv/dcelysion/admin-assets/0.34.2/admin.js`，版本路径缓存一年；文件 SHA-256 为 `fb745bd9bd983a6170877861f701752304b1534b835fe72b9db12c36999c627f`。资源来自官方 npm 发布包，由部署脚本获取并核验，浏览器加载管理脚本不再依赖 unpkg。升级必须更新版本、校验值和环境变量路径，并重新验收兼容性。
 
-登录页的“显示密码”选项及注册页“个人网站（选填）”提示由 `show-password.js` 提供。部署脚本将它安装为 `/admin-assets/show-password-v1.js`，Nginx 仅在管理页 HTML 中加载；更新此脚本时须同步更改资源文件名和注入路径，以避开一年缓存。
+登录页的“显示密码”选项与“邮箱或昵称”提示、注册页“个人网站（选填）”提示由 `show-password.js` 提供。部署脚本将它安装为 `/admin-assets/show-password-v2.js`，Nginx 仅在管理页 HTML 中加载；更新此脚本时须同步更改资源文件名和注入路径，以避开一年缓存。
 
 私有 HTTP 代理仅监听 `127.0.0.1:8361`，与 HTTPS `127.0.0.1:8443` 共用配置；预览隧道必须指向 8361，直接访问 Waline 8360 无法获取静态管理脚本。未来正式域名使用相同资源路径。当前没有增加公网监听。
 
