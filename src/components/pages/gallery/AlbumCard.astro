@@ -8,7 +8,9 @@ interface Props {
 	id: string;
 	name: string;
 	cover: string;
+	previewSrc?: string;
 	lqipSrc?: string;
+	priority?: boolean;
 	description?: string;
 	date?: string;
 	location?: string;
@@ -21,7 +23,9 @@ const {
 	id,
 	name,
 	cover,
+	previewSrc = cover,
 	lqipSrc,
+	priority = false,
 	description,
 	date,
 	location,
@@ -47,10 +51,11 @@ const lqipProps = cover
       <>
         <div class="lqip-placeholder absolute inset-0 pointer-events-none" style={lqipProps.style} aria-hidden="true"></div>
         <img
-          src={cover}
+          src={previewSrc}
           alt={name}
           class="w-full h-full object-cover pointer-events-none opacity-0 transition-all duration-500 ease-out group-hover:scale-105"
-          loading="lazy"
+          loading={priority ? "eager" : "lazy"}
+          fetchpriority={priority ? "high" : undefined}
           decoding="async"
         />
       </>

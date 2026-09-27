@@ -8,6 +8,7 @@ import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import {
 	getAlbumCover,
 	getGalleryLqipSource,
+	getGalleryPreviewAsset,
 	scanAlbumPhotos,
 } from "@/utils/gallery-utils";
 
@@ -23,8 +24,16 @@ const description = i18n(I18nKey.galleryDescription);
 const albums = galleryConfig.albums.map((album) => {
 	const photos = scanAlbumPhotos(album.id, galleryConfig);
 	const cover = getAlbumCover(album, photos, galleryConfig);
+	const coverPreviewSrc =
+		getGalleryPreviewAsset(cover, galleryConfig)?.src || cover;
 	const coverLqipSrc = getGalleryLqipSource(cover, galleryConfig);
-	return { ...album, cover, coverLqipSrc, photoCount: photos.length };
+	return {
+		...album,
+		cover,
+		coverPreviewSrc,
+		coverLqipSrc,
+		photoCount: photos.length,
+	};
 });
 
 // 收集所有标签用于筛选
@@ -96,12 +105,14 @@ const allTags = [...new Set(albums.flatMap((a) => a.tags || []))].sort();
       {albums.length > 0 ? (
         <>
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 my-4">
-            {albums.map((album) => (
+            {albums.map((album, index) => (
               <AlbumCard
                 id={album.id}
                 name={album.name}
                 cover={album.cover}
+                previewSrc={album.coverPreviewSrc}
                 lqipSrc={album.coverLqipSrc}
+                priority={index === 0}
                 description={album.description}
                 date={album.date}
                 location={album.location}
