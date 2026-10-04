@@ -4,6 +4,7 @@ import La51Analytics from "@components/analytics/La51Analytics.astro";
 import MicrosoftClarity from "@components/analytics/MicrosoftClarity.astro";
 import UmamiAnalytics from "@components/analytics/UmamiAnalytics.astro";
 import CodeGroupManager from "@components/features/CodeGroupManager.astro";
+import MediaRouting from "@components/features/MediaRouting.astro";
 import FancyboxManager from "@components/features/FancyboxManager.astro";
 import FontSetup from "@components/features/FontSetup.astro";
 import GithubCardManager from "@components/features/GithubCardManager.astro";
@@ -171,6 +172,7 @@ const ogImageAlt = propsOgImageAlt ?? pageTitle;
           <UmamiAnalytics
           websiteId={analyticsConfig.umamiAnalytics.websiteId}
           scriptUrl={analyticsConfig.umamiAnalytics.scriptUrl}
+          domains={analyticsConfig.umamiAnalytics.domains}
           replaysScriptUrl={analyticsConfig.umamiAnalytics.replaysScriptUrl}
           trackOutboundLinks={analyticsConfig.umamiAnalytics.trackOutboundLinks}
           collectWebVitals={analyticsConfig.umamiAnalytics.collectWebVitals}
@@ -574,6 +576,7 @@ const ogImageAlt = propsOgImageAlt ?? pageTitle;
     <WavesEffect />
 
     <!-- Fancybox Manager -->
+    <MediaRouting />
     <FancyboxManager />
 
     <!-- Tab 代码块交互 -->

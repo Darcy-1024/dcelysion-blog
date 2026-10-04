@@ -1,0 +1,15 @@
+[Unit]
+Description=Isolated Umami dump and verified private R2 backup
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+EnvironmentFile=-/opt/dcelysion-umami/backup.env
+ExecStart=/usr/bin/python3 /opt/dcelysion-umami/umami-backup.py
+Nice=10
+IOSchedulingClass=idle
+TimeoutStartSec=600
+NoNewPrivileges=true

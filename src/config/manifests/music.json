@@ -1,0 +1,77 @@
+{
+	"version": 1,
+	"tracks": [
+		{
+			"id": "track-1",
+			"name": "羽根",
+			"artist": " 折戸伸治/Key ",
+			"url": "https://music.dcelysion.cn/tracks/hane-orito-shinji-8f927736.flac",
+			"cover": "https://music.dcelysion.cn/covers/hane-c245b3c0.avif",
+			"lrc": "[00:00.00]纯音乐"
+		},
+		{
+			"id": "track-2",
+			"name": "東方萃夢想",
+			"artist": "TAMUSIC",
+			"url": "https://music.dcelysion.cn/tracks/touhou-suimusou-0210439d.flac",
+			"cover": "https://music.dcelysion.cn/covers/touhou-suimusou-c104f7fe.avif",
+			"lrc": "[00:00.00]纯音乐"
+		},
+		{
+			"id": "track-3",
+			"name": "久遠寺有珠",
+			"artist": "深澤秀行",
+			"url": "https://music.dcelysion.cn/tracks/kuonji-alice-4a7394d7.flac",
+			"cover": "https://music.dcelysion.cn/covers/mahoutsukai-no-yoru-82612496.avif",
+			"lrc": "[00:00.00]纯音乐"
+		},
+		{
+			"id": "track-4",
+			"name": "魔法使いの夜～メインテーマ",
+			"artist": "深澤秀行",
+			"url": "https://music.dcelysion.cn/tracks/mahoutsukai-no-yoru-main-theme-fcb1095c.flac",
+			"cover": "https://music.dcelysion.cn/covers/mahoutsukai-no-yoru-82612496.avif",
+			"lrc": "[00:00.00]纯音乐"
+		},
+		{
+			"id": "track-5",
+			"name": "午後の眠り",
+			"artist": "深澤秀行",
+			"url": "https://music.dcelysion.cn/tracks/gogo-no-nemuri-a8185375.flac",
+			"cover": "https://music.dcelysion.cn/covers/mahoutsukai-no-yoru-82612496.avif",
+			"lrc": "[00:00.00]纯音乐"
+		},
+		{
+			"id": "track-6",
+			"name": "nostalgia",
+			"artist": "深澤秀行",
+			"url": "https://music.dcelysion.cn/tracks/nostalgia-e5518847.flac",
+			"cover": "https://music.dcelysion.cn/covers/mahoutsukai-no-yoru-82612496.avif",
+			"lrc": "[00:00.00]纯音乐"
+		},
+		{
+			"id": "track-7",
+			"name": "孤独な巡礼",
+			"artist": "川井憲次",
+			"url": "https://music.dcelysion.cn/tracks/kodoku-na-junrei-a4603f1e1202.flac",
+			"cover": "https://music.dcelysion.cn/covers/kodoku-na-junrei-6bd1e927.jpg",
+			"lrc": "[00:00.00]纯音乐"
+		},
+		{
+			"id": "track-8",
+			"name": "夜诞的花冠 Night's Crown of Flowers",
+			"artist": "HOYO-MiX",
+			"url": "https://music.dcelysion.cn/tracks/nights-crown-of-flowers-9b033bee4c19.flac",
+			"cover": "https://music.dcelysion.cn/covers/nights-crown-of-flowers-e6d348b6.webp",
+			"lrc": "[00:00.00]纯音乐"
+		},
+		{
+			"id": "track-9",
+			"name": "Kanon D-dur",
+			"artist": "Württembergisches Kammerorch.",
+			"url": "https://music.dcelysion.cn/tracks/kanon-d-dur-d688ec887b24.flac",
+			"cover": "https://music.dcelysion.cn/covers/kanon-eeb5186e.avif",
+			"lrc": "[00:00.00]纯音乐"
+		}
+	]
+}

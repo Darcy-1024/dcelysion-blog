@@ -1,0 +1,528 @@
+{
+	"version": 1,
+	"albums": [
+		{
+			"id": "wallpaper-2026",
+			"name": "封面合集",
+			"description": "网站封面图合集，包含了网站使用的所有封面图。",
+			"location": "wallpaper",
+			"date": "2026-07-09",
+			"tags": ["插画", "壁纸", "合集"],
+			"photos": [
+				{
+					"id": "photo-391053db1c57d8ae-1",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/cover-391053db.avif",
+					"objectKey": "wallpaper-2026/cover-391053db.avif",
+					"sha256": "391053db1c57d8ae543a2ab25c6b72cf4793530cd8c61e4ea55af18d70d4c520",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/cover-391053db-w1200-3bc2bceb.avif",
+					"width": 1200,
+					"height": 518
+				},
+				{
+					"id": "photo-5ade2316861752d7-2",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d10-5ade2316.avif",
+					"objectKey": "wallpaper-2026/d10-5ade2316.avif",
+					"sha256": "5ade2316861752d74be01b4feb87764bce2f2580f252a931ca0835669098baae",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d10-5ade2316-w1200-77f4543d.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-2cb3d08ad6d7f277-3",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d11-2cb3d08a.avif",
+					"objectKey": "wallpaper-2026/d11-2cb3d08a.avif",
+					"sha256": "2cb3d08ad6d7f2774ea6e3140a8694654123a630b2eb139d2998dd00047ce3df",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d11-2cb3d08a-w1200-fec4c39b.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-608036f6da494444-4",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d12-608036f6.avif",
+					"objectKey": "wallpaper-2026/d12-608036f6.avif",
+					"sha256": "608036f6da494444b5663591a4bcd00faf27fd12c219febb118bec6dff2eb9ee",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d12-608036f6-w1200-3a3ef8f6.avif",
+					"width": 1200,
+					"height": 703
+				},
+				{
+					"id": "photo-55fad7003750329d-5",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d13-55fad700.avif",
+					"objectKey": "wallpaper-2026/d13-55fad700.avif",
+					"sha256": "55fad7003750329d783f4593f48bd5f38584427797e0e3bb91139e576f14149c",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d13-55fad700-w1200-fc548f1a.avif",
+					"width": 1200,
+					"height": 681
+				},
+				{
+					"id": "photo-015251a96949137a-6",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d14-015251a9.avif",
+					"objectKey": "wallpaper-2026/d14-015251a9.avif",
+					"sha256": "015251a96949137a959468acb35203515b0fef06d6eb0d7fae9e5cd7a5190db3",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d14-015251a9-w1200-b8c4ef29.avif",
+					"width": 1200,
+					"height": 741
+				},
+				{
+					"id": "photo-b23f6203cfea5d99-7",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d15-b23f6203.avif",
+					"objectKey": "wallpaper-2026/d15-b23f6203.avif",
+					"sha256": "b23f6203cfea5d99ece685068bf13ecaaf26cd0b60eb488287d5d7f138ef6062",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d15-b23f6203-w1200-3c12be9a.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-763914357c9530ce-8",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d16-76391435.avif",
+					"objectKey": "wallpaper-2026/d16-76391435.avif",
+					"sha256": "763914357c9530ce15b2c2e3ce212a59abeab02c4d5825f591faf8333eb0c436",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d16-76391435-w1200-42610d84.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-b3f5fda9867f26d8-9",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d17-b3f5fda9.avif",
+					"objectKey": "wallpaper-2026/d17-b3f5fda9.avif",
+					"sha256": "b3f5fda9867f26d861348780d89a3b393c71dfd0fdc2d9c92c1311eb328ac520",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d17-b3f5fda9-w1200-e9c5cefb.avif",
+					"width": 1200,
+					"height": 758
+				},
+				{
+					"id": "photo-391053db1c57d8ae-10",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d18-391053db.avif",
+					"objectKey": "wallpaper-2026/d18-391053db.avif",
+					"sha256": "391053db1c57d8ae543a2ab25c6b72cf4793530cd8c61e4ea55af18d70d4c520",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d18-391053db-w1200-3bc2bceb.avif",
+					"width": 1200,
+					"height": 518
+				},
+				{
+					"id": "photo-e1b42c4333eaaacf-11",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d19-e1b42c43.avif",
+					"objectKey": "wallpaper-2026/d19-e1b42c43.avif",
+					"sha256": "e1b42c4333eaaacf55fa93dbe34c6dc604d43186cca287f267ec8105ce099754",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d19-e1b42c43-w1200-f991a4a2.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-d30ec649d1c19140-12",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d20-d30ec649.avif",
+					"objectKey": "wallpaper-2026/d20-d30ec649.avif",
+					"sha256": "d30ec649d1c1914097c1bcc5c3ed7202d5849a0b826a7e3d57573e49c57ac1f4",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
+					"width": 1200,
+					"height": 575
+				},
+				{
+					"id": "photo-57aa4b4ff8c847c7-13",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d21-57aa4b4f.avif",
+					"objectKey": "wallpaper-2026/d21-57aa4b4f.avif",
+					"sha256": "57aa4b4ff8c847c75d05558b08c489e490fa1a84a1f48a63d0495b7c75f9df7e",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d21-57aa4b4f-w1200-51a16d17.avif",
+					"width": 1200,
+					"height": 718
+				},
+				{
+					"id": "photo-d2519bf037b36949-14",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d22-d2519bf0.avif",
+					"objectKey": "wallpaper-2026/d22-d2519bf0.avif",
+					"sha256": "d2519bf037b369498aa1f0505ec452ec098ebee586c6327df27c4f21250f3066",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d22-d2519bf0-w1200-30d13746.avif",
+					"width": 1200,
+					"height": 660
+				},
+				{
+					"id": "photo-a520a3b58e1fc7d1-15",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d23-a520a3b5.avif",
+					"objectKey": "wallpaper-2026/d23-a520a3b5.avif",
+					"sha256": "a520a3b58e1fc7d16d5cd4846fb7bb42c4c1384db2acfda23cd6f1701895880a",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d23-a520a3b5-w1200-6ad5f814.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-3410c685ebb5ff66-16",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d24-3410c685.avif",
+					"objectKey": "wallpaper-2026/d24-3410c685.avif",
+					"sha256": "3410c685ebb5ff663fb2f23c5cbca159ca13a6768739c0ecaf4d405897e5d76d",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d24-3410c685-w1200-0e9b9261.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-52d82d969cbc64d7-17",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d25-52d82d96.avif",
+					"objectKey": "wallpaper-2026/d25-52d82d96.avif",
+					"sha256": "52d82d969cbc64d7ff81b417ffc9073bd6c8ff157b9f839580a5f4191c88cc48",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d25-52d82d96-w1200-dcf9a410.avif",
+					"width": 1200,
+					"height": 676
+				},
+				{
+					"id": "photo-ae2ae63a723b6527-18",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d26-ae2ae63a.avif",
+					"objectKey": "wallpaper-2026/d26-ae2ae63a.avif",
+					"sha256": "ae2ae63a723b6527a7ff40e87ed8fbc04bfb5b7ec4a907566bc5f294abddf597",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d26-ae2ae63a-w1200-eaacd744.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-8ce034ace3223fe9-19",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d27-8ce034ac.avif",
+					"objectKey": "wallpaper-2026/d27-8ce034ac.avif",
+					"sha256": "8ce034ace3223fe960bb80dda60043b4445b5870b908f9f6531232d91409a0ab",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d27-8ce034ac-w1200-3a6d4f78.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-d1c49e999066b846-20",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d28-d1c49e99.avif",
+					"objectKey": "wallpaper-2026/d28-d1c49e99.avif",
+					"sha256": "d1c49e999066b846033864c6c8097fc671e963d47c553b74b35701ec9c77cd67",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d28-d1c49e99-w1200-ec07f64f.avif",
+					"width": 1200,
+					"height": 672
+				},
+				{
+					"id": "photo-4f0c1e4ad96c1bae-21",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d29-4f0c1e4a.avif",
+					"objectKey": "wallpaper-2026/d29-4f0c1e4a.avif",
+					"sha256": "4f0c1e4ad96c1baec8e6ff3fb0dcd15adce1ad8497cb0562368e4eb7a2bde20b",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d29-4f0c1e4a-w1200-efb0ab77.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-8c766f47800a7b1c-22",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d30-8c766f47.avif",
+					"objectKey": "wallpaper-2026/d30-8c766f47.avif",
+					"sha256": "8c766f47800a7b1c04a2d62099214c4cd2c930d31cf4ee58e2aa8bfc1fb74725",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d30-8c766f47-w1200-06f0a0bd.avif",
+					"width": 1200,
+					"height": 696
+				},
+				{
+					"id": "photo-a6d1d93eb0b58533-23",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d31-a6d1d93e.avif",
+					"objectKey": "wallpaper-2026/d31-a6d1d93e.avif",
+					"sha256": "a6d1d93eb0b585336983e3ce08613ea3e18e1d2bca89cc453ea6a27c90baa1e7",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d31-a6d1d93e-w1200-c32fa2e7.avif",
+					"width": 1000,
+					"height": 562
+				},
+				{
+					"id": "photo-e89da72819bd1ad2-24",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d32-e89da728.avif",
+					"objectKey": "wallpaper-2026/d32-e89da728.avif",
+					"sha256": "e89da72819bd1ad2bfc815b065d336ed20daf224bff14d0cbc4ae0820171ad53",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d32-e89da728-w1200-e56bca04.avif",
+					"width": 1200,
+					"height": 825
+				},
+				{
+					"id": "photo-43c09992e0ee79ca-25",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d33-43c09992.avif",
+					"objectKey": "wallpaper-2026/d33-43c09992.avif",
+					"sha256": "43c09992e0ee79caadc53d8bd59cc765af4a5106ef538c9ece01fee4a8c4cf94",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d33-43c09992-w1200-8b8d7d7d.avif",
+					"width": 1200,
+					"height": 637
+				},
+				{
+					"id": "photo-cb9ba5eae2407877-26",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d34-cb9ba5ea.avif",
+					"objectKey": "wallpaper-2026/d34-cb9ba5ea.avif",
+					"sha256": "cb9ba5eae240787746fcb060428ebb8c46911e8cfd3d9dddc3f60c67928eff1d",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d34-cb9ba5ea-w1200-e4bf4f84.avif",
+					"width": 1200,
+					"height": 630
+				},
+				{
+					"id": "photo-4f4fedac849c48d3-27",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d35-4f4fedac.avif",
+					"objectKey": "wallpaper-2026/d35-4f4fedac.avif",
+					"sha256": "4f4fedac849c48d342de8c218c15c627e4e9f0f0733bc6a27daae78ab803f344",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d35-4f4fedac-w1200-55c927a8.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-8e2a07d9353ddc4f-28",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d36-8e2a07d9.avif",
+					"objectKey": "wallpaper-2026/d36-8e2a07d9.avif",
+					"sha256": "8e2a07d9353ddc4f9c7de6a4033b4178f9c47d157aeea5429c592a3f66db6175",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d36-8e2a07d9-w1200-b094105b.avif",
+					"width": 1200,
+					"height": 663
+				},
+				{
+					"id": "photo-1fd90c23c2acb20b-29",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d37-1fd90c23.avif",
+					"objectKey": "wallpaper-2026/d37-1fd90c23.avif",
+					"sha256": "1fd90c23c2acb20b46ce52d7d7666a2a5eb6cc29c172c0d587fe3c721781ab88",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d37-1fd90c23-w1200-b0104f39.avif",
+					"width": 1200,
+					"height": 710
+				},
+				{
+					"id": "photo-8d3a4e5ef9a25ed9-30",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d38-8d3a4e5e.avif",
+					"objectKey": "wallpaper-2026/d38-8d3a4e5e.avif",
+					"sha256": "8d3a4e5ef9a25ed96a5d026343c198c437e4f07f131c6e599f94d36795128243",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d38-8d3a4e5e-w1200-a1a32d18.avif",
+					"width": 1200,
+					"height": 768
+				},
+				{
+					"id": "photo-c4aa1ce929ff68c6-31",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d39-c4aa1ce9.avif",
+					"objectKey": "wallpaper-2026/d39-c4aa1ce9.avif",
+					"sha256": "c4aa1ce929ff68c6384d3ecdbbc361eea3d5a8e47c41640d8a71dabe57b5f406",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d39-c4aa1ce9-w1200-db719011.avif",
+					"width": 1200,
+					"height": 662
+				},
+				{
+					"id": "photo-0e1694f3ccb9b7a4-32",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d8-0e1694f3.avif",
+					"objectKey": "wallpaper-2026/d8-0e1694f3.avif",
+					"sha256": "0e1694f3ccb9b7a442f2b4b40b8f49b1b912fa735bd9e2b03b92116a254bc63b",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d8-0e1694f3-w1200-91fb699e.avif",
+					"width": 1200,
+					"height": 651
+				},
+				{
+					"id": "photo-5d033ec08890b828-33",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/d9-5d033ec0.avif",
+					"objectKey": "wallpaper-2026/d9-5d033ec0.avif",
+					"sha256": "5d033ec08890b8282e7380f46676bd100336b31f43617273f7518ab8de7145ec",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d9-5d033ec0-w1200-cde2ceb8.avif",
+					"width": 1200,
+					"height": 675
+				},
+				{
+					"id": "photo-ea79b8edbd35e02c-34",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m10-ea79b8ed.avif",
+					"objectKey": "wallpaper-2026/m10-ea79b8ed.avif",
+					"sha256": "ea79b8edbd35e02c46f8b93e3c9636cd7e80cc456b26fa01ac134f21f56d0718",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m10-ea79b8ed-w1200-4c98ace4.avif",
+					"width": 1200,
+					"height": 1800
+				},
+				{
+					"id": "photo-91625d3b782d3ab9-35",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m11-91625d3b.avif",
+					"objectKey": "wallpaper-2026/m11-91625d3b.avif",
+					"sha256": "91625d3b782d3ab9922b8177257c6f9c0989d0a0d5c66d8f6f76088dee93e517",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m11-91625d3b-w1200-4184b3a9.avif",
+					"width": 1200,
+					"height": 1829
+				},
+				{
+					"id": "photo-6661d484e6e8fc2e-36",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m12-6661d484.avif",
+					"objectKey": "wallpaper-2026/m12-6661d484.avif",
+					"sha256": "6661d484e6e8fc2e4aec6b4af5e5ff5a800b4a89ba0c6f9cd4d3414cf0702488",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m12-6661d484-w1200-d649bc0e.avif",
+					"width": 1200,
+					"height": 1809
+				},
+				{
+					"id": "photo-ab23962717585f9c-37",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m13-ab239627.avif",
+					"objectKey": "wallpaper-2026/m13-ab239627.avif",
+					"sha256": "ab23962717585f9cab6bec5aa75747c88c8ffcdc7361d3229f059a811bf6147c",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m13-ab239627-w1200-ef6bcde5.avif",
+					"width": 1200,
+					"height": 1697
+				},
+				{
+					"id": "photo-ed693f77de7d8afc-38",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m14-ed693f77.avif",
+					"objectKey": "wallpaper-2026/m14-ed693f77.avif",
+					"sha256": "ed693f77de7d8afc1948af7ba5fd837093d1286c5f005dc50c7929c835cacee6",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m14-ed693f77-w1200-34f7a26b.avif",
+					"width": 1200,
+					"height": 2400
+				},
+				{
+					"id": "photo-35d9af8d7c2fcf5f-39",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m15-35d9af8d.avif",
+					"objectKey": "wallpaper-2026/m15-35d9af8d.avif",
+					"sha256": "35d9af8d7c2fcf5f199baecfba8fa89f7c0fee69e09a22e9f532c3a1c4baff6d",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m15-35d9af8d-w1200-9abc4869.avif",
+					"width": 1200,
+					"height": 1807
+				},
+				{
+					"id": "photo-23f94c4010c1c465-40",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m16-23f94c40.avif",
+					"objectKey": "wallpaper-2026/m16-23f94c40.avif",
+					"sha256": "23f94c4010c1c465d3791472bab72150d1f335ce21af1e40e322a4f27b25fdae",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m16-23f94c40-w1200-b8910567.avif",
+					"width": 1200,
+					"height": 2005
+				},
+				{
+					"id": "photo-28cce0c2518cd1c9-41",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m17-28cce0c2.avif",
+					"objectKey": "wallpaper-2026/m17-28cce0c2.avif",
+					"sha256": "28cce0c2518cd1c95e057a4d50e6e4a32daeb6c8913a412890fb520d5f9ca54b",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m17-28cce0c2-w1200-1b57d9c2.avif",
+					"width": 1200,
+					"height": 1668
+				},
+				{
+					"id": "photo-6c6dfbf8014bc79f-42",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m18-6c6dfbf8.avif",
+					"objectKey": "wallpaper-2026/m18-6c6dfbf8.avif",
+					"sha256": "6c6dfbf8014bc79f6cf9e44907ea06e2f25751d2d6abac02fc75bb5a70543829",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m18-6c6dfbf8-w1200-b40a2990.avif",
+					"width": 1200,
+					"height": 2400
+				},
+				{
+					"id": "photo-77e04744e9d05575-43",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m19-77e04744.avif",
+					"objectKey": "wallpaper-2026/m19-77e04744.avif",
+					"sha256": "77e04744e9d05575ec46d2eb705183e97e3dc6855c6acf2f9ed235cbfaea8a90",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m19-77e04744-w1200-5c915b45.avif",
+					"width": 1200,
+					"height": 2191
+				},
+				{
+					"id": "photo-5d4adaed9990083e-44",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m20-5d4adaed.avif",
+					"objectKey": "wallpaper-2026/m20-5d4adaed.avif",
+					"sha256": "5d4adaed9990083e68249ca84b2ec6625381df67196f85637fedea406a389e20",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m20-5d4adaed-w1200-0cc9324a.avif",
+					"width": 1200,
+					"height": 1920
+				},
+				{
+					"id": "photo-7dff455682aa0781-45",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m21-7dff4556.avif",
+					"objectKey": "wallpaper-2026/m21-7dff4556.avif",
+					"sha256": "7dff455682aa078119bbaccb68b2729be8101ae73d1ffcd29a575c443d27021a",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m21-7dff4556-w1200-7d0cb3db.avif",
+					"width": 1200,
+					"height": 2133
+				},
+				{
+					"id": "photo-7564107a63b09f77-46",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m22-7564107a.avif",
+					"objectKey": "wallpaper-2026/m22-7564107a.avif",
+					"sha256": "7564107a63b09f77ab1eb40dac908a4586815a0702be71035a6392bee2e5b558",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m22-7564107a-w1200-e11d121d.avif",
+					"width": 1200,
+					"height": 1759
+				},
+				{
+					"id": "photo-3e9d8c37cf5329d1-47",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m23-3e9d8c37.avif",
+					"objectKey": "wallpaper-2026/m23-3e9d8c37.avif",
+					"sha256": "3e9d8c37cf5329d192570daf90fb21dea3da4b9370a5f39ef6ce85595e98fde5",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m23-3e9d8c37-w1200-bb148d51.avif",
+					"width": 1200,
+					"height": 1834
+				},
+				{
+					"id": "photo-a062bb21f7863620-48",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m24-a062bb21.avif",
+					"objectKey": "wallpaper-2026/m24-a062bb21.avif",
+					"sha256": "a062bb21f7863620b844fb5d12c753773d30f2fb3d7787dc4628c51264622009",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m24-a062bb21-w1200-edbee152.avif",
+					"width": 1000,
+					"height": 1778
+				},
+				{
+					"id": "photo-e49a60cb4cea98ea-49",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m25-e49a60cb.avif",
+					"objectKey": "wallpaper-2026/m25-e49a60cb.avif",
+					"sha256": "e49a60cb4cea98eaa43f986fd1a8360964be7597c6705f2aa70bb962e30d40f0",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m25-e49a60cb-w1200-906557ed.avif",
+					"width": 1000,
+					"height": 1750
+				},
+				{
+					"id": "photo-41e392410999a254-50",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m26-41e39241.avif",
+					"objectKey": "wallpaper-2026/m26-41e39241.avif",
+					"sha256": "41e392410999a254b869c02e13a0272b522ab39cd221e553bafa717893857f17",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m26-41e39241-w1200-3936dc54.avif",
+					"width": 1200,
+					"height": 1577
+				},
+				{
+					"id": "photo-a67faab96866d13e-51",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m27-a67faab9.avif",
+					"objectKey": "wallpaper-2026/m27-a67faab9.avif",
+					"sha256": "a67faab96866d13e1b60d8e1f05793c3f2a73927ac6d7304be617dc5366d424b",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m27-a67faab9-w1200-1fd16975.avif",
+					"width": 1200,
+					"height": 1667
+				},
+				{
+					"id": "photo-c12a1fcce0cbf386-52",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m29-c12a1fcc.avif",
+					"objectKey": "wallpaper-2026/m29-c12a1fcc.avif",
+					"sha256": "c12a1fcce0cbf386bc8dd2d9f365e0abdbdff82fe1c7bd34dec7905e4dafaa3b",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m29-c12a1fcc-w1200-d26ee772.avif",
+					"width": 1200,
+					"height": 1667
+				},
+				{
+					"id": "photo-89b639e52d681f95-53",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m30-89b639e5.avif",
+					"objectKey": "wallpaper-2026/m30-89b639e5.avif",
+					"sha256": "89b639e52d681f957bec5ce192245345369b5143ff9f42835ab7ec7cc69cfa61",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m30-89b639e5-w1200-902532b4.avif",
+					"width": 1200,
+					"height": 2128
+				},
+				{
+					"id": "photo-b7cd3c02eaf7ac4c-54",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m31-b7cd3c02.avif",
+					"objectKey": "wallpaper-2026/m31-b7cd3c02.avif",
+					"sha256": "b7cd3c02eaf7ac4cbc38ec112d2b9aaecef9e0784d5a2e1f1e792b13663ca275",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m31-b7cd3c02-w1200-7f6fb402.avif",
+					"width": 1200,
+					"height": 2008
+				},
+				{
+					"id": "photo-62490994578a84f0-55",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m7-62490994.avif",
+					"objectKey": "wallpaper-2026/m7-62490994.avif",
+					"sha256": "62490994578a84f0b8f376a20556c1a852898344c022ff71eeb097a4c6368088",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m7-62490994-w1200-e6413a19.avif",
+					"width": 1200,
+					"height": 1563
+				},
+				{
+					"id": "photo-98aaaf3d80998338-56",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m8-98aaaf3d.avif",
+					"objectKey": "wallpaper-2026/m8-98aaaf3d.avif",
+					"sha256": "98aaaf3d80998338a0ecea8dac56bd5f6fc0ea57d852ef574de7d4910deeca16",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m8-98aaaf3d-w1200-f59ad4c2.avif",
+					"width": 1200,
+					"height": 1600
+				},
+				{
+					"id": "photo-b6bb3ec8d9e794df-57",
+					"original": "https://gallery.dcelysion.cn/wallpaper-2026/m9-b6bb3ec8.avif",
+					"objectKey": "wallpaper-2026/m9-b6bb3ec8.avif",
+					"sha256": "b6bb3ec8d9e794dfbfbc99a24a1bdb7a61fdc9a57ce7ae2101031c243dede237",
+					"preview": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/m9-b6bb3ec8-w1200-ebda5137.avif",
+					"width": 863,
+					"height": 1920
+				}
+			]
+		}
+	]
+}

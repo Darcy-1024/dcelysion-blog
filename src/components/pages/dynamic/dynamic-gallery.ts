@@ -5,6 +5,8 @@ import type {
 } from "@fancyapps/ui";
 import * as FancyboxModule from "@fancyapps/ui";
 import { zh_CN } from "@fancyapps/ui/dist/fancybox/l10n/zh_CN.js";
+import { assignMedia, backupMedia, mediaRouter } from "@/utils/media-client";
+import { mediaCarousel } from "@/utils/media-lightbox";
 
 const VIEW_ORIGINAL_SIZE_TITLE = "查看原始尺寸";
 const FIT_TO_VIEW_TITLE = "适应窗口";
@@ -35,6 +37,7 @@ function updateToggle1to1Title(
 function getLightboxOptions(startIndex: number): Partial<FancyboxOptions> {
 	return {
 		startIndex,
+		Carousel: mediaCarousel(),
 		l10n: fancyboxL10n,
 		on: fancyboxEvents,
 	};
@@ -64,7 +67,11 @@ export function registerDynamicGallery(): void {
 			this.images = elements.map((element) => ({
 				alt: element.alt,
 				element,
-				src: element.dataset.originalSrc || element.currentSrc || element.src,
+				src:
+					element.dataset.originalSrc ||
+					element.dataset.mediaSrc ||
+					element.currentSrc ||
+					element.src,
 			}));
 			this.buildGrid();
 			this.buildThumbnails();
@@ -138,22 +145,52 @@ export function registerDynamicGallery(): void {
 					),
 				);
 				button.addEventListener("click", () => this.select(index));
-				const thumbnail = element.cloneNode(true) as HTMLImageElement;
+				const thumbnail = document.createElement("img");
+				for (const attribute of element.attributes)
+					if (
+						![
+							"src",
+							"srcset",
+							"id",
+							"data-media-src",
+							"data-media-srcset",
+							"data-media-active",
+						].includes(attribute.name)
+					)
+						thumbnail.setAttribute(attribute.name, attribute.value);
 				thumbnail.alt = alt;
 				thumbnail.removeAttribute("id");
+				thumbnail.removeAttribute("data-media-active");
 				thumbnail.removeAttribute("data-original-src");
 				thumbnail.sizes = "(max-width: 420px) 3.25rem, 3.75rem";
 				thumbnail.addEventListener(
 					"error",
 					() => {
+						if (
+							mediaRouter().entry(
+								thumbnail.dataset.mediaSrc ||
+									thumbnail.getAttribute("src") ||
+									"",
+							)
+						) {
+							backupMedia(thumbnail);
+							return;
+						}
 						thumbnail.removeAttribute("srcset");
 						thumbnail.removeAttribute("sizes");
 						thumbnail.dataset.previewFallback = "true";
 						if (thumbnail.src !== new URL(src, document.baseURI).href) {
-							thumbnail.src = src;
+							assignMedia(thumbnail, src);
 						}
 					},
 					{ once: true },
+				);
+				assignMedia(
+					thumbnail,
+					element.dataset.mediaSrc || element.getAttribute("src") || src,
+					element.dataset.mediaSrcset ||
+						element.getAttribute("srcset") ||
+						undefined,
 				);
 				button.append(thumbnail);
 				thumbnails.append(button);
@@ -225,7 +262,7 @@ export function registerDynamicGallery(): void {
 			if (!main) return;
 			main.removeAttribute("srcset");
 			main.removeAttribute("sizes");
-			main.src = image.src;
+			assignMedia(main, image.src);
 			main.alt = image.alt;
 			main.dataset.galleryIndex = String(this.activeIndex);
 			this.querySelector<HTMLElement>("[data-gallery-lightbox]")?.setAttribute(

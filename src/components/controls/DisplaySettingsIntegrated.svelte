@@ -55,6 +55,7 @@ import {
 	siteConfig,
 } from "@/config";
 import type { FullscreenWallpaperLayout, WALLPAPER_MODE } from "@/types/config";
+import { mediaRouter } from "@/utils/media-client";
 
 type OverlaySliderItem = {
 	key: "opacity" | "blur" | "cardOpacity";
@@ -83,6 +84,18 @@ let currentLayout: "list" | "grid" = $state("list");
 const defaultLayout = siteConfig.postListLayout.defaultMode;
 const mobileDefaultLayout =
 	siteConfig.postListLayout.mobileDefaultMode || defaultLayout;
+let routePending = $state(false);
+let routeSource = $state("r2");
+let routeStorage = $state(true);
+async function rerouteMedia() {
+	routePending = true;
+	try {
+		routeSource = await mediaRouter().start(true);
+		routeStorage = mediaRouter().storageAvailable;
+	} finally {
+		routePending = false;
+	}
+}
 let mounted = $state(false);
 let isSmallScreen = $state(
 	typeof window !== "undefined" ? window.innerWidth < 1200 : false,
@@ -527,6 +540,16 @@ function switchLayout() {
 
 onMount(() => {
 	mounted = true;
+	routeSource = mediaRouter().preferred;
+	routeStorage = mediaRouter().storageAvailable;
+	void mediaRouter()
+		.start()
+		.then((source) => {
+			if (mounted) {
+				routeSource = source;
+				routeStorage = mediaRouter().storageAvailable;
+			}
+		});
 	checkScreenSize();
 
 	// 从localStorage读取保存的壁纸模式
@@ -663,6 +686,11 @@ $effect(() => {
 
 {#if hasAnyContent}
 <div id="display-setting" class="float-panel float-panel-closed absolute transition-all w-80 right-4 px-3 pt-0 pb-3 max-h-[80vh] overflow-y-auto custom-scrollbar" data-floating-panel data-floating-panel-trigger="display-settings-switch" inert aria-hidden="true">
+	<div class="pt-3 pb-2 text-xs" aria-live="polite">
+		<button class="btn-plain rounded-lg px-3 py-2 focus-ring" disabled={routePending} onclick={rerouteMedia}>{i18n(routePending ? I18nKey.mediaRoutePending : I18nKey.mediaReroute)}</button>
+		<p>{i18n(I18nKey.mediaRouteFuture)} {routeSource}</p>
+		{#if !routeStorage}<p>{i18n(I18nKey.mediaStorageLimited)}</p>{/if}
+	</div>
 	<!-- Tab Bar -->
 	{#if showTabBar}
 	<div class="flex gap-1 border-b border-black/5 dark:border-white/10 pt-3 pb-1 mb-3">

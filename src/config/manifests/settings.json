@@ -1,0 +1,25 @@
+{
+	"version": 1,
+	"title": "DcElysion",
+	"subtitle": "blog",
+	"description": "God’s in his heaven，All’s right with the world",
+	"keywords": [
+		"Elysion",
+		"Firefly",
+		"Fuwari",
+		"Astro",
+		"ACGN",
+		"博客",
+		"技术博客",
+		"静态博客"
+	],
+	"navbarTitle": "DcElysion",
+	"mediaRouting": {
+		"enabled": false,
+		"mode": "auto",
+		"defaultSource": "r2",
+		"timeoutMs": 2500,
+		"probeBytes": 32768,
+		"minimumAdvantage": 0.2
+	}
+}

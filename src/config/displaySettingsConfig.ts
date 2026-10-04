@@ -1,5 +1,7 @@
 import type { DisplaySettingsConfig } from "../types/displaySettingsConfig";
 import { resolveDisplaySettingsConfig } from "../utils/display-settings-utils";
+import { parseMediaPolicy } from "../utils/media-contract";
+import settings from "./manifests/settings.json";
 
 // 显示设置面板开关配置
 // 集中管理设置面板中所有可切换项的开关
@@ -21,7 +23,8 @@ export const displaySettingsConfig: DisplaySettingsConfig =
 		// 无需改动本文件：PUBLIC_DISPLAY_SETTINGS=true
 		// 环境变量优先级更高，未设置或取值无法识别时使用这里的值
 		// 生产环境建议默认关闭，只在开发调试环境开启用来预览效果
-		enable: false,
+		enable: parseMediaPolicy((settings as Record<string, unknown>).mediaRouting)
+			.enabled,
 
 		// ── 外观 (Appearance) ──────────────────────────────────
 

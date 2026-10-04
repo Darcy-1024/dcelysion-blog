@@ -2,6 +2,12 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const en: Translation = {
+	[Key.mediaReroute]: "Choose media source again",
+	[Key.mediaRoutePending]: "Choosing source for future media",
+	[Key.mediaRouteFuture]: "Future loads only:",
+	[Key.mediaStorageLimited]:
+		"Session storage unavailable; refresh cannot reuse the choice",
+
 	[Key.articleTypography]: "Enhanced Chinese typography",
 	[Key.home]: "Home",
 	[Key.about]: "About",

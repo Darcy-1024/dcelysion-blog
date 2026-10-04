@@ -1,4 +1,11 @@
 // biome-ignore-all lint/correctness/noInnerDeclarations: Preserve var scoping in the existing player state machine during extraction.
+import {
+	assignMedia,
+	backupMedia,
+	fetchMedia,
+	managedMedia,
+	markMediaPlayed,
+} from "../utils/media-client";
 export function ensureMusicManager() {
 	// Singleton guard – only create once
 	if (window.__fireflyMusic) return window.__fireflyMusic;
@@ -135,7 +142,7 @@ export function ensureMusicManager() {
 
 		if (isLrcUrl) {
 			emit("fm:lyrics", { lyrics: [], status: "loading" });
-			fetch(track.lrc)
+			fetchMedia(track.lrc)
 				.then((r) => r.text())
 				.then((text) => {
 					state.lyrics = parseLRC(text);
@@ -163,7 +170,7 @@ export function ensureMusicManager() {
 		if (ver !== loadVersion) return;
 		var playUrl = currentTrackUrls[currentTrackUrlIndex];
 		if (audio.getAttribute("src") !== playUrl || audio.error) {
-			audio.src = playUrl;
+			assignMedia(audio, playUrl);
 			if (backgroundPreloadEnabled || autoPlay) audio.load();
 		}
 
@@ -353,7 +360,20 @@ export function ensureMusicManager() {
 		playNext(true);
 	});
 
+	audio.addEventListener("playing", () => markMediaPlayed(audio));
 	audio.addEventListener("error", () => {
+		if (managedMedia(audio)) {
+			if (backupMedia(audio)) {
+				audio.load();
+				if (playbackRequested) void audio.play().catch(() => {});
+				return;
+			}
+			state.error = "Audio playback error";
+			state.isPlaying = false;
+			emit("fm:error", { message: config.i18n.error });
+			emit("fm:play-state", { isPlaying: false });
+			return;
+		}
 		var ver = loadVersion;
 		if (currentTrackUrlIndex < currentTrackUrls.length - 1) {
 			currentTrackUrlIndex++;

@@ -1,6 +1,6 @@
 import type { MusicPlayerConfig } from "../types/musicConfig";
-
-const musicAssetBaseUrl = "https://music.dcelysion.cn";
+import { playlistFromManifest } from "./manifest-adapters";
+import musicManifest from "./manifests/music.json";
 
 // 音乐播放器配置
 export const musicPlayerConfig: MusicPlayerConfig = {
@@ -48,70 +48,6 @@ export const musicPlayerConfig: MusicPlayerConfig = {
 	// 2. 或者直接填入歌词字符串内容
 	// lrc: "[00:00.00]歌词内容...",
 	local: {
-		playlist: [
-			{
-				name: "羽根",
-				artist: " 折戸伸治/Key ",
-				url: `${musicAssetBaseUrl}/tracks/hane-orito-shinji-8f927736.flac`,
-				cover: `${musicAssetBaseUrl}/covers/hane-c245b3c0.avif`,
-				lrc: "[00:00.00]纯音乐",
-			},
-			{
-				name: "東方萃夢想",
-				artist: "TAMUSIC",
-				url: `${musicAssetBaseUrl}/tracks/touhou-suimusou-0210439d.flac`,
-				cover: `${musicAssetBaseUrl}/covers/touhou-suimusou-c104f7fe.avif`,
-				lrc: "[00:00.00]纯音乐",
-			},
-			{
-				name: "久遠寺有珠",
-				artist: "深澤秀行",
-				url: `${musicAssetBaseUrl}/tracks/kuonji-alice-4a7394d7.flac`,
-				cover: `${musicAssetBaseUrl}/covers/mahoutsukai-no-yoru-82612496.avif`,
-				lrc: "[00:00.00]纯音乐",
-			},
-			{
-				name: "魔法使いの夜～メインテーマ",
-				artist: "深澤秀行",
-				url: `${musicAssetBaseUrl}/tracks/mahoutsukai-no-yoru-main-theme-fcb1095c.flac`,
-				cover: `${musicAssetBaseUrl}/covers/mahoutsukai-no-yoru-82612496.avif`,
-				lrc: "[00:00.00]纯音乐",
-			},
-			{
-				name: "午後の眠り",
-				artist: "深澤秀行",
-				url: `${musicAssetBaseUrl}/tracks/gogo-no-nemuri-a8185375.flac`,
-				cover: `${musicAssetBaseUrl}/covers/mahoutsukai-no-yoru-82612496.avif`,
-				lrc: "[00:00.00]纯音乐",
-			},
-			{
-				name: "nostalgia",
-				artist: "深澤秀行",
-				url: `${musicAssetBaseUrl}/tracks/nostalgia-e5518847.flac`,
-				cover: `${musicAssetBaseUrl}/covers/mahoutsukai-no-yoru-82612496.avif`,
-				lrc: "[00:00.00]纯音乐",
-			},
-			{
-				name: "孤独な巡礼",
-				artist: "川井憲次",
-				url: `${musicAssetBaseUrl}/tracks/kodoku-na-junrei-a4603f1e1202.flac`,
-				cover: `${musicAssetBaseUrl}/covers/kodoku-na-junrei-6bd1e927.jpg`,
-				lrc: "[00:00.00]纯音乐",
-			},
-			{
-				name: "夜诞的花冠 Night's Crown of Flowers",
-				artist: "HOYO-MiX",
-				url: `${musicAssetBaseUrl}/tracks/nights-crown-of-flowers-9b033bee4c19.flac`,
-				cover: `${musicAssetBaseUrl}/covers/nights-crown-of-flowers-e6d348b6.webp`,
-				lrc: "[00:00.00]纯音乐",
-			},
-			{
-				name: "Kanon D-dur",
-				artist: "Württembergisches Kammerorch.",
-				url: `${musicAssetBaseUrl}/tracks/kanon-d-dur-d688ec887b24.flac`,
-				cover: `${musicAssetBaseUrl}/covers/kanon-eeb5186e.avif`,
-				lrc: "[00:00.00]纯音乐",
-			},
-		],
+		playlist: playlistFromManifest(musicManifest),
 	},
 };

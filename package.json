@@ -2,7 +2,9 @@
 	"name": "firefly",
 	"type": "module",
 	"version": "6.16.8",
-	"engines": { "node": ">=22.23.0" },
+	"engines": {
+		"node": ">=22.23.0"
+	},
 	"packageManager": "pnpm@11.22.0",
 	"scripts": {
 		"dev": "astro dev",
@@ -20,7 +22,16 @@
 		"preinstall": "npx only-allow pnpm",
 		"lqips": "npx tsx scripts/generate-lqips.ts",
 		"gallery-previews": "npx tsx scripts/generate-gallery-previews.ts",
-		"github-cards": "npx tsx scripts/generate-github-card-data.ts"
+		"github-cards": "npx tsx scripts/generate-github-card-data.ts",
+		"admin:dev": "tsx watch admin/server/index.ts",
+		"admin:build": "vite build --config admin/vite.config.ts",
+		"admin:check": "tsc --noEmit --project admin/tsconfig.json && svelte-check --tsconfig admin/tsconfig.json",
+		"admin:start": "tsx admin/server/index.ts",
+		"admin:fixture": "tsx admin/tests/editor-preview.ts",
+		"admin:publishing-fixture": "tsx admin/tests/publishing-preview.ts",
+		"admin:media-fixture": "tsx admin/tests/media-preview.ts",
+		"admin:migrate": "tsx admin/server/migrate.ts",
+		"admin:test": "node --import tsx --test admin/tests/*.test.ts"
 	},
 	"dependencies": {
 		"@astrojs/check": "^0.9.10",
@@ -31,6 +42,7 @@
 		"@astrojs/rss": "^4.0.19",
 		"@astrojs/sitemap": "^3.7.4",
 		"@astrojs/svelte": "9.0.1",
+		"@aws-sdk/client-s3": "^3.1142.0",
 		"@expressive-code/plugin-collapsible-sections": "^0.44.2",
 		"@expressive-code/plugin-line-numbers": "^0.44.2",
 		"@fancyapps/ui": "^6.1.14",
@@ -68,8 +80,10 @@
 		"l2d-widget": "^0.1.1",
 		"marked": "^18.0.12",
 		"mdast-util-to-string": "^4.0.0",
+		"music-metadata": "^11.16.1",
 		"pagefind": "^1.5.2",
 		"pako": "^3.0.1",
+		"pg": "8.16.3",
 		"qrcode": "^1.5.4",
 		"reading-time": "^1.5.0",
 		"rehype-autolink-headings": "^7.1.0",
@@ -91,14 +105,19 @@
 		"tsx": "^4.23.13",
 		"typescript": "^6.0.3",
 		"unist-util-visit": "^5.1.0",
-		"wrangler": "^4.127.1"
+		"wrangler": "^4.127.1",
+		"yaml": "2.8.1"
 	},
 	"devDependencies": {
 		"@astrojs/ts-plugin": "^1.10.11",
 		"@biomejs/biome": "2.5.12",
+		"@electric-sql/pglite": "0.3.15",
 		"@iconify-json/mdi": "^1.2.3",
 		"@iconify-json/svg-spinners": "^1.2.4",
+		"@sveltejs/vite-plugin-svelte": "^6.1.4",
 		"@tailwindcss/vite": "^4.3.3",
+		"@types/node": "26.4.1",
+		"@types/pg": "^8.15.5",
 		"@types/qrcode": "^1.5.6",
 		"@types/sanitize-html": "^2.16.1",
 		"esbuild": "^0.28.2",
@@ -106,6 +125,8 @@
 		"postcss-import": "^16.1.1",
 		"postcss-nesting": "^14.0.1",
 		"rehype-callouts": "^2.2.0",
-		"subset-font": "^2.7.0"
+		"subset-font": "^2.7.0",
+		"svelte-check": "4.4.5",
+		"vite": "^7.3.0"
 	}
 }

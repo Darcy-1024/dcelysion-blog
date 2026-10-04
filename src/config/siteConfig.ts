@@ -1,6 +1,7 @@
 import type { SiteConfig } from "@/types/siteConfig";
 import { resolvePageToggles } from "../utils/page-toggle-utils";
 import { resolveSiteLang } from "../utils/site-config-utils";
+import settingsManifest from "./manifests/settings.json";
 
 // 定义站点语言
 // 语言代码，例如：'zh_CN', 'zh_TW', 'en', 'ja', 'ru', 'ko'。
@@ -42,28 +43,19 @@ const pages = resolvePageToggles({
 
 export const siteConfig: SiteConfig = {
 	// 站点标题
-	title: "DcElysion",
+	title: settingsManifest.title,
 
 	// 站点副标题
-	subtitle: "blog",
+	subtitle: settingsManifest.subtitle,
 
 	// 站点 URL
 	site_url: "https://blog.dcelysion.cn/",
 
 	// 站点描述
-	description: "God’s in his heaven，All’s right with the world",
+	description: settingsManifest.description,
 
 	// 站点关键词
-	keywords: [
-		"Elysion",
-		"Firefly",
-		"Fuwari",
-		"Astro",
-		"ACGN",
-		"博客",
-		"技术博客",
-		"静态博客",
-	],
+	keywords: settingsManifest.keywords,
 
 	// 主题色
 	themeColor: {
@@ -124,7 +116,7 @@ export const siteConfig: SiteConfig = {
 			wordmark: true,
 		},
 		// 导航栏标题
-		title: "DcElysion",
+		title: settingsManifest.navbarTitle,
 		// 全宽导航栏，导航栏是否占满屏幕宽度
 		widthFull: false,
 		// 导航菜单对齐方式，left：左对齐，center：居中

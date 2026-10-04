@@ -2,6 +2,12 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const ru: Translation = {
+	[Key.mediaReroute]: "Выбрать источник снова",
+	[Key.mediaRoutePending]: "Выбор источника новых медиа",
+	[Key.mediaRouteFuture]: "Только будущие загрузки:",
+	[Key.mediaStorageLimited]:
+		"Хранилище сессии недоступно; выбор не сохранится при обновлении",
+
 	[Key.articleTypography]: "Улучшенная китайская типографика",
 	[Key.home]: "Главная",
 	[Key.about]: "О нас",

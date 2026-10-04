@@ -9,6 +9,18 @@ export type GalleryAlbum = {
 	cover?: string; // 手动指定封面（可选，省略则自动取 cover.* 或第一张）
 	password?: string; // 加密密码（非空时启用加密）
 	passwordHint?: string; // 密码提示
+	// Present (including []) means authoritative content; absent keeps legacy scanning.
+	photos?: GalleryPhoto[];
+};
+
+export type GalleryPhoto = {
+	id: string;
+	original: string;
+	preview?: string;
+	width?: number;
+	height?: number;
+	objectKey?: string;
+	sha256?: string;
 };
 
 export type GalleryAssetVersioning = "none" | "content-hash";

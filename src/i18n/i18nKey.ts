@@ -1,4 +1,8 @@
 enum I18nKey {
+	mediaReroute = "mediaReroute",
+	mediaRoutePending = "mediaRoutePending",
+	mediaRouteFuture = "mediaRouteFuture",
+	mediaStorageLimited = "mediaStorageLimited",
 	articleTypography = "articleTypography",
 	home = "home",
 	about = "about",

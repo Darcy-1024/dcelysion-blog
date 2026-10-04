@@ -134,6 +134,8 @@ If you have useful features and optimizations, please submit a [Pull Request](ht
    ```
    Blog will be available at `http://localhost:4321`
 
+This repository also includes a **local first-stage admin app** for Waline owner sign-in and read-only post/moment lists. It has not been deployed. See [admin/README.md](admin/README.md) for startup, database migration, and permissions; regular blog development does not require it.
+
 ### Platform Hosting Deployment
 - **Refer to the [official guide](https://docs.astro.build/en/guides/deploy/) to deploy your blog to Vercel, Netlify, Cloudflare Pages, EdgeOne Pages, etc.**
 - **Vercel**, **Netlify** and other major platforms auto-deploy, automatically selecting the appropriate adapter based on the environment.

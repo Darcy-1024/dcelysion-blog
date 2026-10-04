@@ -2,6 +2,12 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const ja: Translation = {
+	[Key.mediaReroute]: "メディア経路を再選択",
+	[Key.mediaRoutePending]: "今後のメディアの配信元を選択中",
+	[Key.mediaRouteFuture]: "今後の読み込みのみ：",
+	[Key.mediaStorageLimited]:
+		"セッション保存不可。再読み込み後は選択を再利用できません",
+
 	[Key.articleTypography]: "中国語組版を最適化",
 	[Key.home]: "ホーム",
 	[Key.about]: "について",

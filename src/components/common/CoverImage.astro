@@ -8,6 +8,7 @@ import {
 	shouldAddNoReferrer,
 } from "@/utils/image-utils";
 import { getLqipProps } from "@/utils/lqip-utils";
+import { mediaImageProps } from "@/utils/media-image-props";
 import { url } from "@/utils/url-utils";
 
 interface Props {
@@ -127,7 +128,7 @@ const remoteReferrerPolicy =
 	<!-- 远程图片 -->
 	{!isLocal && (
 		<img
-			src={isPublic ? url(src) : src}
+			{...mediaImageProps(isPublic ? url(src) : src, loading === "lazy")}
 			alt={alt || ""}
 			class={imageClass}
 			style={imageStyle}
@@ -138,6 +139,7 @@ const remoteReferrerPolicy =
 			referrerpolicy={remoteReferrerPolicy}
 		/>
 	)}
+{!isLocal && mediaImageProps(isPublic ? url(src) : src, loading === "lazy")["data-media-src"] && <noscript><img src={isPublic ? url(src) : src} alt={alt || ""} class={imageClass.replace("opacity-0", "")} /></noscript>}
 </div>
 
 <style>

@@ -1,0 +1,10 @@
+[Unit]
+Description=Daily Umami backup after the existing Waline backup window
+
+[Timer]
+OnCalendar=*-*-* 03:45:00 Asia/Shanghai
+RandomizedDelaySec=120
+Persistent=true
+
+[Install]
+WantedBy=timers.target

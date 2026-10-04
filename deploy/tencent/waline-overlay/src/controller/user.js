@@ -141,6 +141,17 @@ module.exports = class UserController extends BaseRest {
   }
 
   async putAction() {
+    if (this.post('_managementState') === true) {
+      const { type, expectedType, expectedVersion } = this.post();
+      if (this.ctx.state.userInfo.type !== 'administrator' || !this.id ||
+          String(this.id) === String(this.ctx.state.userInfo.objectId) ||
+          !['guest', 'banned'].includes(type) || !['guest', 'banned'].includes(expectedType) ||
+          !Number.isSafeInteger(expectedVersion) || expectedVersion < 0 ||
+          typeof this.modelInstance.managementState !== 'function') return this.fail();
+      const changed = await this.modelInstance.managementState(this.id, expectedType, expectedVersion, type);
+      if (!changed) { this.ctx.status = 409; return this.fail(); }
+      return this.success();
+    }
     const { display_name, url, avatar, password, type, label, email } = this.post();
     const { objectId } = this.ctx.state.userInfo;
     const twoFactorAuth = this.post('2fa');

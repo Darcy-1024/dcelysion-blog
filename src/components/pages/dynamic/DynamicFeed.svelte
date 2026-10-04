@@ -3,6 +3,7 @@ import { onMount, tick } from "svelte";
 import ClientPagination from "@/components/common/ClientPagination.svelte";
 import type { DynamicEntry, DynamicImage } from "@/types/dynamic";
 import { formatTimezoneOffset } from "@/utils/date-utils";
+import { assignMedia, backupMedia, mediaRouter } from "@/utils/media-client";
 import { fetchMemos } from "@/utils/memos-adapter";
 import { registerDynamicGallery } from "./dynamic-gallery";
 import { registerDynamicInlineComments } from "./dynamic-inline-comments";
@@ -134,25 +135,29 @@ function setImageSource(
 	if (image.title) element.title = image.title;
 
 	if (!image.preview) {
-		element.src = image.src;
+		assignMedia(element, image.src);
 		return;
 	}
 
 	element.width = image.preview.width;
 	element.height = image.preview.height;
 	element.sizes = getImageSizes(imageCount, index);
-	if (image.preview.srcSet) element.srcset = image.preview.srcSet;
+
 	element.addEventListener(
 		"error",
 		() => {
+			if (mediaRouter().entry(image.preview?.src || "")) {
+				backupMedia(element);
+				return;
+			}
 			element.removeAttribute("srcset");
 			element.removeAttribute("sizes");
 			element.dataset.previewFallback = "true";
-			element.src = image.src;
+			assignMedia(element, image.src);
 		},
 		{ once: true },
 	);
-	element.src = image.preview.src;
+	assignMedia(element, image.preview.src, image.preview.srcSet);
 }
 
 function createItem(entry: DynamicEntry) {

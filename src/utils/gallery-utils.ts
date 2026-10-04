@@ -8,7 +8,7 @@ import { url } from "@/utils/url-utils";
 type GalleryAssetOptions = Pick<
 	GalleryConfig,
 	"assetBaseUrl" | "assetVersioning"
->;
+> & { albums?: GalleryAlbum[] };
 
 interface GalleryPreviewManifestAsset {
 	objectKey: string;
@@ -41,7 +41,7 @@ function withBase(assetPath: string): string {
 	const normalizedPath = assetPath.startsWith("/")
 		? assetPath
 		: `/${assetPath}`;
-	const base = import.meta.env.BASE_URL || "/";
+	const base = import.meta.env?.BASE_URL || "/";
 	if (base !== "/" && normalizedPath.startsWith(base)) {
 		return normalizedPath;
 	}
@@ -176,6 +176,10 @@ export function scanAlbumPhotos(
 	albumId: string,
 	options: GalleryAssetOptions = {},
 ): string[] {
+	const explicit = options.albums?.find(
+		(album) => album.id === albumId,
+	)?.photos;
+	if (explicit !== undefined) return explicit.map((photo) => photo.original);
 	const dir = path.join(process.cwd(), "public", "gallery", albumId);
 	if (!fs.existsSync(dir)) return [];
 	const files = fs
@@ -244,6 +248,15 @@ export function getGalleryPreviewAsset(
 	assetUrl: string,
 	options: GalleryAssetOptions = {},
 ): GalleryPreviewAsset | null {
+	const explicit = options.albums
+		?.flatMap((album) => album.photos || [])
+		.find((photo) => photo.original === assetUrl);
+	if (explicit?.preview)
+		return {
+			src: explicit.preview,
+			width: explicit.width || 0,
+			height: explicit.height || 0,
+		};
 	if (!assetUrl || !options.assetBaseUrl) return null;
 	const relativePath = getRemoteGalleryRelativePath(
 		assetUrl,

@@ -1,0 +1,9 @@
+<script>
+import { activateDeferredImages, clearDeferredImages, mediaRouter } from "@/utils/media-client";
+mediaRouter();
+document.addEventListener("swup:visit:start", clearDeferredImages);
+activateDeferredImages();
+document.addEventListener("swup:content:replace", () => activateDeferredImages());
+document.addEventListener("dynamic-gallery:ready", () => activateDeferredImages());
+document.addEventListener("password:decrypted", () => activateDeferredImages());
+</script>

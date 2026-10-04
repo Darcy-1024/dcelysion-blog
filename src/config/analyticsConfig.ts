@@ -7,10 +7,14 @@ export const analyticsConfig: AnalyticsConfig = {
 	microsoftClarityId: "xkmnsvd130",
 	// Umami 统计配置
 	umamiAnalytics: {
+		// 保留 Cloud 历史身份，不同时加载 Cloud 采集脚本。
+		cloudWebsiteId: "db010c0d-422d-49c6-8a89-6a0aa6b79c23",
 		// Umami Website ID
-		websiteId: "db010c0d-422d-49c6-8a89-6a0aa6b79c23",
+		websiteId: "3317734c-d6c0-44f7-8e45-a2945dce43fd",
 		// Umami JS地址，支持使用自建
-		scriptUrl: "https://cloud.umami.is/script.js",
+		scriptUrl: "https://stats.dcelysion.cn/script.js",
+		// 仅正式域名采集，localhost、私有预览及后台不发送访问。
+		domains: ["blog.dcelysion.cn", "dcelysion.cn", "www.dcelysion.cn"],
 		// Umami 会话回放脚本地址，支持使用自建
 		replaysScriptUrl: "https://cloud.umami.is/recorder.js",
 		// 是否追踪出站链接

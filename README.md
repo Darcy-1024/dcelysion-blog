@@ -134,6 +134,8 @@
    ```
    博客将在 `http://localhost:4321` 可用
 
+本仓库另有独立管理后台的**第一阶段本地实现**：仅支持 Waline 博主登录与文章、动态只读列表，尚未部署。启动、数据库迁移和权限配置见 [admin/README.md](admin/README.md)；普通博客开发不需要启动它。
+
 ### 平台托管部署
 - **参考[官方指南](https://docs.astro.build/zh-cn/guides/deploy/)将博客部署至 Vercel, Netlify, Cloudflare Pages, EdgeOne Pages 等。**
 - **Vercel**、**Netlify** 等主流平台自动部署，会根据环境自动选择适配器。

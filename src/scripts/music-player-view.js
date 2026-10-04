@@ -1,4 +1,5 @@
 // biome-ignore-all lint/correctness/noInnerDeclarations: Preserve var scoping in the existing widget callbacks during extraction.
+import { assignMedia } from "../utils/media-client";
 import { ensureMusicManager } from "./music-manager.js";
 
 (() => {
@@ -219,7 +220,7 @@ import { ensureMusicManager } from "./music-manager.js";
 
 			if (track.pic) {
 				ui.cover.classList.add("opacity-0");
-				ui.cover.src = track.pic;
+				assignMedia(ui.cover, track.pic);
 				ui.cover.alt = `${track.name} - ${track.artist}`;
 			} else {
 				ui.cover.src = "";
@@ -286,7 +287,7 @@ import { ensureMusicManager } from "./music-manager.js";
 			var title = clone.querySelector(".item-title");
 			var artist = clone.querySelector(".item-artist");
 
-			img.src = track.pic || "";
+			assignMedia(img, track.pic || "");
 			img.alt = `${track.name} - ${track.artist}`;
 			title.innerText = track.name;
 			artist.innerText = track.artist;

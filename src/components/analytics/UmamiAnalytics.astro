@@ -2,6 +2,7 @@
 interface Props {
 	websiteId: string;
 	scriptUrl?: string;
+	domains?: string[];
 	replaysScriptUrl?: string;
 	trackOutboundLinks?: boolean;
 	collectWebVitals?: boolean;
@@ -17,6 +18,7 @@ interface Props {
 const {
 	websiteId,
 	scriptUrl,
+	domains,
 	replaysScriptUrl,
 	trackOutboundLinks = true,
 	collectWebVitals = false,
@@ -36,6 +38,7 @@ const replaysBlockSelector = replays?.blockSelector?.trim();
 	defer
 	src={scriptUrl}
 	data-website-id={websiteId}
+	data-domains={domains?.join(",")}
 	data-performance={collectWebVitals ? "true" : undefined}
 ></script>
 

@@ -2,6 +2,12 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const ko: Translation = {
+	[Key.mediaReroute]: "미디어 경로 다시 선택",
+	[Key.mediaRoutePending]: "다음 미디어 소스 선택 중",
+	[Key.mediaRouteFuture]: "다음 로딩에만 적용:",
+	[Key.mediaStorageLimited]:
+		"세션 저장 불가. 새로고침 후 선택을 재사용할 수 없습니다",
+
 	[Key.articleTypography]: "중국어 조판 최적화",
 	[Key.home]: "홈",
 	[Key.about]: "소개",

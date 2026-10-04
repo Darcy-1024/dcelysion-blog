@@ -2,6 +2,11 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const zh_TW: Translation = {
+	[Key.mediaReroute]: "重新選路",
+	[Key.mediaRoutePending]: "正在選擇後續媒體來源",
+	[Key.mediaRouteFuture]: "僅影響後續載入：",
+	[Key.mediaStorageLimited]: "工作階段儲存不可用，重新整理後無法重用",
+
 	[Key.articleTypography]: "最佳化中文排版",
 	[Key.home]: "首頁",
 	[Key.about]: "關於我",

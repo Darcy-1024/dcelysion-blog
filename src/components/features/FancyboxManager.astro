@@ -3,6 +3,8 @@
 ---
 
 <script>
+  import { mediaCarousel } from "@/utils/media-lightbox";
+  import { fetchMedia } from "@/utils/media-client";
   import type { CarouselSlide, FancyboxInstance, FancyboxOptions } from "@fancyapps/ui";
   import { zh_CN } from "@fancyapps/ui/dist/fancybox/l10n/zh_CN.js";
 
@@ -78,7 +80,7 @@
     const cached = svgBlobUrlCache.get(src);
     if (cached) return cached;
     try {
-      const resp = await fetch(src);
+      const resp = await fetchMedia(src);
       if (!resp.ok) { console.debug("[Fancybox] SVG fetch failed:", resp.status, src); return null; }
       const svgText = await resp.text();
       const parser = new DOMParser();
@@ -107,6 +109,7 @@
 
   function getCommonOptions() {
     return {
+      Carousel: mediaCarousel(),
       l10n: fancyboxL10n,
       on: fancyboxEvents,
       Thumbs: {
@@ -213,7 +216,9 @@
     Fancybox.bind(IMG_SELECTOR, {
       ...commonOptions,
       groupAll: true,
+      source: (el: HTMLImageElement) => el.dataset.mediaSrc || el.dataset.originalSrc || el.src,
       Carousel: {
+        ...mediaCarousel(),
         transition: "slide",
         preload: 2,
       },

@@ -1,0 +1,30 @@
+[Unit]
+Description=DcElysion private admin API and bounded worker
+After=network-online.target
+Wants=network-online.target
+# PostgreSQL/Waline health is an operator preflight; no production install performed.
+
+[Service]
+Type=simple
+User=dc-admin
+Group=dc-admin
+WorkingDirectory=/srv/dcelysion/repository
+Environment=NODE_ENV=production
+EnvironmentFile=/etc/dcelysion/admin.env
+ExecStart=/usr/bin/node --import tsx admin/server/index.ts
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=300
+UMask=0077
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/srv/dcelysion/admin-state /srv/dcelysion/media-private /srv/dcelysion/media-public
+MemoryMax=768M
+TasksMax=128
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,25 @@
+[Unit]
+Description=DcElysion bounded public media edge
+After=network.target
+
+[Service]
+Type=simple
+User=dc-media-read
+Group=dc-media-read
+WorkingDirectory=/srv/dcelysion/repository
+ExecStart=/usr/bin/node --import tsx deploy/tencent/media-edge.ts
+EnvironmentFile=/etc/dcelysion/media-edge.env
+Restart=on-failure
+RestartSec=5
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/srv/dcelysion/media-budget
+MemoryMax=256M
+CPUQuota=50%
+TasksMax=32
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target

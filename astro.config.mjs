@@ -42,6 +42,7 @@ import { GithubCardComponent } from "./src/plugins/rehype-component-github-card.
 import { rehypeDiagramPanZoom } from "./src/plugins/rehype-diagram-panzoom.mjs";
 import rehypeEmailProtection from "./src/plugins/rehype-email-protection.mjs";
 import rehypeExternalLinks from "./src/plugins/rehype-external-links.mjs";
+import rehypeMediaRouting from "./src/plugins/rehype-media-routing.mjs";
 import rehypeFigure from "./src/plugins/rehype-figure.mjs";
 import rehypeImageReferrerPolicy from "./src/plugins/rehype-image-referrerpolicy.mjs";
 import { rehypeMermaid } from "./src/plugins/rehype-mermaid.mjs";
@@ -310,6 +311,7 @@ export default defineConfig({
 				rehypePlantuml,
 				rehypeDiagramPanZoom,
 				rehypeFigure,
+				rehypeMediaRouting,
 				[
 					rehypeImageReferrerPolicy,
 					{ domains: siteConfig.imageOptimization?.noReferrerDomains || [] },
