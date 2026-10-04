@@ -26,13 +26,17 @@ import { ensureMusicManager } from "./music-manager.js";
 		document.addEventListener("pointerdown", go, true);
 		document.addEventListener("keydown", go, true);
 
-		function afterLoad() {
+		function afterDomReady() {
 			if (window.requestIdleCallback)
 				window.requestIdleCallback(go, { timeout: 2000 });
 			else setTimeout(go, 800);
 		}
-		if (document.readyState === "complete") afterLoad();
-		else window.addEventListener("load", afterLoad, { once: true });
+		// Slow images or analytics must not hold up playlist UI and audio preloading.
+		if (document.readyState === "loading")
+			document.addEventListener("DOMContentLoaded", afterDomReady, {
+				once: true,
+			});
+		else afterDomReady();
 	}
 
 	function initWidget(widget) {
