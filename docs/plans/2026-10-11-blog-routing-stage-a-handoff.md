@@ -1,6 +1,14 @@
 # 博客双域路由阶段 A 交接
 
-更新：2026-10-11，Asia/Shanghai。阶段 A **本地实现与候选演练完成，新域 DNS/HTTPS 已通过；双端产物尚未证实一致、探针未上线，不能启用自动选路**。不启动阶段 B/C。
+更新：2026-10-11，Asia/Shanghai。阶段 A **双端同一云端公开产物和探针已上线并通过 HTTP 验证**。主页入口及自动选路继续隐藏，不启动阶段 B/C。下方旧 DNS/演练/未部署记录为历史状态。
+
+### 同产物发布验收
+
+`8d447f064a2e7707dfdbe28f053c793c09ce6c70` 已推送。GitHub 自动构建 `38113583461` success，公开包 Release `blog-8d447f064a2e7707dfdbe28f053c793c09ce6c70`，压缩包 110266166 字节。Cloudflare build `5d2f7a19-432b-4dae-a108-6c4c42f5e906` 下载同包后成功部署 version `9fe93782-3f29-4fae-8e5f-3bc590a3a764`；用户确认 EdgeOne 部署成功。
+
+真实 HTTP：两端以根域/home Origin 检查 probe/version 全部 200；probe 32768 字节、固定 SHA256、MIME、no-store/no-transform、CORS、防嗅探头均通过。两端 version 的 sourceRevision、releaseId、buildProvenance=github-actions、deploymentEligible=true 一致；公开树摘要均为 `20648529ae20f6f363e752ff16d3032889935a14a99777dbfa33959893081dc5`。证据 `cache/release-8d447f06-routes.json`。HTTP 检查不代表主页选路或浏览器媒体/Swup验收。
+
+该提交 GitHub Pages 成功；Code quality 的两项导入顺序/七项旧脚本 var 声明错误及 Build and Check 的旧 server 产物路径检查在本对话已修正。固定项目 Biome 的 src 全目录只读检查通过，播放器语法检查通过；新提交的云端检查仍须按自身 SHA 核验。手动重复公共构建已取消，复用自动构建成功产物。腾讯后台和 Sites 均未部署，MDX 后台链仍暂停。
 
 ### 13:00 发布续办（优先于下方历史状态）
 

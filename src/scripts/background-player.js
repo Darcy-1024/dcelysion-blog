@@ -91,9 +91,9 @@ export function ensureBackgroundPlayer() {
 	}
 
 	function pickIndex(except) {
+		var n;
 		if (urlList.length <= 1) return 0;
 		if (playerMode === "random") {
-			var n;
 			do {
 				n = Math.floor(Math.random() * urlList.length);
 			} while (n === except);
@@ -297,6 +297,7 @@ export function ensureBackgroundPlayer() {
 	}
 
 	function toggle() {
+		var target;
 		if (isPlaying) {
 			isPlaying = false;
 			playRequestId++;
@@ -319,7 +320,7 @@ export function ensureBackgroundPlayer() {
 		} else {
 			if (!runtimeModeAllowsPreload()) return;
 			isPlaying = true;
-			var target =
+			target =
 				randomAdvanceOnNextPlay && isMultiple
 					? nextIndex >= 0
 						? nextIndex
@@ -348,6 +349,8 @@ export function ensureBackgroundPlayer() {
 	}
 
 	function handleActiveError(event) {
+		var failedIndex;
+		var fallbackIndex;
 		if (event && event.currentTarget !== activeVideo) return;
 		if (managedMedia(activeVideo)) {
 			if (backupMedia(activeVideo)) {
@@ -364,8 +367,8 @@ export function ensureBackgroundPlayer() {
 		errorCount++;
 		if (isMultiple && errorCount < urlList.length) {
 			// 多视频模式下自动尝试下一个
-			var failedIndex = activeIndex >= 0 ? activeIndex : currentIndex;
-			var fallbackIndex = pickIndex(failedIndex);
+			failedIndex = activeIndex >= 0 ? activeIndex : currentIndex;
+			fallbackIndex = pickIndex(failedIndex);
 			if (isPlaying) transitionTo(fallbackIndex);
 			else loadActiveSource(fallbackIndex);
 		} else {
@@ -402,8 +405,9 @@ export function ensureBackgroundPlayer() {
 	}
 
 	function bufferedAhead(video) {
+		var i;
 		var currentTime = video.currentTime;
-		for (var i = 0; i < video.buffered.length; i++) {
+		for (i = 0; i < video.buffered.length; i++) {
 			if (
 				video.buffered.start(i) <= currentTime &&
 				video.buffered.end(i) >= currentTime
@@ -435,8 +439,10 @@ export function ensureBackgroundPlayer() {
 	}
 
 	function preconnectSource(index) {
+		var origin;
+		var link;
 		try {
-			var origin = new URL(urlList[index], window.location.href).origin;
+			origin = new URL(urlList[index], window.location.href).origin;
 			if (
 				origin === window.location.origin ||
 				document.querySelector(
@@ -444,7 +450,7 @@ export function ensureBackgroundPlayer() {
 				)
 			)
 				return;
-			var link = document.createElement("link");
+			link = document.createElement("link");
 			link.rel = "preconnect";
 			link.href = origin;
 			link.setAttribute("data-bg-video-preconnect", origin);

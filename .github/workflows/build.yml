@@ -75,7 +75,10 @@ jobs:
         run: |
           test -s dist/index.html
           test -s dist/pagefind/pagefind.js
-          test -s dist/server/index.js
+          test -s "cache/raw-$GITHUB_SHA/server/index.js"
+          test ! -e dist/server
+          test -s dist/__route/probe-v1.bin
+          test -s dist/__route/version.json
           find dist/_astro/fonts -type f -name '*.woff2' -print -quit | grep -q .
           test -z "$(find dist/_astro/fonts -type f -name '*.ttf' -print -quit)"
 
