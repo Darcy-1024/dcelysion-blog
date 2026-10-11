@@ -1,4 +1,7 @@
 {
+  "Please choose a valid avatar image.": "请选择有效的头像图片。",
+  "Wait a few seconds before changing your avatar again.": "请稍等几秒再更换头像。",
+  "Avatar saving is temporarily unavailable. Please try again later.": "头像保存暂时不可用，请稍后重试。",
   "import data format not support!": "文件格式不支持",
   "USER_EXIST": "用户已存在",
   "Nickname is already in use. Choose another nickname.": "昵称已被使用，请换一个昵称",

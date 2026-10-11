@@ -13,6 +13,7 @@ printf '%s  %s\n' "$expected" "$asset_tmp" | sha256sum --check
 chmod 0644 "$asset_tmp"
 mv -f -- "$asset_tmp" "$asset_dir/admin.js"
 install -m 0644 "$source_dir/show-password.js" /srv/dcelysion/admin-assets/show-password-v2.js
+install -m 0644 "$source_dir/avatar-upload-v1.js" /srv/dcelysion/admin-assets/avatar-upload-v1.js
 backup_dir=/opt/dcelysion/config-backups/admin-assets-$(date -u +%Y%m%dT%H%M%S)-$$
 install -d -m 0700 "$backup_dir"
 cp /opt/dcelysion/compose.yaml "$backup_dir/compose.yaml"

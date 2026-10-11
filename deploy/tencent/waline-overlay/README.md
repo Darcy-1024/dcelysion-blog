@@ -12,4 +12,16 @@
 
 PostgreSQL适配器复制自固定官方版本，遵循GPL-2.0并保留项目既有 `../vendor/LICENSE`。其余新增接口与后台接入说明见 `../../../admin/README.md` 第六阶段。管理令牌不进入浏览器；本人改密先通过原 `/api/token` 当前密码/二步码再认证。安全页 `/ui/profile` 仍使用现有Waline管理脚本处理二步验证，新后台用服务端 `ADMIN_WALINE_SECURITY_URL` 区分浏览器入口与内网API地址；未配置时不显示无效入口。
 
+## 本地头像上传
+
+`avatar-upload-v1.js` 在固定管理客户端 0.34.2 的 `/ui/profile` 捕获头像点击，选择本地 JPG/PNG/WebP/GIF（最多 10 MB），居中裁切为 256×256 静态 PNG，预览后确认保存。复用 Waline 当前登录令牌，仅向同源 `window.serverURL` 发送 `POST avatar`；不更改固定上游 bundle。页面语言为中文时显示中文，其余语言回退英文。
+
+评论域尚未公开时，管理页将规范头像链接 `https://comments.dcelysion.cn/api/avatar?id=…` 映射到当前同源 Waline API 代理显示，数据库仍保存评论域链接；此映射覆盖管理页头像并支持 React 重入。它不新增公开入口或绕过后台 Access。
+
+启用前先在 **Waline 数据库**执行 `004_user_avatars.sql`，重建带覆盖层的 Waline 镜像，并安装 `/srv/dcelysion/admin-assets/avatar-upload-v1.js`。既有 `nginx-comments-private.conf` 与正式 `nginx-admin-access.conf` 都已加入脚本注入；部署时必须保留服务器当前配置、先 `nginx -t` 再 reload。不能仅安装 UI 脚本而跳过迁移/镜像更新。`SERVER_URL` 必须是当前评论服务的可信 HTTP(S) 地址；头像永久链接指向该地址 `/api/avatar?id=<digest>`，不能指向需要 Access 登录的后台域名。
+
+服务端只接受不超过 384 KiB、边长不超过 256、8-bit RGB/RGBA 的非交错 PNG，校验块 CRC、解压长度和过滤类型，去掉元数据，拒绝 SVG/动画。数据库按用户保存一份当前头像；事务更新本人 `wl_users.avatar` 和图片，重新检查 `auth_version` 与有效用户角色，同一用户两次保存间隔至少 5 秒。公开 GET 仅返回 PNG 字节，不返回账户信息，图片 URL 可供评论展示。更新头像后旧图片链接至多缓存 5 分钟；备份 Waline 数据库即包含头像。
+
+本地定向验证：`node --test deploy/tencent/avatar-upload.test.cjs deploy/tencent/waline-overlay/avatar.test.cjs`，涵盖模拟页面交互和 PGlite 数据库事务，不代替真实浏览器或正式服务验收。回退先移除两处脚本注入再回退镜像；保留新表和数据，避免破坏用户已上传头像。此代码变更本身不代表已部署或已完成正式用户验收。
+
 本地验证：`node --test deploy/tencent/waline-overlay/management.test.cjs`（3项）检查只读鉴权/最小字段、实际隔离PGlite版本触发器、条件更新在目标已提升管理员时拒绝。修改JS均做 `node --check`。这不等于完整ThinkJS/Waline HTTP实例、真实PostgreSQL或邮件通知联调。没有生产评论/用户/会话写入、数据库迁移或部署。
