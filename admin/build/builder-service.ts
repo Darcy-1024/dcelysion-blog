@@ -1,13 +1,13 @@
 import { timingSafeEqual } from "node:crypto";
 import { createReadStream, createWriteStream } from "node:fs";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, open, readFile, rm } from "node:fs/promises";
 import { createServer } from "node:http";
-import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { pipeline } from "node:stream/promises";
 import { buildJobId, DockerBuild } from "../server/build.js";
 import { command } from "../server/executor.js";
 import { byteLimit } from "../server/remote-build.js";
+import { diskSpace, prepareWorkRoot } from "./work-root.js";
 
 // Run as a dedicated rootless builder identity. Only this process can use its socket.
 const image = process.env.BUILDER_IMAGE;
@@ -15,6 +15,7 @@ const endpoint = process.env.BUILDER_DOCKER_ENDPOINT;
 const token = process.env.BUILDER_TOKEN;
 const port = Number(process.env.BUILDER_PORT || 4323);
 const provider = process.env.BUILDER_COMMENT_PROVIDER;
+const workRoot = await prepareWorkRoot(process.env.BUILDER_WORK_ROOT);
 if (
 	!image ||
 	!endpoint ||
@@ -60,10 +61,27 @@ if (stale)
 		"--force",
 		...stale.split(/\s+/u),
 	]);
-let active: { id: string; cancelled: boolean } | null = null;
+let blocked = false;
+let active: {
+	id: string;
+	cancelled: boolean;
+	controller: AbortController;
+	done: Promise<boolean>;
+	finish: (clean: boolean) => void;
+	request: import("node:http").IncomingMessage;
+} | null = null;
 async function memoryAvailable() {
 	try {
 		const info = await readFile("/proc/meminfo", "utf8");
+		console.error(
+			JSON.stringify({
+				phase: "memory-gate",
+				availableKiB: Number(
+					/^MemAvailable:\s+(\d+) kB$/mu.exec(info)?.[1] || 0,
+				),
+				requiredKiB: 1152 * 1024,
+			}),
+		);
 		return (
 			Number(/^MemAvailable:\s+(\d+) kB$/mu.exec(info)?.[1] || 0) >= 1152 * 1024
 		);
@@ -89,7 +107,9 @@ const server = createServer(async (req, res) => {
 	if (req.method === "GET" && req.url === "/health") {
 		res
 			.writeHead(
-				(await build.containerAvailable()) && (await memoryAvailable())
+				!blocked &&
+					(await build.containerAvailable()) &&
+					(await memoryAvailable())
 					? 200
 					: 503,
 			)
@@ -106,7 +126,13 @@ const server = createServer(async (req, res) => {
 	}
 	if (req.method === "DELETE") {
 		try {
-			if (active?.id === id) active.cancelled = true;
+			const job = active?.id === id ? active : null;
+			if (job) {
+				job.cancelled = true;
+				job.controller.abort();
+				job.request.destroy();
+				if (!(await job.done)) throw new Error("BUILD_CLEANUP_UNKNOWN");
+			}
 			await build.stop(id);
 			res.writeHead(200).end();
 		} catch {
@@ -121,28 +147,45 @@ const server = createServer(async (req, res) => {
 		res.writeHead(400).end();
 		return;
 	}
+	if (blocked) {
+		res.writeHead(503).end();
+		return;
+	}
 	if (active) {
 		res.writeHead(409).end();
 		return;
 	}
-	const current = { id, cancelled: false };
+	let finish!: (clean: boolean) => void;
+	const done = new Promise<boolean>((resolve) => {
+		finish = resolve;
+	});
+	const current = {
+		id,
+		cancelled: false,
+		controller: new AbortController(),
+		done,
+		finish,
+		request: req,
+	};
 	active = current;
 	let directory: string | undefined;
 	let phase = "reserve-before-upload";
 	const timer = setTimeout(() => {
 		current.cancelled = true;
+		current.controller.abort();
 		req.destroy();
-		void build.stop(id).catch(() => {});
 	}, 11 * 60_000);
 	res.once("close", () => {
 		if (!res.writableFinished) {
 			current.cancelled = true;
-			void build.stop(id).catch(() => {});
+			current.controller.abort();
 		}
 	});
 	try {
 		if (!(await memoryAvailable())) throw new Error("BUILD_MEMORY_RESERVE");
-		directory = await mkdtemp(join(tmpdir(), "dc-builder-"));
+		await diskSpace(workRoot);
+		phase = "temporary-directory";
+		directory = await mkdtemp(join(workRoot, "dc-builder-"));
 		const input = join(directory, "input.tar");
 		const output = join(directory, "output.tar.gz");
 		phase = "upload";
@@ -151,24 +194,60 @@ const server = createServer(async (req, res) => {
 			byteLimit(544 * 1024 * 1024),
 			createWriteStream(input, { flags: "wx", mode: 0o600 }),
 		);
+		phase = "upload-sync";
+		const uploaded = await open(input, "r+");
+		try {
+			await uploaded.sync();
+		} finally {
+			await uploaded.close();
+		}
+		await diskSpace(workRoot);
 		if (current.cancelled) throw new Error("CANCELLED");
 		phase = "reserve-after-upload";
 		if (!(await memoryAvailable())) throw new Error("BUILD_MEMORY_RESERVE");
+		if (current.cancelled) throw new Error("CANCELLED");
 		phase = "container-build";
-		await build.buildArchive(input, output, id);
+		await build.buildArchive(input, output, id, current.controller.signal);
 		if (current.cancelled) throw new Error("CANCELLED");
 		res.writeHead(200, { "Content-Type": "application/gzip" });
 		await pipeline(createReadStream(output), byteLimit(512 * 1024 * 1024), res);
-	} catch {
+	} catch (cause) {
+		// A failed daemon create/start can have an uncertain outcome. Require
+		// an operator restart/inspection before accepting another job.
+		const confirmedCancellation =
+			current.controller.signal.aborted &&
+			cause instanceof Error &&
+			cause.message === "BUILD_CANCELLED";
+		if (phase === "container-build" && !confirmedCancellation) blocked = true;
 		// Operator-only stage names aid diagnosis without exposing candidate output.
-		console.error(`Builder job failed at ${phase}`);
+		const allowed = [
+			"BUILD_MEMORY_RESERVE",
+			"BUILD_CANCELLED",
+			"BUILD_RUNTIME_UNKNOWN",
+			"CANCELLED",
+			"EACCES",
+			"ENOSPC",
+			"EROFS",
+		];
+		const code =
+			cause instanceof Error && allowed.includes(cause.message)
+				? cause.message
+				: allowed.includes((cause as { code?: string })?.code || "")
+					? (cause as { code: string }).code
+					: "BUILD_FAILED";
+		console.error(JSON.stringify({ job: id, phase, outcome: "failed", code }));
 		if (!res.headersSent && !res.destroyed) res.writeHead(422).end();
 		else res.destroy();
 	} finally {
 		clearTimeout(timer);
-		await build.stop(id).catch(() => {});
-		if (directory) await rm(directory, { recursive: true, force: true });
+		try {
+			await build.stop(id);
+			if (directory) await rm(directory, { recursive: true, force: true });
+		} catch {
+			blocked = true;
+		}
 		active = null;
+		current.finish(!blocked);
 	}
 });
 server.requestTimeout = 11 * 60_000;

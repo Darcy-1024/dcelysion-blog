@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 import { isConfiguration } from "../shared/configuration.js";
 import type { Draft } from "../shared/contracts.js";
 import { patchField } from "../shared/editor.js";
+import { finishArchive, prepareContainer } from "./build-lifecycle.js";
 import { contentPath } from "./candidate.js";
 import { DraftError } from "./drafts.js";
 import { command, tree, writeControlled } from "./executor.js";
@@ -172,17 +173,17 @@ export class DockerBuild implements BuildDriver {
 		sourceArchive: string,
 		outputArchive: string,
 		jobId: string,
+		signal?: AbortSignal,
 	) {
 		buildJobId(jobId);
 		await this.stop(jobId);
 		const args = [
 			"--host",
 			this.endpoint,
-			"run",
+			"create",
 			"-i",
 			"--label",
 			"cn.dcelysion.admin-builder=1",
-			"--rm",
 			"--name",
 			`dc-admin-${jobId}`,
 			"--network",
@@ -222,77 +223,170 @@ export class DockerBuild implements BuildDriver {
 				: []),
 			this.image as string,
 		];
-		await new Promise<void>((accept, reject) => {
-			const archive = createWriteStream(outputArchive, {
-				flags: "w",
-				mode: 0o600,
-			});
-			const child = spawn("docker", args, {
-				windowsHide: true,
-				env: {
-					PATH: process.env.PATH,
-					SystemRoot: process.env.SystemRoot,
-					HOME: process.env.HOME,
-					USERPROFILE: process.env.USERPROFILE,
-				},
-				stdio: ["pipe", "pipe", "pipe"],
-			});
-			const source = createReadStream(sourceArchive);
-			source.on("error", () => abort());
-			child.stdin.on("error", () => abort());
-			source.pipe(child.stdin);
-			let outputBytes = 0;
-			let logBytes = 0;
-			let timedOut = false;
-			let stopping = false;
-			const abort = () => {
-				if (stopping) return;
-				stopping = true;
-				timedOut = true;
-				void this.stop(jobId)
-					.finally(() => child.kill())
-					.catch(() => {});
-			};
-			child.stdout.on("data", (chunk: Buffer) => {
-				outputBytes += chunk.length;
-				if (outputBytes > 512 * 1024 * 1024) {
-					timedOut = true;
-					child.stdout.unpipe(archive);
-					archive.end();
-					abort();
-				}
-			});
-			child.stdout.pipe(archive);
-			child.stderr.on("data", (chunk: Buffer) => {
-				logBytes += chunk.length;
-				if (logBytes > 4 * 1024 * 1024) {
-					timedOut = true;
-					abort();
-				}
-			});
-			archive.on("error", () => {
-				abort();
-				reject(new DraftError(422, "BUILD_FAILED"));
-			});
-			const timer = setTimeout(() => {
-				abort();
-			}, 10 * 60_000);
-			child.on("error", () => {
-				clearTimeout(timer);
-				archive.destroy();
-				reject(new DraftError(503, "BUILD_UNAVAILABLE"));
-			});
-			child.on("close", (code) => {
-				source.destroy();
-				clearTimeout(timer);
-				const finish = () => {
-					if (code === 0 && !timedOut) accept();
-					else reject(new DraftError(422, "BUILD_FAILED"));
+		try {
+			await prepareContainer(
+				() => command("docker", args),
+				() => this.stop(jobId),
+				signal,
+			);
+			if (signal?.aborted) {
+				await this.stop(jobId);
+				throw new Error("BUILD_CANCELLED");
+			}
+			await new Promise<void>((accept, reject) => {
+				const archive = createWriteStream(outputArchive, {
+					flags: "w",
+					mode: 0o600,
+				});
+				const child = spawn(
+					"docker",
+					["--host", this.endpoint, "start", "-ai", `dc-admin-${jobId}`],
+					{
+						windowsHide: true,
+						env: {
+							PATH: process.env.PATH,
+							SystemRoot: process.env.SystemRoot,
+							HOME: process.env.HOME,
+							USERPROFILE: process.env.USERPROFILE,
+						},
+						stdio: ["pipe", "pipe", "pipe"],
+					},
+				);
+				const source = createReadStream(sourceArchive);
+				source.on("error", () => abort());
+				child.stdin.on("error", () => abort());
+				source.pipe(child.stdin);
+				let outputBytes = 0;
+				let logBytes = 0;
+				const diagnosticCodes = new Set<string>();
+				let timedOut = false;
+				let stopping = false;
+				let closed = false;
+				let cancelDeadline: ReturnType<typeof setTimeout> | undefined;
+				const clear = () => {
+					clearTimeout(timer);
+					if (cancelDeadline) clearTimeout(cancelDeadline);
+					signal?.removeEventListener("abort", abort);
 				};
-				if (archive.writableFinished || archive.destroyed) finish();
-				else archive.once("finish", finish);
+				const abort = () => {
+					if (stopping) return;
+					stopping = true;
+					timedOut = true;
+					// Keep the CLI alive until the daemon acknowledges termination. A
+					// killed CLI can otherwise leave a create/start request in flight.
+					if (!cancelDeadline)
+						cancelDeadline = setTimeout(() => {
+							closed = true;
+							clear();
+							source.destroy();
+							archive.destroy();
+							child.kill("SIGKILL");
+							reject(new Error("BUILD_RUNTIME_UNKNOWN"));
+						}, 60_000);
+					void (async () => {
+						while (!closed) {
+							await this.stop(jobId).catch(() => {});
+							if (!closed)
+								await new Promise((resolve) => setTimeout(resolve, 500));
+						}
+					})();
+				};
+				child.stdout.on("data", (chunk: Buffer) => {
+					outputBytes += chunk.length;
+					if (outputBytes > 512 * 1024 * 1024) {
+						timedOut = true;
+						child.stdout.unpipe(archive);
+						archive.end();
+						abort();
+					}
+				});
+				child.stdout.pipe(archive);
+				child.stderr.on("data", (chunk: Buffer) => {
+					logBytes += chunk.length;
+					// Only fixed failure classes leave the private build log stream.
+					for (const code of [
+						"ERR_PNPM_UNSAFE_MODULES_DIR",
+						"EROFS",
+						"EACCES",
+						"ERR_MODULE_NOT_FOUND",
+						"MODULE_NOT_FOUND",
+						"BUILD_INPUT_INVALID",
+						"BUILD_INPUT_TRUNCATED",
+					])
+						if (chunk.includes(code)) diagnosticCodes.add(code);
+					if (chunk.includes("JavaScript heap out of memory"))
+						diagnosticCodes.add("NODE_HEAP_LIMIT");
+					if (logBytes > 4 * 1024 * 1024) {
+						timedOut = true;
+						abort();
+					}
+				});
+				archive.on("error", () => {
+					abort();
+				});
+				const timer = setTimeout(() => {
+					abort();
+				}, 10 * 60_000);
+				signal?.addEventListener("abort", abort, { once: true });
+				if (signal?.aborted) abort();
+				child.on("error", () => {
+					closed = true;
+					clear();
+					source.destroy();
+					archive.destroy();
+					reject(new DraftError(503, "BUILD_UNAVAILABLE"));
+				});
+				child.on("close", (code) => {
+					closed = true;
+					clear();
+					source.destroy();
+					console.error(
+						JSON.stringify({
+							job: jobId,
+							phase: "docker-exit",
+							exitCode: code,
+							cancelled: stopping,
+							outputBytes,
+							logBytes,
+							codes: [...diagnosticCodes],
+						}),
+					);
+					void finishArchive(archive, signal).then(() => {
+						if (signal?.aborted) {
+							reject(new Error("BUILD_CANCELLED"));
+							return;
+						}
+						if (code === 0 && !timedOut) accept();
+						else reject(new DraftError(422, "BUILD_FAILED"));
+					}, reject);
+				});
 			});
-		});
-		await this.stop(jobId);
+		} finally {
+			// Applies equally to direct and remote callers and to create/start errors.
+			try {
+				const state = JSON.parse(
+					await command("docker", [
+						"--host",
+						this.endpoint,
+						"inspect",
+						`dc-admin-${jobId}`,
+						"--format",
+						"{{json .State}}",
+					]),
+				);
+				console.error(
+					JSON.stringify({
+						job: jobId,
+						phase: "container-state",
+						exitCode: state.ExitCode,
+						oomKilled: state.OOMKilled,
+						running: state.Running,
+					}),
+				);
+			} catch {
+				/* A cancelled container may already have been removed. */
+			}
+			await this.stop(jobId);
+		}
 	}
 }
