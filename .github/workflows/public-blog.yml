@@ -1,0 +1,44 @@
+name: Build shared public blog
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: public-blog-${{ github.sha }}
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.22.0
+          run_install: false
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm run build
+      - name: Archive reviewed public output
+        run: |
+          tar -czf blog-public.tar.gz -C "cache/public-$GITHUB_SHA" cloudflare edgeone manifest.json
+          sha256sum blog-public.tar.gz > blog-public.tar.gz.sha256
+      - uses: actions/upload-artifact@v4
+        with:
+          name: blog-public-${{ github.sha }}
+          path: |
+            blog-public.tar.gz
+            blog-public.tar.gz.sha256
+          retention-days: 7
+      - name: Publish immutable public build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "blog-$GITHUB_SHA" blog-public.tar.gz blog-public.tar.gz.sha256 --target "$GITHUB_SHA" --latest=false --title "Public blog $GITHUB_SHA" --notes "Shared public static output built from this commit. No backend or private data."

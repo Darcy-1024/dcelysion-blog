@@ -2,6 +2,12 @@
 
 更新：2026-10-11，Asia/Shanghai。阶段 A **本地实现与候选演练完成，新域 DNS/HTTPS 已通过；双端产物尚未证实一致、探针未上线，不能启用自动选路**。不启动阶段 B/C。
 
+### 13:00 发布续办（优先于下方历史状态）
+
+用户已授权“最近更新推送部署”，明确为解决双端同产物/探针缺口，并确认 EdgeOne 使用 GitHub 自动部署。`cead88f435cd156c58376ea011cf3d0f2e17da7a` 已推送；Cloudflare 云端完整构建及生产部署成功，version `c90e5d98-b7a0-47a0-aa9d-ab81f9f2d0b2`，探针实际 200、32KiB/hash/头通过，版本提交一致。EdgeOne 用户回报 13:00 构建磁盘/内存不足，仍不能宣称双端完成。
+
+后续接线采用 GitHub Actions 单次完整构建，筛选后发布同提交的公开 Release 包，Cloudflare/EdgeOne 仅下载校验及部署；EdgeOne 跳过依赖安装和 MDX。Cloudflare 默认分支 trigger 已通过官方 MCP 改为下载模式、关闭构建缓存，原 Wrangler deploy 命令保留；恢复旧流程时将 build_command 改回 `pnpm run build`、build_caching_enabled 改回 true。旧生产版仍可回退。新流程实际部署及同摘要验收以发布对话和本轮 cache 证据为准，不能把此接线记录当作成功回执。后台 builder/完整后台发布链不恢复，主页入口/自动选路继续隐藏，Sites 不执行。
+
 ## 本轮范围与基线
 
 完整读取新版双域方案、AGENTS、当前 git status/diff、最新 `2026-10-10-launch-stage1-handoff.md` 与 `2026-10-10-public-launch-resume.md`。最新用户决定跳过 MDX：停止受限 builder/宿主 MDX 与完整后台发布链重试；该项不阻止独立准备，但不存在当前可信静态产物时不切换主站。

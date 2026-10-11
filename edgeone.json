@@ -48,6 +48,6 @@
 			]
 		}
 	],
-	"buildCommand": "corepack pnpm run build && node scripts/finalize-blog-release.mjs edgeone",
-	"installCommand": "corepack pnpm install --frozen-lockfile"
+	"buildCommand": "node scripts/download-blog-release.mjs edgeone",
+	"installCommand": "node --version"
 }

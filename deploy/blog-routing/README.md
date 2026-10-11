@@ -1,5 +1,13 @@
 # 双域博客候选打包
 
+## 正式自动发布
+
+用户于 2026-10-11 授权推送部署后，正式流程改为 GitHub Actions `public-blog.yml` 完整构建一次，再发布 `blog-<完整提交SHA>` 的公开压缩包及 SHA-256。Cloudflare 默认分支和 EdgeOne 仅用 `scripts/download-blog-release.mjs` 下载同提交包并核验；EdgeOne 不安装依赖或运行 MDX，避免已实际遇到的磁盘/内存不足。根 `edgeone.json` 配置精确响应头。
+
+正式下载器核对压缩包、路径/文件类型、公开清单、两份 payload 字节及 sourceRevision。Release 未就绪时最多等待 10 分钟，失败保留旧生产版。发布成功后仍须验证两端探针和公开树摘要一致；不能因 Git 推送或下载完成就启用选路。GitHub Release 只包含筛选后的公开站点产物，源码、后台、秘密、媒体原件均不进入包。
+
+下述默认演练命令及历史演练包继续不可部署。
+
 阶段 A 使用预构建公开产物作为输入，不执行 Astro/MDX，不调用后台发布链。
 
 ```powershell

@@ -59,8 +59,9 @@ pnpm new-dynamic ... # 新建动态
 
 ## 部署状态核验
 
-- GitHub、Cloudflare Workers Builds 和 EdgeOne Git 集成使用完整静态构建；成功后 `scripts/finalize-blog-release.mjs` 筛选公开文件、生成固定探针及提交/公开树摘要，保留原构建与双端包在忽略的 `cache/`。本地普通构建跳过正式打包；不启动腾讯后台 builder。EdgeOne 根 `edgeone.json` 显式调用该步骤并配置精确探针响应头。GitHub Actions 保存同一构建的双端包，保留 7 天。
-- 两端自动构建不能直接视为字节一致。发布后必须核对 `/__route/version.json` 的完整提交和 `publicTreeSha256`，以及固定探针字节/头；摘要不一致时继续禁用自动选路，使用同一成功构建的双端包收敛版本，不上传旧演练包。
+- `.github/workflows/public-blog.yml` 在 GitHub 云端完整构建一次；成功后 `scripts/finalize-blog-release.mjs` 筛选公开文件、生成固定探针及提交/公开树摘要。双端包按完整提交发布到 `blog-<SHA>` Release，并附压缩包 SHA-256；不含后台或私有文件。本地普通构建跳过正式打包，不启动腾讯后台 builder。
+- EdgeOne 根 `edgeone.json` 跳过依赖安装，仅运行 `scripts/download-blog-release.mjs edgeone` 下载同提交的云端包，校验压缩包、清单、版本再生成 dist；Cloudflare 默认分支的构建命令使用同一脚本的 cloudflare 模式，部署命令保留 Wrangler。Release 尚未生成时最多等待 10 分钟，失败不切换生产。两端不再分别执行 MDX 构建，以避免 EdgeOne 磁盘/内存不足及产物漂移。
+- 发布后必须核对 `/__route/version.json` 的完整提交和 `publicTreeSha256`，以及固定探针字节/头。未通过时继续禁用自动选路；旧演练包不得上传。自动发布包是公开站点内容，不得将源码、环境文件或后台包加入 Release。
 
 - 按实际发布平台、同一仓库和完整提交 SHA 核验。Cloudflare Workers 查看 [Check Runs](https://docs.github.com/en/rest/checks/runs#list-check-runs-for-a-git-reference) 中的 `Workers Builds: dcelysion-blog`（App：`cloudflare-workers-and-pages`），`completed` / `success` 表示构建通过。
 - GitHub Actions 为空不能据此判断 Cloudflare 部署异常；GitHub Pages 单独核对其部署工作流。
