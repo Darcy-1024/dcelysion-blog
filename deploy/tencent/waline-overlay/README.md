@@ -1,6 +1,6 @@
 # DcElysion Waline overlay
 
-基于腾讯固定 **Waline 1.41.6**（镜像摘要见 `../Dockerfile.waline-reset`），与管理客户端 **0.34.2** 配套。基础鉴权、昵称、通知和找回密码部署边界见 `../README.md`。本目录源码覆盖同版本镜像的 `/app/src/`，不升级上游。本阶段新增代码仅本地验证，尚未构建/安装真实镜像。
+基于腾讯固定 **Waline 1.41.6**（镜像摘要见 `../Dockerfile.waline-reset`），与管理客户端 **0.34.2** 配套。基础鉴权、昵称、通知和找回密码部署边界见 `../README.md`。本目录源码覆盖同版本镜像的 `/app/src/`，不升级上游。各功能安装状态以对应上线记录为准，头像上传见[2026-10-11 上线记录](../../../docs/plans/2026-10-11-avatar-upload-release.md)。
 
 ## management-v1（第六阶段）
 
@@ -22,6 +22,6 @@ PostgreSQL适配器复制自固定官方版本，遵循GPL-2.0并保留项目既
 
 服务端只接受不超过 384 KiB、边长不超过 256、8-bit RGB/RGBA 的非交错 PNG，校验块 CRC、解压长度和过滤类型，去掉元数据，拒绝 SVG/动画。数据库按用户保存一份当前头像；事务更新本人 `wl_users.avatar` 和图片，重新检查 `auth_version` 与有效用户角色，同一用户两次保存间隔至少 5 秒。公开 GET 仅返回 PNG 字节，不返回账户信息，图片 URL 可供评论展示。更新头像后旧图片链接至多缓存 5 分钟；备份 Waline 数据库即包含头像。
 
-本地定向验证：`node --test deploy/tencent/avatar-upload.test.cjs deploy/tencent/waline-overlay/avatar.test.cjs`，涵盖模拟页面交互和 PGlite 数据库事务，不代替真实浏览器或正式服务验收。回退先移除两处脚本注入再回退镜像；保留新表和数据，避免破坏用户已上传头像。此代码变更本身不代表已部署或已完成正式用户验收。
+本地定向验证：`node --test deploy/tencent/avatar-upload.test.cjs deploy/tencent/waline-overlay/avatar.test.cjs`，涵盖模拟页面交互、ThinkJS 成功响应控制流和 PGlite 数据库事务。2026-10-11 已完成隔离真实 HTTP 上传/回读及正式服务安装，真实用户浏览器上传尚待本人验收。回退先移除两处脚本注入再回退镜像；保留新表和数据，避免破坏用户已上传头像。
 
-本地验证：`node --test deploy/tencent/waline-overlay/management.test.cjs`（3项）检查只读鉴权/最小字段、实际隔离PGlite版本触发器、条件更新在目标已提升管理员时拒绝。修改JS均做 `node --check`。这不等于完整ThinkJS/Waline HTTP实例、真实PostgreSQL或邮件通知联调。没有生产评论/用户/会话写入、数据库迁移或部署。
+management-v1 阶段本地验证记录：`node --test deploy/tencent/waline-overlay/management.test.cjs`（3项）检查只读鉴权/最小字段、实际隔离PGlite版本触发器、条件更新在目标已提升管理员时拒绝。修改JS均做 `node --check`。当时的本地验证不等于完整ThinkJS/Waline HTTP实例、真实PostgreSQL或邮件通知联调，未执行生产评论/用户/会话写入、数据库迁移或部署。

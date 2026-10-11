@@ -23,6 +23,29 @@ test('avatar decoder accepts bounded PNG and strips metadata; rejects corrupt, o
   assert.throws(() => normalizeAvatar('a'.repeat(600000)));
   assert.throws(() => normalizeAvatar('not base64'));
 });
+test('successful HTTP upload preserves the ThinkJS stop-processing signal instead of returning a storage error', async () => {
+  const prevent = new Error('PREVENT_NEXT_PROCESS');
+  let sent;
+  class Base {
+    post() { return 'synthetic'; }
+    success(data) { sent = data; throw prevent; }
+    fail(message) { throw new Error(message); }
+    locale(message) { return message; }
+  }
+  const moduleValue = { exports: {} };
+  const source = await readFile(new URL('./src/controller/avatar.js', pathToFileURL(__filename)), 'utf8');
+  new Function('require', 'module', source)(name => name === './rest.js' ? Base : name.includes('avatar-image') ?
+    { normalizeAvatar: () => Buffer.from('synthetic') } : { getPool: () => ({}), saveAvatar: async () => 'https://comments.example/api/avatar?id=synthetic' }, moduleValue);
+  const previous = process.env.SERVER_URL; process.env.SERVER_URL = 'https://comments.example';
+  try {
+    const controller = new moduleValue.exports(); controller.ctx = { state: { userInfo: { objectId: 7, type: 'guest' } } };
+    await assert.rejects(controller.postAction(), error => error === prevent);
+    assert.deepEqual(sent, { avatar: 'https://comments.example/api/avatar?id=synthetic' });
+    assert.equal(controller.ctx.status, undefined);
+  } finally {
+    if (previous === undefined) delete process.env.SERVER_URL; else process.env.SERVER_URL = previous;
+  }
+});
 test('upload persists only the authenticated user, rolls back rate limits and stale/banned sessions, and replaces old bytes', async () => {
   const { PGlite } = await import('@electric-sql/pglite');
   const db = new PGlite();

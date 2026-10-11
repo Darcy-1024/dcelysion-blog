@@ -19,16 +19,18 @@ module.exports = class extends Base {
     let image;
     try { image = normalizeAvatar(this.post('image')); }
     catch { this.ctx.status = 400; return this.fail(this.locale('Please choose a valid avatar image.')); }
+    let avatar;
     try {
       const origin = new URL(process.env.SERVER_URL);
       if (!['http:', 'https:'].includes(origin.protocol) || origin.username || origin.password) throw new Error('INVALID_ORIGIN');
-      const avatar = await saveAvatar(getPool(), user, image, origin);
-      return this.success({ avatar });
+      avatar = await saveAvatar(getPool(), user, image, origin);
     } catch (error) {
       if (error.message === 'UNAUTHORIZED') return this.ctx.throw(401);
       if (error.message === 'RATE_LIMIT') { this.ctx.status = 429; return this.fail(this.locale('Wait a few seconds before changing your avatar again.')); }
       // Do not include database details or credentials in the response/log.
       this.ctx.status = 503; return this.fail(this.locale('Avatar saving is temporarily unavailable. Please try again later.'));
     }
+    // ThinkJS success() throws its stop-processing sentinel; keep it outside the storage catch.
+    return this.success({ avatar });
   }
 };
