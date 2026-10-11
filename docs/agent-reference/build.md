@@ -57,12 +57,22 @@ pnpm new-dynamic ... # 新建动态
 
 若某项验证因外部 API、网络或缺少部署变量无法执行，应明确记录未验证项和原因，不要把环境失败描述为代码通过。
 
+## 部署状态核验
+
+- GitHub、Cloudflare Workers Builds 和 EdgeOne Git 集成使用完整静态构建；成功后 `scripts/finalize-blog-release.mjs` 筛选公开文件、生成固定探针及提交/公开树摘要，保留原构建与双端包在忽略的 `cache/`。本地普通构建跳过正式打包；不启动腾讯后台 builder。EdgeOne 根 `edgeone.json` 显式调用该步骤并配置精确探针响应头。GitHub Actions 保存同一构建的双端包，保留 7 天。
+- 两端自动构建不能直接视为字节一致。发布后必须核对 `/__route/version.json` 的完整提交和 `publicTreeSha256`，以及固定探针字节/头；摘要不一致时继续禁用自动选路，使用同一成功构建的双端包收敛版本，不上传旧演练包。
+
+- 按实际发布平台、同一仓库和完整提交 SHA 核验。Cloudflare Workers 查看 [Check Runs](https://docs.github.com/en/rest/checks/runs#list-check-runs-for-a-git-reference) 中的 `Workers Builds: dcelysion-blog`（App：`cloudflare-workers-and-pages`），`completed` / `success` 表示构建通过。
+- GitHub Actions 为空不能据此判断 Cloudflare 部署异常；GitHub Pages 单独核对其部署工作流。
+- Git 推送、平台构建、生产部署和线上验证分别报告；构建通过不能替代生产版本及线上内容核验。
+
 ## Windows 检查阻碍的处理
 
 - 遇到 `split writable root sets`、`helper_unknown_error` 或 `setup refresh`，先判断是否在命令启动前失败。这属于 Codex 沙箱启动问题；同一错误出现后不要靠换引号、换工作目录或重复启动构建碰运气。只对已授权的具体操作走工具审批；审批拒绝时停下该操作。Windows 后端配置应结合当前官方文档和探针验证，不能通过关闭隔离来修复。
 - 修改 Codex 沙箱配置后，现有任务可能仍使用启动时的配置。用新进程验证配置读取，并在应用重新加载后复测普通命令和文件修改；一次 CLI 成功不代表当前任务或浏览器已恢复。
+- `corepack pnpm` 在 `corepack/v1/pnpm/...` 路径报 `ENOENT` 时，先核对 `packageManager` 固定版本及缓存位置，沙箱可能重定向缓存。仅为已授权命令临时将 `COREPACK_HOME` 指向已确认可用的缓存根目录（`v1` 的上一级），核对版本后执行并恢复原环境值。缓存不可用时可用已安装的项目工具入口做局部检查，不因缓存定位错误重装依赖或更改全局配置。
 - PowerShell 中含正则、SVG、引号或多行逻辑的 JavaScript，不拼成长串 `node -e`。使用单引号 here-string 写入临时脚本再运行，或通过标准输入执行；临时脚本使用项目依赖时放在项目内的临时目录并在完成后清理。先检查语法，再运行有写入的脚本。
 - `rg` 返回 1 可能只是没有匹配，需结合输出判断；Windows 文件通配优先使用 `rg -g`，不要假设 shell 会展开 `astro.config.*`。限定源码路径，避免扫描压缩资源或输出 base64 到检查日志。
-- 首次需要额外 CLI 时先用 `Get-Command` 探测。没有 `gh` 时，公开仓库的只读检查可直接用 GitHub REST API；需要身份权限时使用已授权连接，不能把工具缺失当成部署失败。Actions 为空时先确认实际托管平台，不反复轮询无关的 Pages 工作流。
+- 首次需要额外 CLI 时先用 `Get-Command` 探测。没有 `gh` 时，公开仓库的只读检查可直接用 GitHub REST API；需要身份权限时使用已授权连接，不能把工具缺失当成部署失败。部署结果按上方“部署状态核验”小节判断。
 - Astro 若因遥测目录权限失败，仅为该命令设置 `$env:ASTRO_TELEMETRY_DISABLED='1'`；`uv_os_get_passwd` / `ENOMEM` 需先排查沙箱身份与运行环境，不据此修改业务代码或重装依赖。开发服务器等到 ready 后再访问目标路由；同一工作区不要并发安装依赖或运行会写相同产物的构建。
 - 生成步骤失败后，先确认目标文件存在再预览或读取；调用库方法前核对本项目版本是否提供该 API。历史日志按任务和错误摘录，避免整份工具输出进入上下文。

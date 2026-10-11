@@ -14,7 +14,12 @@ export const analyticsConfig: AnalyticsConfig = {
 		// Umami JS地址，支持使用自建
 		scriptUrl: "https://stats.dcelysion.cn/script.js",
 		// 仅正式域名采集，localhost、私有预览及后台不发送访问。
-		domains: ["blog.dcelysion.cn", "dcelysion.cn", "www.dcelysion.cn"],
+		domains: [
+			"blog.dcelysion.cn",
+			"blog-eo.dcelysion.cn",
+			"dcelysion.cn",
+			"www.dcelysion.cn",
+		],
 		// Umami 会话回放脚本地址，支持使用自建
 		replaysScriptUrl: "https://cloud.umami.is/recorder.js",
 		// 是否追踪出站链接

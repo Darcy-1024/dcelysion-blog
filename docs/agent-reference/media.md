@@ -29,7 +29,7 @@
 - 相册详情页瀑布流和相册列表封面优先加载 `gallery-previews.json` 登记的最大宽度 1200px 预览，点击 Fancybox 仍加载原图；顶部横幅、第三方 `urls.txt` 外链和未命中映射的图片继续使用原地址。预览对象按映射中的内容哈希键从 `.gallery-previews/` 非破坏性上传；必须先确认全部预览对象的 HTTP 状态、图片 MIME、尺寸和长度，再部署引用它们的页面，并验证 Fancybox 打开的仍是原图。
 - 相册远端原图使用内容哈希文件名和版本化长缓存；新增或替换本地图片后，先非破坏性上传对应新键，再生成预览、上传映射列出的预览对象，最后构建并确认页面 URL 和浏览器显示。不要用会删除远端对象的初次同步命令；相册密码只保护页面展示，不是 R2 对象鉴权。
 - R2 视频使用 H.264 + `yuv420p` MP4，写入 `video/mp4` 和版本化长缓存头，并启用 faststart；上传后必须验证自定义域名的 `206 Partial Content` Range 响应和实际播放。
-- 新增或更换站点访问域时，必须同步三个媒体桶 R2 CORS 的精确 Origin；当前包括 `https://blog.dcelysion.cn`、`https://dcelysion-blog.lin507793465.workers.dev`、`http://localhost:4321` 和 `http://127.0.0.1:4321`。规则变化后清理对应媒体域名的 CDN 缓存；音视频验证 Range/实际播放，相册验证 HTTP 200、正确图片 MIME/长度和实际显示。
+- 新增或更换站点访问域时，必须同步公开媒体桶 R2 CORS 的精确 Origin；当前包括 `https://blog.dcelysion.cn`、`https://blog-eo.dcelysion.cn`、`https://dcelysion-blog.lin507793465.workers.dev`、`http://localhost:4321` 和 `http://127.0.0.1:4321`。2026-10-11 已通过官方 MCP 为 music、wallpapers、gallery、admin-public 四个公开桶添加新域 GET/HEAD 并回读，按四个媒体域名刷新缓存；新域接入与播放/显示验收状态见 [阶段 A 交接](../plans/2026-10-11-blog-routing-stage-a-handoff.md)。规则变化后清理对应媒体域名的 CDN 缓存；音视频验证 Range/实际播放，相册验证 HTTP 200、正确图片 MIME/长度和实际显示。
 
 ### 第八阶段：媒体双来源与会话选路
 

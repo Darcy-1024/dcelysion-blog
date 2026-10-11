@@ -130,7 +130,7 @@ const aboutUrl =
 const siteLogo = await getSiteLogo();
 
 // canonical：对 /archive/ 与 /search/ 剥离查询串，避免筛选视图自我 canonical 到 ?tag= 等
-const canonicalUrl = getCanonicalUrl(Astro.url);
+const canonicalUrl = getCanonicalUrl(Astro.url, siteConfig.site_url);
 
 // OG 图片：文章走生成图/封面，非文章页回退到站点 logo
 let ogImageUrl: string | undefined;
