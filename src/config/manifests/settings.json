@@ -15,11 +15,11 @@
 	],
 	"navbarTitle": "DcElysion",
 	"mediaRouting": {
-		"enabled": false,
+		"enabled": true,
 		"mode": "auto",
 		"defaultSource": "r2",
 		"timeoutMs": 2500,
-		"probeBytes": 32768,
+		"probeBytes": 65536,
 		"minimumAdvantage": 0.2
 	}
 }

@@ -1,4 +1,18 @@
-# 第八阶段受控媒体接入（未部署）
+# 腾讯受控媒体接入
+
+## 2026-10-12 第四阶段实际参数
+
+独立 `media-tx.dcelysion.cn` 仅服务媒体，不接管两个博客域。正式环境示例为 `media-stage4.env.example`：聚合512KiB/s（约4.19Mbps）、并发4、250GB/UTC自然月响应体reservation。全机eth0仍5Mbps，主机350GB门禁采用供应商周期和保守RX+TX账本，两种预算不能相加称作供应商硬额度。保留已有journal，不删除归零。
+
+服务器已装入仅两张真实图片的索引和匹配bundle，最终GET/广告均关闭；前台清单准备但策略仍disabled。短时真实双源回执、旧配置保护备份和具体启用门槛见 [第四阶段交接](../../docs/plans/2026-10-10-launch-stage4-handoff.md)。以下旧320KiB/s/并发2及第三阶段1MiB参数属于历史设计/验收，不承接正式流量。
+
+## 2026-10-12 恢复上线第三阶段现状
+
+独立 `media-tx.dcelysion.cn` DNS/HTTPS、隔离媒体容器和全机 `eth0` 5Mbps 出口保护已部署。五个小范围对象的真实 R2/腾讯 HTTPS 双源交付已验证；最终 `MEDIA_EDGE_ENABLED=0`、`MEDIA_EDGE_ADVERTISE_CAPACITY=0`，前台自动路由仍关闭。当前使用 64KiB/s、并发1、1MiB 的验收配置，不代表正式接流量参数。
+
+当前安装以 [第三阶段交接](../../docs/plans/2026-10-10-launch-stage3-handoff.md)、[隔离容器服务](dc-media-edge-stage3.service)、[Nginx](nginx-media-tx.conf)、[环境示例](media-stage3.env.example)及 `dc-media-host-*` 运维服务为准。主机观测是保守估计，不是腾讯计费账本；用户已明确暂不以超额收费问题阻断。本阶段没有发布主站或启用媒体切换。
+
+## 历史第八阶段设计（以下未部署描述仅指当时状态）
 
 腾讯公网继续默认关闭。这里提供单实例 Node loopback 媒体服务及 HTTPS Nginx location；没有执行生产安装、系统 tc、防火墙、DNS 或私有/正式部署。原 `nginx-media-staging.conf` 保留历史媒体私有验证入口，不通过替换三个 R2 域名推测副本存在。
 

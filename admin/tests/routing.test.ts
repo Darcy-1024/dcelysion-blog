@@ -19,6 +19,20 @@ import type { Media } from "../shared/media.js";
 import { listenLocal } from "./local-listener.js";
 import { routingFixture } from "./routing-fixture.js";
 
+test("formal edge parameters remain bounded below host bandwidth", () => {
+	const config = {
+		root: "/unused",
+		manifest: { version: 1 as const, snapshot: "limits", entries: [] },
+		enabled: false,
+		bytesPerSecond: 524288,
+		concurrent: 4,
+		budget: new MediaBudget("/unused/journal", 250_000_000_000),
+	};
+	assert.doesNotThrow(() => createMediaEdge(config));
+	assert.throws(() => createMediaEdge({ ...config, concurrent: 5 }));
+	assert.throws(() => createMediaEdge({ ...config, bytesPerSecond: 524289 }));
+});
+
 test("edge reads distinct purpose paths even when object keys match", async () => {
 	const root = await mkdtemp(join(tmpdir(), "purpose-edge-"));
 	const records: Media[] = [];

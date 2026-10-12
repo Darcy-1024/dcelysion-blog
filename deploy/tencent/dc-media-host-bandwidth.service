@@ -1,0 +1,13 @@
+[Unit]
+Description=DcElysion whole-interface 5Mbps egress shaping
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+ExecStart=/usr/bin/python3 /opt/dcelysion-media-stage3/runtime/media-host-bandwidth.py apply
+ExecStop=/usr/bin/python3 /opt/dcelysion-media-stage3/runtime/media-host-bandwidth.py remove
+
+[Install]
+WantedBy=multi-user.target

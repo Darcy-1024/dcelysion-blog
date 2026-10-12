@@ -65,7 +65,8 @@ const zhCN: Record<string, string> = {
 	REVISION_CONFLICT: "其他标签页已保存新版本；请检查差异",
 	REQUEST_REUSE: "请求标识已用于其他内容，请重新打开后检查",
 	NETWORK: "网络失败，输入仍保留在内存；重试将确认同一次保存",
-	TARGET_NOT_CONFIGURED: "尚未配置发布目标；当前没有真实发布能力",
+	TARGET_NOT_CONFIGURED:
+		"MDX 构建已暂停；排版预览与一键构建、发布当前不可用，私有保存仍可使用",
 	BUILD_UNAVAILABLE: "隔离构建运行时或固定镜像不可用；未执行真实 Astro 构建",
 	BUILD_FAILED: "构建失败；尚未推送或切换 release",
 	PUBLISH_INVALID: "源码、元数据或固定内容标识未通过发布校验",

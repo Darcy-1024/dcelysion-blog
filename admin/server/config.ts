@@ -10,6 +10,7 @@ export type AdminConfig = {
 	walineUrl: string;
 	walineSecurityUrl: string;
 	ownerId: number;
+	requireTotp?: boolean;
 	contentRoot: string;
 	blogOrigin: string;
 	ready: boolean;
@@ -113,6 +114,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): AdminConfig {
 		walineUrl: (env.ADMIN_WALINE_URL || "").replace(/\/$/u, ""),
 		walineSecurityUrl: securityUrl,
 		ownerId,
+		requireTotp: env.ADMIN_REQUIRE_TOTP === "1",
 		contentRoot: resolve(env.ADMIN_CONTENT_ROOT || process.cwd()),
 		blogOrigin,
 	};

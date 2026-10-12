@@ -14,22 +14,26 @@ export function createMediaEdge(config: {
 	bytesPerSecond: number;
 	concurrent: number;
 	budget: MediaBudget;
+	// Deployment-owned whole-host admission; absent only for isolated fixtures.
+	admission?: () => Promise<boolean>;
+	advertiseCapacity?: boolean;
 }) {
 	if (
 		!Number.isInteger(config.concurrent) ||
 		config.concurrent < 1 ||
-		config.concurrent > 2 ||
+		config.concurrent > 4 ||
 		!Number.isInteger(config.bytesPerSecond) ||
 		config.bytesPerSecond < 16384 ||
-		config.bytesPerSecond > 327680
+		config.bytesPerSecond > 524288
 	)
-		throw new Error("Conservative edge limits required");
+		throw new Error("Bounded edge limits required");
 	let active = 0;
 	let nextSlot = 0;
 	const verified = new Map<string, Promise<string>>();
 	const allowed = async () =>
 		config.enabled &&
 		active < config.concurrent &&
+		(!config.admission || (await config.admission())) &&
 		(await config.budget.available());
 	return async (req: IncomingMessage, res: ServerResponse) => {
 		res.setHeader("Access-Control-Allow-Origin", "*");
@@ -60,6 +64,7 @@ export function createMediaEdge(config: {
 						: config.manifest;
 				const body = JSON.stringify({
 					allowed:
+						config.advertiseCapacity !== false &&
 						index.version === 1 &&
 						index.entries.length > 0 &&
 						(await allowed()),

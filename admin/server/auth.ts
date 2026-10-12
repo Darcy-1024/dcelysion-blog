@@ -58,11 +58,14 @@ export class AuthService {
 	private async currentOwner(id: number): Promise<Owner | null> {
 		if (id !== this.config.ownerId) return null;
 		const result = await this.walinePool.query(
-			"SELECT id, display_name, type, auth_version FROM wl_users WHERE id = $1",
+			this.config.requireTotp
+				? "SELECT id, display_name, type, auth_version, COALESCE(\"2fa\", '') <> '' AS totp_enabled FROM wl_users WHERE id = $1"
+				: "SELECT id, display_name, type, auth_version FROM wl_users WHERE id = $1",
 			[id],
 		);
 		const row = result.rows[0];
 		return row?.type === "administrator" &&
+			(!this.config.requireTotp || row.totp_enabled === true) &&
 			Number.isSafeInteger(Number(row.auth_version))
 			? {
 					id: Number(row.id),

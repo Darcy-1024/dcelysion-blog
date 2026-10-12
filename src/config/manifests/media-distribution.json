@@ -1,5 +1,37 @@
 {
 	"version": 1,
-	"snapshot": "unconfigured",
-	"entries": []
+	"snapshot": "stage4-20261012-d0a3e048174c76558290fa98250008b5d04e05d710babb4a5ad2f3d1c98b21b5",
+	"entries": [
+		{
+			"id": "live-music-cover",
+			"variant": "original",
+			"key": "covers/nights-crown-of-flowers-e6d348b6.webp",
+			"sha256": "e6d348b6059424571646258b57888bbad47f7c45bd77dc9833e07eb04c7e4890",
+			"size": 36502,
+			"mime": "image/webp",
+			"defaultUrl": "https://music.dcelysion.cn/covers/nights-crown-of-flowers-e6d348b6.webp",
+			"sources": {
+				"r2": "https://music.dcelysion.cn/covers/nights-crown-of-flowers-e6d348b6.webp",
+				"tencent": "https://media-tx.dcelysion.cn/media/objects/music/covers/nights-crown-of-flowers-e6d348b6.webp"
+			}
+		},
+		{
+			"id": "live-gallery-preview",
+			"variant": "preview",
+			"key": "wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
+			"sha256": "dd91e8df4ef27814897a85ab9c334992c7314d6b6b3f1a362c4516e763aa59c7",
+			"size": 69007,
+			"mime": "image/avif",
+			"defaultUrl": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
+			"sources": {
+				"r2": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
+				"tencent": "https://media-tx.dcelysion.cn/media/objects/gallery/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif"
+			}
+		}
+	],
+	"capacityUrl": "https://media-tx.dcelysion.cn/media/capacity",
+	"probe": {
+		"id": "live-music-cover",
+		"variant": "original"
+	}
 }

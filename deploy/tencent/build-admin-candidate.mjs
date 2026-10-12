@@ -1,26 +1,39 @@
 // Run only trusted repository source, inside the pinned Linux dependency image.
-import { createRequire } from "node:module";
+
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import {
 	cpSync,
 	mkdirSync,
+	readdirSync,
 	readFileSync,
 	realpathSync,
-	readdirSync,
 	statSync,
 	writeFileSync,
 } from "node:fs";
-import { resolve, join, relative, dirname } from "node:path";
-import { execFileSync } from "node:child_process";
+import { createRequire } from "node:module";
+import { dirname, join, relative, resolve } from "node:path";
 
 const source = resolve(process.argv[2]);
 const output = resolve(process.argv[3]);
 const require = createRequire("/opt/blog/package.json");
 const digest = (path) =>
 	createHash("sha256").update(readFileSync(path)).digest("hex");
-for (const file of ["package.json", "pnpm-lock.yaml", "pnpm-workspace.yaml"])
+for (const file of ["pnpm-lock.yaml", "pnpm-workspace.yaml"])
 	if (digest(join(source, file)) !== digest(join("/opt/blog", file)))
 		throw new Error(`Dependency image mismatch: ${file}`);
+// Frontend release scripts can change without changing the pinned dependencies.
+// All other package metadata and both lock/workspace files must still match.
+const packageInput = (path) => {
+	const value = JSON.parse(readFileSync(path, "utf8"));
+	delete value.scripts;
+	return JSON.stringify(value);
+};
+if (
+	packageInput(join(source, "package.json")) !==
+	packageInput("/opt/blog/package.json")
+)
+	throw new Error("Dependency image mismatch: package metadata");
 process.chdir(source);
 // pnpm 11's automatic dependency check refuses cross-project node_modules links.
 // Exact input hashes above establish compatibility; invoke those installed CLIs.

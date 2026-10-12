@@ -76,6 +76,18 @@ test("Waline 账号、2FA、版本与会话撤销在隔离数据库中验证", a
 		responseUser = { objectId: 9, type: "guest", auth_version: 0 };
 		assert.equal(await auth.login("普通用户", "right", "123456"), null);
 		responseUser = { objectId: 7, type: "administrator", auth_version: 0 };
+		await db.exec('ALTER TABLE wl_users ADD COLUMN "2fa" text');
+		const strict = new AuthService(
+			readConfig({ ...env, ADMIN_REQUIRE_TOTP: "1" }),
+			adapters,
+		);
+		assert.equal(await strict.login("博主", "right", "123456"), null);
+		await db.exec("UPDATE wl_users SET \"2fa\"='synthetic-enabled' WHERE id=7");
+		const strictSession = await strict.login("博主", "right", "123456");
+		assert.ok(strictSession);
+		await db.exec('UPDATE wl_users SET "2fa"=NULL WHERE id=7');
+		assert.equal(await strict.verify(strictSession.token), null);
+		await db.exec("DELETE FROM dc_admin.sessions");
 		const session = await auth.login("博主", "right", "123456");
 		assert.ok(session);
 		assert.equal(

@@ -1,0 +1,16 @@
+[Unit]
+Description=DcElysion indexed public media edge (stage3 disabled)
+After=docker.service dc-media-host-usage.service
+Requires=docker.service
+
+[Service]
+Type=simple
+ExecStartPre=-/usr/bin/docker rm dc-media-edge-stage3
+ExecStart=/usr/bin/docker run --name dc-media-edge-stage3 --network dcelysion-media-edge --ip 172.23.0.2 --user 1000:1000 --read-only --cap-drop ALL --security-opt no-new-privileges --memory 128m --memory-swap 128m --cpus 0.25 --pids-limit 32 --env-file /opt/dcelysion-media-stage3/operator/edge.env --mount type=bind,src=/opt/dcelysion-media-stage3/runtime,dst=/runtime,readonly --mount type=bind,src=/opt/dcelysion-media-stage3/public,dst=/media,readonly --mount type=bind,src=/opt/dcelysion-media-stage3/admission,dst=/admission,readonly --mount type=bind,src=/opt/dcelysion-media-stage3/budget,dst=/budget --tmpfs /tmp:rw,noexec,nosuid,size=8m sha256:1fffeb988fa7a5eb437d366a4a7a1ea1f4deacc102d5fe57415b3054976a7cb7 node /runtime/media-edge.cjs
+ExecStop=/usr/bin/docker stop --time 10 dc-media-edge-stage3
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=20
+
+[Install]
+WantedBy=multi-user.target

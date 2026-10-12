@@ -1,0 +1,14 @@
+[Unit]
+Description=DcElysion private whole-interface usage observation
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/python3 /opt/dcelysion-media-stage3/runtime/media-host-usage.py
+User=root
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+ReadWritePaths=/opt/dcelysion-media-stage3/operator /opt/dcelysion-media-stage3/admission
+MemoryMax=32M
+CPUQuota=10%
