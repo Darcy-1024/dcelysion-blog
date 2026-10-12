@@ -28,8 +28,8 @@ export const displaySettingsConfig: DisplaySettingsConfig =
 
 		// ── 外观 (Appearance) ──────────────────────────────────
 
-		// 主题色选择器开关
-		themeColorSwitchable: true,
+		// 固定使用 siteConfig.themeColor.hue，忽略浏览器保存的色相并隐藏选择器
+		themeColorSwitchable: false,
 
 		// 文章列表布局切换开关
 		layoutSwitchable: true,
