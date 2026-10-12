@@ -21,6 +21,10 @@ export function mediaImageProps(
 		(settings as Record<string, unknown>).mediaRouting,
 	);
 	const ready = (url: string) =>
+		(url.startsWith("/") && !url.startsWith("//")) ||
+		/^https:\/\/(admin-media|gallery|wallpapers|music)\.dcelysion\.cn\//.test(
+			url,
+		) ||
 		manifest.entries.some(
 			(entry) => dualReady(entry) && Object.values(entry.sources).includes(url),
 		);

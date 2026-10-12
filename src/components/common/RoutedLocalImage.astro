@@ -1,0 +1,41 @@
+---
+import { getImage } from "astro:assets";
+import type { ImageMetadata } from "astro";
+import type { ImageFormat, ResponsiveImageLayout } from "@/types/config";
+import { mediaImageProps } from "@/utils/media-image-props";
+
+interface Props {
+	src: ImageMetadata;
+	alt: string;
+	class?: string;
+	style?: string;
+	loading: "lazy" | "eager";
+	fetchpriority: "high" | "low" | "auto";
+	usePicture: boolean;
+	formats: ImageFormat[];
+	fallbackFormat: ImageFormat;
+	layout?: ResponsiveImageLayout;
+	width?: number;
+	height?: number;
+	widths?: number[];
+	sizes?: string;
+	quality?: number;
+	dataCoverImg?: boolean;
+	deferRouting?: boolean;
+}
+const { usePicture, formats, fallbackFormat, dataCoverImg, deferRouting, ...props } = Astro.props;
+const options = { ...props, fit: "cover" as const };
+const fallback = await getImage({ ...options, format: usePicture ? fallbackFormat : undefined });
+const variants = usePicture ? await Promise.all(formats.map(format => getImage({ ...options, format }))) : [];
+const srcset = fallback.srcSet.attribute || undefined;
+const routed = mediaImageProps(fallback.src, props.loading === "lazy" || deferRouting, srcset);
+const deferred = Boolean(routed["data-media-src"]);
+const { class: imageClass, ...attributes } = fallback.attributes;
+---
+{usePicture ? <picture>
+	{variants.map(image => <source type={`image/${image.options.format === "jpg" ? "jpeg" : image.options.format}`} sizes={props.sizes}
+		srcset={deferred ? undefined : (image.srcSet.attribute || image.src)}
+		data-media-srcset={deferred ? (image.srcSet.attribute || image.src) : undefined} />)}
+	<img {...attributes} {...routed} class={imageClass} data-cover-img={dataCoverImg ? true : undefined} />
+</picture> : <img {...attributes} {...routed} class={imageClass} data-cover-img={dataCoverImg ? true : undefined} />}
+{deferred && <noscript><img {...attributes} src={fallback.src} srcset={srcset} class={String(imageClass || "").replace("opacity-0", "")} data-cover-img={dataCoverImg ? true : undefined} /></noscript>}

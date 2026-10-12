@@ -30,6 +30,8 @@ export function createMediaEdge(config: {
 	let active = 0;
 	let nextSlot = 0;
 	const verified = new Map<string, Promise<string>>();
+	let indexedManifest: MediaDistribution | undefined;
+	let indexedPaths = new Map<string, MediaDistribution["entries"][number]>();
 	const allowed = async () =>
 		config.enabled &&
 		active < config.concurrent &&
@@ -81,11 +83,27 @@ export function createMediaEdge(config: {
 				typeof config.manifest === "function"
 					? await config.manifest()
 					: config.manifest;
-			const entry = manifest.entries.find((e) =>
-				e.sources.tencent
-					? path === new URL(e.sources.tencent).pathname
-					: path === `/media/objects/${e.key}`,
-			);
+			if (manifest !== indexedManifest) {
+				const paths = new Map<string, MediaDistribution["entries"][number]>();
+				for (const entry of manifest.entries) {
+					const key = entry.sources.tencent
+						? new URL(entry.sources.tencent).pathname
+						: `/media/objects/${entry.key}`;
+					const previous = paths.get(key);
+					if (
+						previous &&
+						(previous.sha256 !== entry.sha256 ||
+							previous.mime !== entry.mime ||
+							previous.size !== entry.size)
+					)
+						throw new Error("Ambiguous public path");
+					paths.set(key, entry);
+				}
+				indexedPaths = paths;
+				indexedManifest = manifest;
+				verified.clear();
+			}
+			const entry = indexedPaths.get(path);
 			if (!entry) {
 				res.writeHead(404);
 				res.end();
@@ -118,7 +136,10 @@ export function createMediaEdge(config: {
 							ext: "",
 						});
 						return candidate;
-					})();
+					})().catch((error) => {
+						verified.delete(cacheKey);
+						throw error;
+					});
 					verified.set(cacheKey, file);
 				}
 				const filename = await file;

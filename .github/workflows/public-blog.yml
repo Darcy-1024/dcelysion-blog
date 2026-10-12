@@ -26,6 +26,8 @@ jobs:
           run_install: false
       - run: pnpm install --frozen-lockfile
       - run: pnpm run build
+        env:
+          PUBLIC_BUILD_REVISION: ${{ github.sha }}
       - name: Archive reviewed public output
         run: |
           tar -czf blog-public.tar.gz -C "cache/public-$GITHUB_SHA" cloudflare edgeone manifest.json

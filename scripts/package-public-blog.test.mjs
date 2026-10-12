@@ -78,6 +78,8 @@ test("two payloads are byte-identical; provenance is never invented; input remai
 		"server/index.js": "private-wrapper",
 		".env": "fixture-not-secret",
 		"api/dynamic.json": "[]",
+		"assets/images/public.webp": "published-image",
+		"vndb-covers/third-party.webp": "third-party-image",
 	})) {
 		await mkdir(path.dirname(path.join(input, file)), { recursive: true });
 		await writeFile(path.join(input, file), bytes);
@@ -90,6 +92,22 @@ test("two payloads are byte-identical; provenance is never invented; input remai
 	assert.equal(manifest.deploymentEligible, false);
 	assert.equal(manifest.sourceRevision, null);
 	assert.equal(manifest.platforms.edgeone.status, "not-deployed");
+	const publicMedia = JSON.parse(
+		await readFile(
+			path.join(output, "cloudflare/assets/__route/public-media.json"),
+			"utf8",
+		),
+	);
+	assert.deepEqual(
+		publicMedia.objects.map((object) => object.key),
+		["assets/images/public.webp"],
+	);
+	assert.equal(
+		publicMedia.objects[0].sha256,
+		sha256(Buffer.from("published-image")),
+	);
+	assert.equal(publicMedia.deploymentEligible, false);
+	assert.equal(publicMedia.sourceRevision, null);
 	for (const file of manifest.files) {
 		const cf = await readFile(
 			path.join(output, "cloudflare/assets", file.path),

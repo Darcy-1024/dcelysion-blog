@@ -74,7 +74,13 @@ export function validateArchiveEntries(names, verbose) {
 		if (parts[1] !== "assets" || parts.length < 3)
 			throw new Error("INVALID_ARCHIVE_FILE");
 		const relative = parts.slice(2).join("/");
-		if (["__route/probe-v1.bin", "__route/version.json"].includes(relative))
+		if (
+			[
+				"__route/probe-v1.bin",
+				"__route/version.json",
+				"__route/public-media.json",
+			].includes(relative)
+		)
 			continue;
 		if (platform === "cloudflare" && relative === "_headers") continue;
 		if (classifyPublicFile(relative) !== "include")

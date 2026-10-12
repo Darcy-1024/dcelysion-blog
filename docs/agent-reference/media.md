@@ -31,6 +31,14 @@
 - R2 视频使用 H.264 + `yuv420p` MP4，写入 `video/mp4` 和版本化长缓存头，并启用 faststart；上传后必须验证自定义域名的 `206 Partial Content` Range 响应和实际播放。
 - 新增或更换站点访问域时，必须同步公开媒体桶 R2 CORS 的精确 Origin；当前包括 `https://blog.dcelysion.cn`、`https://blog-eo.dcelysion.cn`、`https://dcelysion-blog.lin507793465.workers.dev`、`http://localhost:4321` 和 `http://127.0.0.1:4321`。2026-10-11 已通过官方 MCP 为 music、wallpapers、gallery、admin-public 四个公开桶添加新域 GET/HEAD 并回读，按四个媒体域名刷新缓存；新域接入与播放/显示验收状态见 [阶段 A 交接](../plans/2026-10-11-blog-routing-stage-a-handoff.md)。规则变化后清理对应媒体域名的 CDN 缓存；音视频验证 Range/实际播放，相册验证 HTTP 200、正确图片 MIME/长度和实际显示。
 
+### 全部自有公开媒体接入（2026-10-12 新增阶段）
+
+- 独立公开同步替代此前仅两张图片的范围限制：显式扫描 article/gallery/wallpaper/music 四个公开桶，包含音视频和原图/预览；不读取 private 桶、草稿或后台原件。测试对象与第三方 VNDB/外链例外明确排除，不迁移第三方内容。
+- 已发布静态站中的自有图片复制到 article 桶内容寻址的 `site-assets/<SHA256>/<文件名>`，原站内路径保留为与公开 revision 绑定的 aliases；不改正文和既有 R2 URL。`scripts/package-public-blog.mjs` 从可信公开产物生成 `__route/public-media.json`，不会将源文件或私有路径放入公开清单。
+- 独立同步成功后核对腾讯落盘 SHA/大小/MIME，原子安装服务器索引，逐对象 HEAD、音视频首尾 Range 和各 MIME/大小代表 GET 验收成功后，发布脱敏的固定 R2 `media-routing/distribution-v1.json`。前台只加载一次有界清单；远端清单不能更改策略、容量端点或探针。原图、预览、响应式候选分别登记。
+- `dc-public-media-sync.timer` 每小时检查新增公开对象，新主站 revision 触发公开图片清单同步；不会将上传的私有图片自动公开，不调用 MDX/后台一键发布。新增文件必须先完成正式公开或可信 GitHub 静态发布，才满足触发条件。前端首次接线需要 GitHub 发布，之后仅资格更新不需要 Git 提交。
+- 初始盘点 152 个真实 R2 对象与 276 个公开本地媒体文件；47 个本地 VNDB 等第三方素材列为例外。副本已准备，正式登记/前端发布与浏览器验收的实际状态见本地新增阶段交接，不能以准备数量宣称全部上线。R2 默认、容量许可、至少20%优势、小图探针及播放来源锁定保留，EdgeOne 不作为媒体源。
+
 ### 第八阶段：媒体双来源与会话选路
 
 - 恢复上线第四阶段的正式媒体配置已在服务器准备，聚合512KiB/s、并发4、250GB响应体月预算，保留全机5Mbps及原账本；服务与广告最终仍关闭。只登记两张真实图片，历史音视频保持R2。前台清单与65536探针策略已准备，源码enabled仍false，等待匹配的可信静态发布包；不能仅开启服务器广告当作前台上线。见[第四阶段交接](../plans/2026-10-10-launch-stage4-handoff.md)。下方320KiB/s/并发2描述是历史设计，非当前正式配置。

@@ -1,0 +1,19 @@
+[Unit]
+Description=Synchronize and register explicitly public DcElysion media
+After=network-online.target dc-media-edge-stage3.service
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+User=root
+UMask=0077
+Nice=10
+ExecStart=/usr/bin/python3 /opt/dcelysion-media-stage3/operator/public-sync/refresh-public-media.py
+TimeoutStartSec=4h
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/dcelysion-media-stage3/public /opt/dcelysion-media-stage3/operator/all-public-20261012
+RestrictAddressFamilies=AF_INET AF_INET6 AF_UNIX
+

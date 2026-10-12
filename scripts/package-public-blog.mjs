@@ -204,6 +204,40 @@ export async function packagePublicBlog({
 	}
 	if (selected.length + 3 > 20_000)
 		throw new Error("PLATFORM_FILE_COUNT_LIMIT");
+	const mediaMime = {
+		".avif": "image/avif",
+		".webp": "image/webp",
+		".png": "image/png",
+		".jpg": "image/jpeg",
+		".jpeg": "image/jpeg",
+		".gif": "image/gif",
+		".svg": "image/svg+xml",
+		".ico": "image/x-icon",
+	};
+	const publicMedia = selected.filter(
+		(file) =>
+			mediaMime[path.extname(file.path)] &&
+			!file.path.startsWith("vndb-covers/") &&
+			!file.path.startsWith("pio/"),
+	);
+	const mediaInventory = Buffer.from(
+		`${JSON.stringify({
+			schema: 1,
+			sourceRevision: provenance.sourceRevision,
+			deploymentEligible,
+			objects: publicMedia.map((file) => ({
+				key: file.path,
+				size: file.bytes.length,
+				sha256: file.sha256,
+				mime: mediaMime[path.extname(file.path)],
+			})),
+		})}\n`,
+	);
+	selected.push({
+		path: "__route/public-media.json",
+		bytes: mediaInventory,
+		sha256: sha256(mediaInventory),
+	});
 	const inventory = selected.map(({ path, bytes, sha256 }) => ({
 		path,
 		bytes: bytes.length,

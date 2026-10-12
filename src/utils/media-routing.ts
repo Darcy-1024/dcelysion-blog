@@ -16,6 +16,7 @@ const storageKey = "dcelysion.media.route.v1";
 export class MediaRouter {
 	private state: RouteState;
 	private pending?: Promise<MediaSource>;
+	private urls = new Map<string, PublicMedia>();
 
 	storageAvailable = true;
 	constructor(
@@ -25,7 +26,9 @@ export class MediaRouter {
 			| Pick<Storage, "getItem" | "setItem">
 			| undefined = undefined,
 		private request: typeof fetch = fetch.bind(globalThis),
+		private revision = "",
 	) {
+		this.updateEntries(manifest.entries);
 		this.state = { version: 1, phase: "ready", preferred: "r2" };
 		try {
 			const cached = JSON.parse(storage?.getItem(storageKey) || "null");
@@ -192,9 +195,26 @@ export class MediaRouter {
 			: "r2";
 	}
 	entry(url: string): PublicMedia | undefined {
-		return this.manifest.entries.find(
-			(e) => dualReady(e) && Object.values(e.sources).includes(url),
-		);
+		return this.urls.get(url);
+	}
+	updateEntries(entries: PublicMedia[]): void {
+		const urls = new Map<string, PublicMedia>();
+		for (const entry of entries) {
+			if (!dualReady(entry)) continue;
+			for (const url of Object.values(entry.sources))
+				if (url) urls.set(url, entry);
+			for (const alias of entry.aliases || []) {
+				if (alias.revision !== this.revision) continue;
+				urls.set(alias.url, entry);
+				for (const origin of [
+					"https://blog.dcelysion.cn",
+					"https://blog-eo.dcelysion.cn",
+				])
+					urls.set(origin + alias.url, entry);
+			}
+		}
+		this.manifest.entries = entries;
+		this.urls = urls;
 	}
 	attempt(url: string): MediaAttempt {
 		const entry = this.policy.enabled ? this.entry(url) : undefined;
@@ -211,7 +231,11 @@ export class MediaRouter {
 		return new MediaAttempt(
 			url,
 			entry,
-			entry?.sources.tencent === url ? "tencent" : "r2",
+			entry?.sources.tencent === url
+				? "tencent"
+				: entry?.sources.r2 === url
+					? "r2"
+					: "local",
 			this.state.tencentAllowed === true,
 		);
 	}
@@ -222,7 +246,7 @@ export class MediaAttempt {
 	constructor(
 		public url: string,
 		readonly entry: PublicMedia | undefined = undefined,
-		private source: MediaSource | undefined = undefined,
+		private source: MediaSource | "local" | undefined = undefined,
 		private tencentAllowed = true,
 	) {}
 	backup(): string | undefined {

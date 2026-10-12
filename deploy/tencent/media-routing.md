@@ -1,5 +1,17 @@
 # 腾讯受控媒体接入
 
+## 2026-10-12 全部自有公开媒体流程
+
+新增阶段在现有隔离公开目录内准备完整副本，不读取后台媒体目录/数据库。公开同步器显式枚举四个公开用途桶，原件流式校验后放入 `verified/<SHA256>/<文件名>`；原 R2 URL 不改，既有两图腾讯路径也保留。已公开站内图追加内容寻址的 article R2 副本及 revision 绑定别名，不将草稿或私有上传作为触发点。
+
+部署脚本为 `public-r2-plan.py`、`sync-public-media.py`、`sync-published-site-media.py`、`register-public-media.py` 和协调器 `refresh-public-media.py`。安装到受保护 `operator/public-sync` 时，将前两份分别命名为 `public_r2_plan.py`、`sync_public_media.py`，供其余脚本导入。一次性已有文件导入工具为 `prepare-public-build-media.py` 和 `import-cached-public-media.py`，不是私有发布入口。
+
+`dc-public-media-sync.service/.timer` 用单个排他锁串行推进：每小时读取公开对象清单，复用未变化且本地SHA仍正确的副本；公开站 revision 变化才读取可信 `__route/public-media.json` 和公开引用。完整校验后原子替换 `.distribution.json`，通过 HEAD、首尾 Range 和有界代表 GET 后再 PUT 脱敏 R2 JSON。清单不含 localKey、运维状态或凭据；失败恢复旧索引、不恢复预算账本。快照未变不重复下载代表大文件。
+
+前台首次部署一次后，使用固定 `https://admin-media.dcelysion.cn/media-routing/distribution-v1.json` 更新资格，不需要为每个新增公开对象再提交Git。客户端限1MiB/5000对象，失败回构建快照/R2，不接受远端策略或探针端点；每次页面启动读取一次，Swup复用，已有加载/播放不换源。本地 aliases 必须匹配当前可信公开 revision，srcset 全组齐备才切换。
+
+初始只读盘点为152个真实公开R2对象（743848570字节）及276个已公开本地媒体（49589672字节），另有12个测试对象和47个本地第三方例外。复制和登记、前台发布分别验收；后文第四阶段两图状态仅为历史基线。R2缺副本或校验失败的对象不获得双源资格，不能把索引或CORS核对称为浏览器播放完成。保留全进程512KiB/s、并发4、250GB预算，以及原全机5Mbps和原主机账本。
+
 ## 2026-10-12 第四阶段实际参数
 
 独立 `media-tx.dcelysion.cn` 仅服务媒体，不接管两个博客域。正式环境示例为 `media-stage4.env.example`：聚合512KiB/s（约4.19Mbps）、并发4、250GB/UTC自然月响应体reservation。全机eth0仍5Mbps，主机350GB门禁采用供应商周期和保守RX+TX账本，两种预算不能相加称作供应商硬额度。保留已有journal，不删除归零。

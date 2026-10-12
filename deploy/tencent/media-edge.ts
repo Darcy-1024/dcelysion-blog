@@ -1,20 +1,35 @@
-import { readFile } from "node:fs/promises";
+import { readFile, stat } from "node:fs/promises";
 import { createServer } from "node:http";
 import { resolve } from "node:path";
 import { MediaBudget } from "../../admin/server/media-budget.js";
 import { createMediaEdge } from "../../admin/server/media-edge.js";
 import { hostMediaPermit } from "../../admin/server/media-host-permit.js";
-import type { MediaDistribution } from "../../src/utils/media-contract.js";
+import {
+	type MediaDistribution,
+	parsePublicMediaManifest,
+} from "../../src/utils/media-contract.js";
 
 // Use loopback, or an isolated Docker bridge with no public backend port.
-const manifest = async () =>
-	JSON.parse(
-		await readFile(
-			process.env.MEDIA_EDGE_MANIFEST ||
-				"/srv/dcelysion/admin-public-media/.distribution.json",
-			"utf8",
-		),
+const manifestPath =
+	process.env.MEDIA_EDGE_MANIFEST ||
+	"/srv/dcelysion/admin-public-media/.distribution.json";
+let cachedManifest: { identity: string; value: MediaDistribution } | undefined;
+const manifest = async () => {
+	const info = await stat(manifestPath);
+	if (!info.isFile() || info.size > 2097152)
+		throw new Error("Bounded public index required");
+	const identity = `${info.ino}:${info.mtimeMs}:${info.size}`;
+	if (cachedManifest?.identity === identity) return cachedManifest.value;
+	const value = JSON.parse(
+		await readFile(manifestPath, "utf8"),
 	) as MediaDistribution;
+	parsePublicMediaManifest({
+		...value,
+		entries: value.entries.map(({ localKey: _localKey, ...entry }) => entry),
+	});
+	cachedManifest = { identity, value };
+	return value;
+};
 const monthly = Number(process.env.MEDIA_EDGE_MONTHLY_BYTES || 250_000_000_000);
 if (!Number.isSafeInteger(monthly) || monthly < 1 || monthly > 250_000_000_000)
 	throw new Error("Media monthly budget must not exceed 250GB");

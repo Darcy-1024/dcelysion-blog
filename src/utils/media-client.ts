@@ -1,9 +1,69 @@
 import distribution from "../config/manifests/media-distribution.json";
 import settings from "../config/manifests/settings.json";
-import { type MediaDistribution, parseMediaPolicy } from "./media-contract";
+import {
+	type MediaDistribution,
+	parseMediaPolicy,
+	parsePublicMediaManifest,
+	publicMediaManifestUrl,
+} from "./media-contract";
 import { type MediaAttempt, MediaRouter } from "./media-routing";
 
 let singleton: MediaRouter | undefined;
+let initialized: Promise<void> | undefined;
+export function initializeMedia(): Promise<void> {
+	if (!initialized)
+		initialized = (async () => {
+			const router = mediaRouter();
+			const controller = new AbortController();
+			const timer = setTimeout(() => controller.abort(), 2500);
+			try {
+				const response = await fetch(publicMediaManifestUrl, {
+					signal: controller.signal,
+					credentials: "omit",
+					redirect: "error",
+					cache: "no-store",
+				});
+				if (
+					!response.ok ||
+					!response.body ||
+					response.headers.get("content-type")?.split(";")[0] !==
+						"application/json" ||
+					Number(response.headers.get("content-length")) > 1048576
+				)
+					throw new Error("media manifest response");
+				const reader = response.body.getReader();
+				const chunks: Uint8Array[] = [];
+				let size = 0;
+				try {
+					for (;;) {
+						const part = await reader.read();
+						if (part.done) break;
+						size += part.value.byteLength;
+						if (size > 1048576) throw new Error("media manifest limit");
+						chunks.push(part.value);
+					}
+				} finally {
+					await reader.cancel();
+				}
+				const bytes = new Uint8Array(size);
+				let offset = 0;
+				for (const chunk of chunks) {
+					bytes.set(chunk, offset);
+					offset += chunk.length;
+				}
+				router.updateEntries(
+					parsePublicMediaManifest(JSON.parse(new TextDecoder().decode(bytes)))
+						.entries,
+				);
+			} catch {
+				/* Build snapshot remains valid. Unknown media retains its URL. */
+			} finally {
+				clearTimeout(timer);
+			}
+			await router.start();
+		})();
+	return initialized;
+}
 export function mediaRouter(): MediaRouter {
 	if (!singleton) {
 		let storage: Storage | undefined;
@@ -16,8 +76,10 @@ export function mediaRouter(): MediaRouter {
 			distribution as MediaDistribution,
 			parseMediaPolicy((settings as Record<string, unknown>).mediaRouting),
 			storage,
+			fetch.bind(globalThis),
+			import.meta.env.PUBLIC_BUILD_REVISION || "",
 		);
-		void singleton.start();
+		queueMicrotask(() => void initializeMedia());
 	}
 	return singleton;
 }
@@ -52,9 +114,33 @@ export function assignMedia(
 				{ capture: true },
 			);
 		}
-		for (const source of element
-			.closest("picture")
-			?.querySelectorAll<HTMLSourceElement>("source[data-media-srcset]") || [])
+		const pictureSources = [
+			...(element
+				.closest("picture")
+				?.querySelectorAll<HTMLSourceElement>("source[data-media-srcset]") ||
+				[]),
+		];
+		const candidates = [
+			url,
+			...(srcset ? srcset.split(",").map((v) => v.trim().split(/\s+/)[0]) : []),
+			...pictureSources.flatMap((source) =>
+				(source.dataset.mediaSrcset || "")
+					.split(",")
+					.map((v) => v.trim().split(/\s+/)[0]),
+			),
+		];
+		if (
+			pictureSources.length &&
+			!candidates.every((candidate) => mediaRouter().entry(candidate))
+		) {
+			for (const source of pictureSources)
+				source.srcset = source.dataset.mediaSrcset || "";
+			if (srcset) element.srcset = srcset;
+			attempts.set(element, mediaRouter().attempt(""));
+			element.src = url;
+			return;
+		}
+		for (const source of pictureSources)
 			source.srcset = (source.dataset.mediaSrcset || "")
 				.split(",")
 				.map((candidate) => {
@@ -103,7 +189,9 @@ export function markMediaPlayed(element: HTMLMediaElement): void {
 	const attempt = attempts.get(element);
 	if (attempt) attempt.played = true;
 }
-export function managedMedia(element: HTMLMediaElement): boolean {
+export function managedMedia(
+	element: HTMLMediaElement | HTMLImageElement,
+): boolean {
 	return Boolean(attempts.get(element)?.entry);
 }
 export async function fetchMedia(url: string): Promise<Response> {
@@ -143,7 +231,8 @@ export function activateDeferredImages(root: ParentNode = document): void {
 	)) {
 		if (element.dataset.mediaActive || deferred.has(element)) continue;
 		deferred.add(element);
-		const activate = () => {
+		const activate = async () => {
+			if (element.loading === "lazy") await initializeMedia();
 			if (!element.isConnected || element.dataset.mediaActive) return;
 			element.dataset.mediaActive = "true";
 			assignMedia(

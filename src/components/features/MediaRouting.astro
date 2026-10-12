@@ -6,4 +6,5 @@ activateDeferredImages();
 document.addEventListener("swup:content:replace", () => activateDeferredImages());
 document.addEventListener("dynamic-gallery:ready", () => activateDeferredImages());
 document.addEventListener("password:decrypted", () => activateDeferredImages());
+document.addEventListener("media:images-added", (event) => activateDeferredImages((event as CustomEvent<HTMLElement>).detail));
 </script>

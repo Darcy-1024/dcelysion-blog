@@ -45,6 +45,7 @@ const wallpaperPosition = state.isFullscreenMode
                         alt="Mobile background image of the blog"
                         class="object-cover h-full w-full"
                         src={src}
+                        deferRouting={true}
                         position={wallpaperPosition}
                         width={828}
                         widths={[640, 828]}
@@ -62,6 +63,7 @@ const wallpaperPosition = state.isFullscreenMode
                         alt="Desktop background image of the blog"
                         class="object-cover h-full"
                         src={src}
+                        deferRouting={true}
                         position={wallpaperPosition}
                         width={1920}
                         widths={[1280, 1920]}
@@ -118,6 +120,7 @@ const wallpaperPosition = state.isFullscreenMode
             <div class="banner-image-slot absolute inset-0 block lg:hidden">
                 <template>
                     <ImageWrapper
+                        deferRouting={true}
                         alt="Mobile background image of the blog"
                         class="object-cover h-full w-full"
                         src={backgroundImages.mobile[0]}
@@ -135,6 +138,7 @@ const wallpaperPosition = state.isFullscreenMode
             <div class="banner-image-slot absolute inset-0 hidden lg:block">
                 <template>
                     <ImageWrapper
+                        deferRouting={true}
                         alt="Desktop background image of the blog"
                         class="object-cover h-full"
                         src={backgroundImages.desktop[0]}
@@ -256,6 +260,7 @@ const wallpaperPosition = state.isFullscreenMode
                 }
                 slideEl.appendChild(frag);
                 tpl.remove();
+                document.dispatchEvent(new CustomEvent('media:images-added', { detail: slideEl }));
                 fadeInWhenLoaded(slideEl);
                 return true;
             }
@@ -491,6 +496,7 @@ const wallpaperPosition = state.isFullscreenMode
                 }
                 slot.appendChild(frag);
                 tpl.remove();
+                document.dispatchEvent(new CustomEvent('media:images-added', { detail: slot }));
                 // Layout 的全局淡入只扫解析期的图片，克隆进来的要自己接管
                 var ph = slot.querySelector('.lqip-placeholder');
                 if (!img) return;

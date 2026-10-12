@@ -2,6 +2,7 @@
 import { onMount } from "svelte";
 import Icon from "@/components/common/Icon.svelte";
 import { siteConfig } from "@/config";
+import { assignMedia, managedMedia } from "@/utils/media-client";
 import iconsData from "@/constants/icons-data.json";
 import { url as withBase } from "@/utils/url-utils";
 import I18nKey from "../../i18n/i18nKey";
@@ -44,6 +45,7 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
 		img.crossOrigin = "anonymous";
 		img.onload = () => resolve(img);
 		img.onerror = () => {
+			if (managedMedia(img)) { resolve(null); return; }
 			if (!src.includes("images.weserv.nl")) {
 				const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(src)}&output=png`;
 				const proxyImg = new Image();
@@ -57,7 +59,7 @@ function loadImage(src: string): Promise<HTMLImageElement | null> {
 				resolve(null);
 			}
 		};
-		img.src = src;
+		assignMedia(img, src);
 	});
 }
 
