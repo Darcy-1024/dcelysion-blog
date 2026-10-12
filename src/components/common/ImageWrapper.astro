@@ -1,5 +1,4 @@
 ---
-import RoutedLocalImage from "./RoutedLocalImage.astro";
 import * as path from "node:path";
 import type { ImageMetadata } from "astro";
 import type { ImageFormat, ResponsiveImageLayout } from "@/types/config";
@@ -12,6 +11,7 @@ import {
 import { getLqipProps } from "@/utils/lqip-utils";
 import { mediaImageProps } from "@/utils/media-image-props";
 import { url } from "@/utils/url-utils";
+import RoutedLocalImage from "./RoutedLocalImage.astro";
 
 interface Props {
 	id?: string;

@@ -23,12 +23,28 @@ interface Props {
 	dataCoverImg?: boolean;
 	deferRouting?: boolean;
 }
-const { usePicture, formats, fallbackFormat, dataCoverImg, deferRouting, ...props } = Astro.props;
+const {
+	usePicture,
+	formats,
+	fallbackFormat,
+	dataCoverImg,
+	deferRouting,
+	...props
+} = Astro.props;
 const options = { ...props, fit: "cover" as const };
-const fallback = await getImage({ ...options, format: usePicture ? fallbackFormat : undefined });
-const variants = usePicture ? await Promise.all(formats.map(format => getImage({ ...options, format }))) : [];
+const fallback = await getImage({
+	...options,
+	format: usePicture ? fallbackFormat : undefined,
+});
+const variants = usePicture
+	? await Promise.all(formats.map((format) => getImage({ ...options, format })))
+	: [];
 const srcset = fallback.srcSet.attribute || undefined;
-const routed = mediaImageProps(fallback.src, props.loading === "lazy" || deferRouting, srcset);
+const routed = mediaImageProps(
+	fallback.src,
+	props.loading === "lazy" || deferRouting,
+	srcset,
+);
 const deferred = Boolean(routed["data-media-src"]);
 const { class: imageClass, ...attributes } = fallback.attributes;
 ---
