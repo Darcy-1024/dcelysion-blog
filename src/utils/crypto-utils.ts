@@ -1,4 +1,4 @@
-import { createCipheriv, createHmac, pbkdf2Sync } from "node:crypto";
+import { createCipheriv, pbkdf2Sync, randomBytes } from "node:crypto";
 
 const PBKDF2_ITERATIONS = 100000;
 const SALT_LENGTH = 16;
@@ -6,27 +6,19 @@ const IV_LENGTH = 12;
 const KEY_LENGTH = 32;
 
 /**
- * Derive deterministic bytes from a key and context string using HMAC-SHA256.
- */
-function deriveBytes(key: string, context: string, length: number): Buffer {
-	return createHmac("sha256", key).update(context).digest().subarray(0, length);
-}
-
-/**
  * Encrypt HTML content with AES-256-GCM using PBKDF2-derived key.
- * Salt and IV are deterministic (derived from password + slug) so the same
- * inputs always produce the same ciphertext — this makes sessionStorage
- * password caching work reliably across page reloads.
+ * Fresh independent salt and IV are generated for every encryption.
+ * Clients read both from the envelope; password caching needs no fixed ciphertext.
  *
  * Output format: base64(salt[16] + iv[12] + authTag[16] + ciphertext)
  */
 export function encryptContent(
 	html: string,
 	password: string,
-	slug: string,
+	_slug: string,
 ): string {
-	const salt = deriveBytes(password, `salt:${slug}`, SALT_LENGTH);
-	const iv = deriveBytes(password, `iv:${slug}`, IV_LENGTH);
+	const salt = randomBytes(SALT_LENGTH);
+	const iv = randomBytes(IV_LENGTH);
 	const key = pbkdf2Sync(
 		password,
 		salt,

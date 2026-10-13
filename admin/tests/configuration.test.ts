@@ -1,23 +1,15 @@
 /** biome-ignore-all lint/style/noNonNullAssertion: Fixtures construct and validate these domain arrays explicitly. */
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { mkdtemp, readFile, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { Readable } from "node:stream";
 import test from "node:test";
-import { pathToFileURL } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import sharp from "sharp";
-import { galleryConfig } from "../../src/config/galleryConfig.js";
 import { playlistFromManifest } from "../../src/config/manifest-adapters.js";
-import { musicPlayerConfig } from "../../src/config/musicConfig.js";
-import { siteConfig } from "../../src/config/siteConfig.js";
-import {
-	getAlbumCover,
-	getGalleryPreviewAsset,
-	scanAlbumPhotos,
-} from "../../src/utils/gallery-utils.js";
 import { CandidateExecutor } from "../server/candidate.js";
 import { configurationMedia } from "../server/configuration.js";
 import { command } from "../server/executor.js";
@@ -29,57 +21,136 @@ import {
 } from "../shared/configuration.js";
 import { mediaMarker } from "../shared/media.js";
 import { configurationFixture, fixtureWav } from "./configuration-fixture.js";
+import {
+	expectedPhotos,
+	expectedSettings,
+	legacyFiles,
+	legacyGallery,
+	legacyMusic,
+	legacyPreviews,
+} from "./fixtures/configuration-legacy.js";
 
 test("trusted migration preserves playlist, album scan/urls/preview and supported settings", async () => {
 	const temp = await mkdtemp(join(tmpdir(), "dc-admin-config-baseline-"));
-	for (const name of ["musicConfig", "galleryConfig"])
+	const project = process.cwd();
+	const cli = fileURLToPath(import.meta.resolve("tsx/cli"));
+	const run = (script: string) =>
+		command(
+			process.execPath,
+			[cli, "--tsconfig", resolve(project, "tsconfig.json"), script],
+			temp,
+		);
+	try {
+		for (const directory of [
+			"scripts",
+			"src/config",
+			"src/constants",
+			"public/gallery/fixture-album",
+			"public/gallery/fixture-empty",
+		])
+			await mkdir(join(temp, directory), { recursive: true });
+		await writeFile(join(temp, "package.json"), '{"type":"module"}');
+		for (const [name, exported, value] of [
+			["musicConfig", "musicPlayerConfig", legacyMusic],
+			["galleryConfig", "galleryConfig", legacyGallery],
+		] as const)
+			await writeFile(
+				join(temp, `src/config/${name}.ts`),
+				`export const ${exported} = ${JSON.stringify(value)};`,
+			);
+		for (const [name, value] of Object.entries(legacyFiles))
+			await writeFile(join(temp, "public/gallery/fixture-album", name), value);
 		await writeFile(
-			join(temp, `${name}.ts`),
-			await command(
-				"git",
-				["show", `HEAD:src/config/${name}.ts`],
-				process.cwd(),
+			join(temp, "src/constants/gallery-previews.json"),
+			JSON.stringify(legacyPreviews),
+		);
+		// Execute the real one-time migration, unchanged, with only synthetic inputs.
+		const migration = join(temp, "scripts/migrate-admin-manifests.ts");
+		await writeFile(
+			migration,
+			await readFile(
+				join(project, "scripts/migrate-admin-manifests.ts"),
+				"utf8",
 			),
 		);
-	const oldMusic = (
-		await import(pathToFileURL(join(temp, "musicConfig.ts")).href)
-	).musicPlayerConfig;
-	const oldGallery = (
-		await import(pathToFileURL(join(temp, "galleryConfig.ts")).href)
-	).galleryConfig;
-	assert.deepEqual(musicPlayerConfig, oldMusic);
-	assert.deepEqual(
-		galleryConfig.albums.map(({ photos: _photos, ...album }) => album),
-		oldGallery.albums,
-	);
-	for (const album of galleryConfig.albums) {
-		const oldPhotos = scanAlbumPhotos(album.id, oldGallery);
-		assert.deepEqual(scanAlbumPhotos(album.id, galleryConfig), oldPhotos);
-		assert.equal(
-			getAlbumCover(album, oldPhotos, galleryConfig),
-			getAlbumCover(album, oldPhotos, oldGallery),
+		await run(migration);
+		const music = parseConfiguration(
+			"music",
+			await readFile(join(temp, configurationPaths.music), "utf8"),
 		);
-		for (const src of oldPhotos)
-			assert.deepEqual(
-				getGalleryPreviewAsset(src, galleryConfig),
-				getGalleryPreviewAsset(src, oldGallery),
-			);
-		const explicitEmpty = {
-			...galleryConfig,
-			albums: [{ ...album, photos: [] }],
-		};
-		assert.deepEqual(scanAlbumPhotos(album.id, explicitEmpty), []);
+		const gallery = parseConfiguration(
+			"gallery",
+			await readFile(join(temp, configurationPaths.gallery), "utf8"),
+		);
+		const settings = parseConfiguration(
+			"settings",
+			await readFile(join(temp, configurationPaths.settings), "utf8"),
+		);
+		assert.deepEqual(
+			music.tracks?.map((track) => track.id),
+			["track-1", "track-2"],
+		);
+		assert.deepEqual(
+			playlistFromManifest({ tracks: music.tracks! }),
+			legacyMusic.local?.playlist,
+		);
+		assert.deepEqual(
+			gallery.albums?.map(({ photos: _photos, ...album }) => album),
+			legacyGallery.albums,
+		);
+		assert.deepEqual(
+			gallery.albums?.[0].photos?.map((photo) => photo.original),
+			expectedPhotos,
+		);
+		assert.deepEqual(gallery.albums?.[1].photos, []);
+		assert.deepEqual(settings, expectedSettings);
+		assert.equal(
+			gallery.albums?.[0].photos?.[0].sha256,
+			"ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
+		);
+
+		// Isolate cwd in a child process; do not affect parallel tests with chdir.
+		const probe = join(temp, "scripts/probe.ts");
+		await writeFile(
+			probe,
+			`
+import { readFileSync } from "node:fs";
+import { galleryConfig as legacy } from "../src/config/galleryConfig.ts";
+import { albumsFromManifest } from ${JSON.stringify(pathToFileURL(resolve(project, "src/config/manifest-adapters.ts")).href)};
+import { scanAlbumPhotos, getAlbumCover, getGalleryPreviewAsset } from ${JSON.stringify(pathToFileURL(resolve(project, "src/utils/gallery-utils.ts")).href)};
+const migrated = { ...legacy, albums: albumsFromManifest(JSON.parse(readFileSync("src/config/manifests/gallery.json", "utf8"))) };
+const before = scanAlbumPhotos("fixture-album", legacy);
+const after = scanAlbumPhotos("fixture-album", migrated);
+const explicitEmpty = { ...migrated, albums: [{ ...migrated.albums[0], photos: [] }] };
+console.log(JSON.stringify({ before, after,
+  coverBefore: getAlbumCover(legacy.albums[0], before, legacy),
+  coverAfter: getAlbumCover(migrated.albums[0], after, migrated),
+  previews: after.map(src => getGalleryPreviewAsset(src, migrated)),
+  explicitEmpty: scanAlbumPhotos("fixture-album", explicitEmpty),
+  empty: scanAlbumPhotos("fixture-empty", migrated)
+}));
+`,
+		);
+		const result = JSON.parse(await run(probe));
+		assert.deepEqual(result.before, expectedPhotos);
+		assert.deepEqual(result.after, expectedPhotos);
+		assert.equal(result.coverBefore, expectedPhotos[0]);
+		assert.equal(result.coverAfter, expectedPhotos[0]);
+		assert.deepEqual(result.previews, [
+			{
+				src: "https://fixture.invalid/gallery/previews/cover.avif",
+				width: 1200,
+				height: 800,
+			},
+			null,
+			null,
+		]);
+		assert.deepEqual(result.explicitEmpty, []);
+		assert.deepEqual(result.empty, []);
+		await assert.rejects(run(migration), /refusing to overwrite/);
+	} finally {
+		await rm(temp, { recursive: true, force: true });
 	}
-	const settings = JSON.parse(
-		await readFile(configurationPaths.settings, "utf8"),
-	);
-	assert.equal(siteConfig.title, settings.title);
-	assert.equal(
-		siteConfig.description,
-		"God’s in his heaven，All’s right with the world",
-	);
-	assert.deepEqual(siteConfig.keywords, settings.keywords);
-	assert.equal(siteConfig.navbar.title, settings.navbarTitle);
 });
 
 test("configuration revisions, role validation, fixed candidates and historical references in one isolated environment", async () => {
