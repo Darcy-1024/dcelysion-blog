@@ -61,7 +61,12 @@ export class MediaRouter {
 			this.storageAvailable = false;
 		}
 	}
-	start(manual = false): Promise<MediaSource> {
+	async selectSource(source: MediaSource): Promise<MediaSource> {
+		// Finish any active round before applying the explicit choice.
+		while (this.pending) await this.pending;
+		return this.start(true, source);
+	}
+	start(manual = false, source?: MediaSource): Promise<MediaSource> {
 		if (this.pending) return this.pending;
 		if (!manual && this.state.phase === "ready")
 			return Promise.resolve(this.preferred);
@@ -69,7 +74,7 @@ export class MediaRouter {
 		this.persist();
 		const controller = new AbortController();
 		const timer = setTimeout(() => controller.abort(), this.policy.timeoutMs);
-		this.pending = this.choose(controller.signal)
+		this.pending = this.choose(controller.signal, source)
 			.catch(() => this.safeDefault())
 			.then((source) => {
 				this.state = {
@@ -91,7 +96,10 @@ export class MediaRouter {
 		// Without a fresh capacity permit, never allocate a new Tencent session.
 		return this.state.tencentAllowed ? this.policy.defaultSource : "r2";
 	}
-	private async choose(signal: AbortSignal): Promise<MediaSource> {
+	private async choose(
+		signal: AbortSignal,
+		source?: MediaSource,
+	): Promise<MediaSource> {
 		this.state.tencentAllowed = false;
 		if (
 			!this.policy.enabled ||
@@ -99,7 +107,7 @@ export class MediaRouter {
 			!this.manifest.entries.some(dualReady)
 		)
 			return this.safeDefault();
-		if (this.policy.mode === "r2") return "r2";
+		if (source === "r2" || (!source && this.policy.mode === "r2")) return "r2";
 		const capacity = await this.request(this.manifest.capacityUrl, {
 			signal,
 			cache: "no-store",
@@ -134,7 +142,8 @@ export class MediaRouter {
 		)
 			return "r2";
 		this.state.tencentAllowed = true;
-		if (this.policy.mode === "tencent") return "tencent";
+		if (source === "tencent" || this.policy.mode === "tencent")
+			return "tencent";
 		const entry = this.manifest.entries.find(
 			(e) =>
 				e.id === this.manifest.probe?.id &&

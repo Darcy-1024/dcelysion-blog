@@ -3,6 +3,11 @@ import type { Translation } from "../translation";
 
 export const en: Translation = {
 	[Key.mediaReroute]: "Choose media source again",
+	[Key.mediaManualRoute]: "Choose manually",
+	[Key.mediaSourceR2]: "R2",
+	[Key.mediaSourceTencent]: "Tencent",
+	[Key.mediaTencentUnavailable]:
+		"Tencent is unavailable; subsequent media will use R2",
 	[Key.mediaRoutePending]: "Choosing source for future media",
 	[Key.mediaRouteFuture]: "Future loads only:",
 	[Key.mediaStorageLimited]:

@@ -1,5 +1,9 @@
 enum I18nKey {
 	mediaReroute = "mediaReroute",
+	mediaManualRoute = "mediaManualRoute",
+	mediaSourceR2 = "mediaSourceR2",
+	mediaSourceTencent = "mediaSourceTencent",
+	mediaTencentUnavailable = "mediaTencentUnavailable",
 	mediaRoutePending = "mediaRoutePending",
 	mediaRouteFuture = "mediaRouteFuture",
 	mediaStorageLimited = "mediaStorageLimited",

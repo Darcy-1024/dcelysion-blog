@@ -3,6 +3,11 @@ import type { Translation } from "../translation";
 
 export const ko: Translation = {
 	[Key.mediaReroute]: "미디어 경로 다시 선택",
+	[Key.mediaManualRoute]: "직접 선택",
+	[Key.mediaSourceR2]: "R2",
+	[Key.mediaSourceTencent]: "Tencent",
+	[Key.mediaTencentUnavailable]:
+		"Tencent를 사용할 수 없어 이후 미디어는 R2를 사용합니다",
 	[Key.mediaRoutePending]: "다음 미디어 소스 선택 중",
 	[Key.mediaRouteFuture]: "다음 로딩에만 적용:",
 	[Key.mediaStorageLimited]:

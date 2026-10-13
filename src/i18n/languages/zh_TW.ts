@@ -3,6 +3,10 @@ import type { Translation } from "../translation";
 
 export const zh_TW: Translation = {
 	[Key.mediaReroute]: "重新選路",
+	[Key.mediaManualRoute]: "手動選路",
+	[Key.mediaSourceR2]: "R2",
+	[Key.mediaSourceTencent]: "Tencent",
+	[Key.mediaTencentUnavailable]: "騰訊暫不可用，後續媒體使用 R2",
 	[Key.mediaRoutePending]: "正在選擇後續媒體來源",
 	[Key.mediaRouteFuture]: "僅影響後續載入：",
 	[Key.mediaStorageLimited]: "工作階段儲存不可用，重新整理後無法重用",

@@ -55,7 +55,8 @@ import {
 	siteConfig,
 } from "@/config";
 import type { FullscreenWallpaperLayout, WALLPAPER_MODE } from "@/types/config";
-import { mediaRouter } from "@/utils/media-client";
+import { initializeMedia, mediaRouter } from "@/utils/media-client";
+import type { MediaSource } from "@/utils/media-contract";
 
 type OverlaySliderItem = {
 	key: "opacity" | "blur" | "cardOpacity";
@@ -87,11 +88,32 @@ const mobileDefaultLayout =
 let routePending = $state(false);
 let routeSource = $state("r2");
 let routeStorage = $state(true);
+let routeUnavailable = $state(false);
 async function rerouteMedia() {
+	if (routePending) return;
 	routePending = true;
+	routeUnavailable = false;
 	try {
-		routeSource = await mediaRouter().start(true);
+		await initializeMedia();
+		const source = await mediaRouter().start(true);
+		if (!mounted) return;
+		routeSource = source;
 		routeStorage = mediaRouter().storageAvailable;
+	} finally {
+		routePending = false;
+	}
+}
+async function chooseMediaSource(source: MediaSource) {
+	if (routePending) return;
+	routePending = true;
+	routeUnavailable = false;
+	try {
+		await initializeMedia();
+		const selected = await mediaRouter().selectSource(source);
+		if (!mounted) return;
+		routeSource = selected;
+		routeStorage = mediaRouter().storageAvailable;
+		routeUnavailable = source === "tencent" && routeSource !== "tencent";
 	} finally {
 		routePending = false;
 	}
@@ -542,14 +564,12 @@ onMount(() => {
 	mounted = true;
 	routeSource = mediaRouter().preferred;
 	routeStorage = mediaRouter().storageAvailable;
-	void mediaRouter()
-		.start()
-		.then((source) => {
-			if (mounted) {
-				routeSource = source;
-				routeStorage = mediaRouter().storageAvailable;
-			}
-		});
+	void initializeMedia().then(() => {
+		if (mounted) {
+			routeSource = mediaRouter().preferred;
+			routeStorage = mediaRouter().storageAvailable;
+		}
+	});
 	checkScreenSize();
 
 	// 从localStorage读取保存的壁纸模式
@@ -595,6 +615,7 @@ onMount(() => {
 	window.addEventListener("resize", checkScreenSize);
 
 	return () => {
+		mounted = false;
 		window.removeEventListener("resize", checkScreenSize);
 	};
 });
@@ -686,10 +707,22 @@ $effect(() => {
 
 {#if hasAnyContent}
 <div id="display-setting" class="float-panel float-panel-closed absolute transition-all w-80 right-4 px-3 pt-0 pb-3 max-h-[80vh] overflow-y-auto custom-scrollbar" data-floating-panel data-floating-panel-trigger="display-settings-switch" inert aria-hidden="true">
-	<div class="pt-3 pb-2 text-xs" aria-live="polite">
-		<button class="btn-plain rounded-lg px-3 py-2 focus-ring" disabled={routePending} onclick={rerouteMedia}>{i18n(routePending ? I18nKey.mediaRoutePending : I18nKey.mediaReroute)}</button>
-		<p>{i18n(I18nKey.mediaRouteFuture)} {routeSource}</p>
-		{#if !routeStorage}<p>{i18n(I18nKey.mediaStorageLimited)}</p>{/if}
+	<div class="media-routing pt-3 pb-2 text-xs">
+		<div class="flex flex-wrap items-center gap-2">
+			<div role="group" aria-label={i18n(I18nKey.mediaManualRoute)} class="flex flex-1 gap-1 rounded-xl bg-(--btn-plain-bg-hover) p-1">
+				<button type="button" class="media-source btn-plain flex-1 rounded-lg px-3 py-2 focus-ring" disabled={routePending} aria-pressed={routeSource === "r2"} onclick={() => chooseMediaSource("r2")}>{i18n(I18nKey.mediaSourceR2)}</button>
+				<button type="button" class="media-source btn-plain flex-1 rounded-lg px-3 py-2 focus-ring" disabled={routePending} aria-pressed={routeSource === "tencent"} onclick={() => chooseMediaSource("tencent")}>{i18n(I18nKey.mediaSourceTencent)}</button>
+			</div>
+			<button type="button" class="btn-plain gap-1.5 rounded-lg px-2 py-2 focus-ring" disabled={routePending} onclick={rerouteMedia}>
+				<span class:animate-spin={routePending} class="flex motion-reduce:animate-none" aria-hidden="true"><Icon icon="fa7-solid:arrow-rotate-left" class="text-xs" /></span>
+				{i18n(I18nKey.mediaReroute)}
+			</button>
+		</div>
+		<div role="status" class="text-black/60 dark:text-white/60 leading-relaxed">
+			{#if routePending}<span class="sr-only">{i18n(I18nKey.mediaRoutePending)}</span>{/if}
+			{#if routeUnavailable}<p class="mt-2 px-1">{i18n(I18nKey.mediaTencentUnavailable)}</p>{/if}
+			{#if !routeStorage}<p class="mt-2 px-1">{i18n(I18nKey.mediaStorageLimited)}</p>{/if}
+		</div>
 	</div>
 	<!-- Tab Bar -->
 	{#if showTabBar}
@@ -1090,3 +1123,17 @@ $effect(() => {
 	{/if}
 </div>
 {/if}
+
+<style>
+	.media-source[aria-pressed="true"] {
+		background-color: var(--card-bg);
+		color: var(--primary);
+		box-shadow: inset 0 0 0 1px var(--primary);
+		font-weight: 600;
+	}
+
+	.media-routing button:disabled {
+		cursor: wait;
+		opacity: 0.6;
+	}
+</style>

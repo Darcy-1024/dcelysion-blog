@@ -3,6 +3,10 @@ import type { Translation } from "../translation";
 
 export const zh_CN: Translation = {
 	[Key.mediaReroute]: "重新选路",
+	[Key.mediaManualRoute]: "手动选路",
+	[Key.mediaSourceR2]: "R2",
+	[Key.mediaSourceTencent]: "Tencent",
+	[Key.mediaTencentUnavailable]: "腾讯暂不可用，后续媒体使用 R2",
 	[Key.mediaRoutePending]: "正在选择后续媒体来源",
 	[Key.mediaRouteFuture]: "仅影响后续加载：",
 	[Key.mediaStorageLimited]: "会话存储不可用，刷新后无法复用",

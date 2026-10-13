@@ -3,6 +3,11 @@ import type { Translation } from "../translation";
 
 export const ja: Translation = {
 	[Key.mediaReroute]: "メディア経路を再選択",
+	[Key.mediaManualRoute]: "手動で選択",
+	[Key.mediaSourceR2]: "R2",
+	[Key.mediaSourceTencent]: "Tencent",
+	[Key.mediaTencentUnavailable]:
+		"Tencent を利用できないため、以降のメディアは R2 を使用します",
 	[Key.mediaRoutePending]: "今後のメディアの配信元を選択中",
 	[Key.mediaRouteFuture]: "今後の読み込みのみ：",
 	[Key.mediaStorageLimited]:
