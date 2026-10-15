@@ -14,7 +14,7 @@ PostgreSQL适配器复制自固定官方版本，遵循GPL-2.0并保留项目既
 
 ## 本地头像上传
 
-`avatar-upload-v1.js` 在固定管理客户端 0.34.2 的 `/ui/profile` 捕获头像点击，选择本地 JPG/PNG/WebP/GIF（最多 10 MB），居中裁切为 256×256 静态 PNG，预览后确认保存。复用 Waline 当前登录令牌，仅向同源 `window.serverURL` 发送 `POST avatar`；不更改固定上游 bundle。页面语言为中文时显示中文，其余语言回退英文。
+`avatar-upload-v1.js` 在固定管理客户端 0.34.2 的 `/ui/profile` 捕获头像点击，选择本地 JPG/PNG/WebP/GIF（最多 10 MB），在原图上拖动取景、以滑块缩放（1–4 倍），或聚焦裁剪区域后使用方向键微调；支持重置裁剪和实时圆形预览。确认后保存为 256×256 静态 PNG，取消不上传。动图在读取时固定为一帧。复用 Waline 当前登录令牌，仅向同源 `window.serverURL` 发送 `POST avatar`；不更改固定上游 bundle。页面语言为中文时显示中文，其余语言回退英文。2026-10-15 已部署手动裁剪脚本及头像读取修复，脚本HTTP回读与本地SHA-256一致；真实浏览器拖动、缩放和保存仍待本人验收。
 
 评论域尚未公开时，管理页将规范头像链接 `https://comments.dcelysion.cn/api/avatar?id=…` 映射到当前同源 Waline API 代理显示，数据库仍保存评论域链接；此映射覆盖管理页头像并支持 React 重入。它不新增公开入口或绕过后台 Access。
 
