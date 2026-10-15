@@ -1076,6 +1076,11 @@ textarea:focus-visible {
 .management .row-main {
 	overflow-wrap: anywhere;
 }
+.management-user-heading {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+}
 .shell.with-comment-nav aside {
 	height: 100dvh;
 	overflow-y: auto;

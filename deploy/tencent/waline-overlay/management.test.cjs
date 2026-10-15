@@ -6,6 +6,44 @@ const test = require('node:test');
 process.env.NODE_PATH = path.join(__dirname, '../password-reset/node_modules');
 require('node:module').Module._initPaths();
 const { read } = require('./src/lib/management-read.js');
+
+test('user avatars preserve uploads and generate defaults from each listed user', async () => {
+  const rows = [
+    { objectId: 8, type: 'guest', email: 'first@example.invalid', display_name: 'First', url: 'https://example.invalid', avatar: 'https://example.invalid/upload.png' },
+    { objectId: 9, type: 'guest', email: 'second@example.invalid', display_name: 'Second', url: '' },
+  ];
+  const model = { count: async () => rows.length, select: async (where, options) => {
+    assert.ok(options.field.includes('avatar'));
+    return where.objectId ? rows.filter(row => row.objectId === where.objectId) : rows;
+  } };
+  const inputs = [];
+  const avatar = async input => { inputs.push(input); return 'https://example.invalid/default.png'; };
+  const result = await read(() => model, { resource: 'user' }, avatar);
+  assert.equal(result.items[0].avatar, rows[0].avatar);
+  assert.equal(result.items[1].avatar, 'https://example.invalid/default.png');
+  assert.deepEqual(inputs, [{ mail: rows[1].email, nick: rows[1].display_name, link: '' }]);
+  assert.equal((await read(() => model, { resource: 'user', id: 8 }, avatar)).avatar, rows[0].avatar);
+});
+
+test('legacy user list generates another user avatar from that user, not the administrator', async () => {
+  const calls = [];
+  const model = { count: async () => 1, select: async () => [{ objectId: 8, email: 'guest@example.invalid', display_name: 'Guest', url: '' }] };
+  const Base = class {
+    constructor() { this.ctx = { state: { userInfo: { type: 'administrator', email: 'owner@example.invalid' } } }; }
+    getModel() { return model; }
+    get() { return { page: 1, pageSize: 15 }; }
+    success(data) { return data; }
+  };
+  const moduleValue = { exports: {} };
+  const source = await readFile(path.join(__dirname, 'src/controller/user.js'), 'utf8');
+  new Function('require', 'module', 'think', source)(name => name === './rest.js' ? Base : {}, moduleValue, {
+    isEmpty: value => !value || Object.keys(value).length === 0,
+    service: () => ({ stringify: async input => { calls.push(input); return 'https://example.invalid/guest.png'; } }),
+  });
+  const result = await new moduleValue.exports().getAction();
+  assert.equal(result.data[0].avatar, 'https://example.invalid/guest.png');
+  assert.deepEqual(calls, [{ mail: 'guest@example.invalid', nick: 'Guest', link: '' }]);
+});
 test('overlay uses fresh field arrays and admin-only read logic', async () => {
   const calls=[];
   const model={count:async where=>{calls.push(where);return 1;},select:async(where,options)=>{assert.equal(options.field.filter(key=>key==='id').length,0);options.field.push('id');return [{objectId:1,comment:'原文',nick:'昵称',url:'/a/',status:'approved',type:'guest',password:'secret','2fa':'SECRET',auth_version:0}];}};

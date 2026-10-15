@@ -5,6 +5,7 @@ import { createServer } from "node:http";
 import { join } from "node:path";
 import { test } from "node:test";
 import { readConfig } from "../server/config.js";
+import { avatarUrl } from "../server/management.js";
 import type { Thread, User } from "../shared/management.js";
 import { listenLocal } from "./local-listener.js";
 import { managementFixture } from "./management-fixture.js";
@@ -121,6 +122,11 @@ test("management adapter/API: filters, exact threads, edits/status/replies/casca
 		const users = (await f.call("/api/manage/users?search=普通")).json.data;
 		assert.equal(users.total, 1);
 		const target = users.items[0] as User;
+		assert.equal(target.avatar, `/waline-api/avatar?id=${"a".repeat(64)}`);
+		assert.equal(
+			(await f.call("/api/manage/users/8")).json.data.avatar,
+			target.avatar,
+		);
 		assert.equal(JSON.stringify(target).includes("secret"), false);
 		assert.equal(
 			(
@@ -175,6 +181,26 @@ test("management adapter/API: filters, exact threads, edits/status/replies/casca
 	} finally {
 		await f.close();
 	}
+});
+
+test("user avatar URLs reject unsafe sources and map private uploads", () => {
+	for (const value of [
+		null,
+		"javascript:alert(1)",
+		"data:image/svg+xml,bad",
+		"/api/private",
+		"http://example.invalid/a.png",
+		"https://user:secret@example.invalid/a.png",
+		"https://comments.dcelysion.cn/api/avatar?id=bad",
+		`https://comments.dcelysion.cn/api/avatar?id=${"a".repeat(64)}&extra=1`,
+		`https://comments.dcelysion.cn/api/avatar?id=${"a".repeat(64)}#fragment`,
+		`https://example.invalid/${"a".repeat(2048)}`,
+	])
+		assert.equal(avatarUrl(value), "");
+	assert.equal(
+		avatarUrl("https://avatars.githubusercontent.com/u/1"),
+		"https://avatars.githubusercontent.com/u/1",
+	);
 });
 test("management boundaries: auth/origin/conflict/DTOs/unknown writes/protected owner/password/session revocation", async () => {
 	const f = await setup();

@@ -55,6 +55,7 @@ export async function managementFixture(
 		{
 			objectId: 8,
 			display_name: "隔离普通用户",
+			avatar: `https://comments.dcelysion.cn/api/avatar?id=${"a".repeat(64)}`,
 			email: "user@example.invalid",
 			url: "javascript:alert('bad')",
 			type: "guest",

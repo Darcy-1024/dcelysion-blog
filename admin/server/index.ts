@@ -82,7 +82,7 @@ const server = createServer(async (req, res) => {
 	if (process.env.NODE_ENV === "production") {
 		res.setHeader(
 			"content-security-policy",
-			"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+			"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self'; frame-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
 		);
 	}
 	if (config.cookieSecure)

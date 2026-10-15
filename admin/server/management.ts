@@ -99,12 +99,34 @@ function user(value: unknown): User {
 	};
 	return {
 		...result,
+		avatar: avatarUrl(row.avatar),
 		fingerprint: fingerprint({
 			...result,
 			version: row.auth_version,
 			updated: row.updatedAt,
 		}),
 	};
+}
+// Uploaded avatars use the existing Access-protected Waline proxy. External
+// avatars are loaded by the browser, never fetched with server credentials.
+export function avatarUrl(value: unknown): string {
+	if (typeof value !== "string" || value.length > 2048) return "";
+	try {
+		const url = new URL(value);
+		if (url.protocol !== "https:" || url.username || url.password) return "";
+		if (url.origin === "https://comments.dcelysion.cn") {
+			const id = url.searchParams.get("id") || "";
+			return url.pathname === "/api/avatar" &&
+				!url.hash &&
+				[...url.searchParams.keys()].length === 1 &&
+				/^[a-f0-9]{64}$/u.test(id)
+				? `/waline-api/avatar?id=${id}`
+				: "";
+		}
+		return url.href;
+	} catch {
+		return "";
+	}
 }
 function page<T>(value: unknown, mapper: (row: unknown) => T): Page<T> {
 	const row = raw(value);

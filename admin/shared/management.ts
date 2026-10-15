@@ -16,6 +16,7 @@ export type Comment = {
 export type User = {
 	objectId: string;
 	display_name: string;
+	avatar: string;
 	email: string;
 	url: string;
 	type: string;
