@@ -5,8 +5,7 @@ const useWaline = buildEnv.PUBLIC_COMMENT_PROVIDER === "waline";
 
 export const commentConfig: CommentConfig = {
 	// 评论系统类型: none, twikoo, waline, giscus, disqus, artalk，默认为none，即不启用评论系统
-	// 暂时隐藏全站评论；恢复时改回 useWaline ? "waline" : "twikoo"。
-	type: "none",
+	type: useWaline ? "waline" : "twikoo",
 
 	//twikoo评论系统配置
 	twikoo: {
