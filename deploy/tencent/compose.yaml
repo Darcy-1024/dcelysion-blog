@@ -31,7 +31,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.waline-reset
-    image: dcelysion/waline-reset:1.41.6-r1
+    image: dcelysion/waline-public:20261017-guard
     restart: unless-stopped
     depends_on:
       postgres:
@@ -50,7 +50,7 @@ services:
       SITE_NAME: DcElysion
       SITE_URL: ${SITE_URL:-https://blog.dcelysion.cn}
       SERVER_URL: ${SERVER_URL:-https://comments.dcelysion.cn}
-      SECURE_DOMAINS: ${SECURE_DOMAINS:-blog.dcelysion.cn,comments.dcelysion.cn,localhost,127.0.0.1}
+      SECURE_DOMAINS: ${SECURE_DOMAINS:-blog.dcelysion.cn,blog-eo.dcelysion.cn,comments.dcelysion.cn,localhost,127.0.0.1}
       WALINE_ADMIN_MODULE_ASSET_URL: /admin-assets/0.34.2/admin.js
       LOGIN: enable
       COMMENT_AUDIT: ${COMMENT_AUDIT:-false}

@@ -1,10 +1,11 @@
 import type { CommentConfig } from "../types/commentConfig";
 
 const buildEnv = import.meta.env ?? process.env;
-const useWaline = buildEnv.PUBLIC_COMMENT_PROVIDER === "waline";
+// 正式站默认使用 Waline；需要回退时显式设置为 twikoo 并重新构建。
+const useWaline = buildEnv.PUBLIC_COMMENT_PROVIDER !== "twikoo";
 
 export const commentConfig: CommentConfig = {
-	// 评论系统类型: none, twikoo, waline, giscus, disqus, artalk，默认为none，即不启用评论系统
+	// 评论系统类型: none, twikoo, waline, giscus, disqus, artalk，当前默认 Waline
 	type: useWaline ? "waline" : "twikoo",
 
 	//twikoo评论系统配置
@@ -27,9 +28,8 @@ export const commentConfig: CommentConfig = {
 	//waline评论系统配置
 	waline: {
 		// waline 后端服务地址
-		serverURL: useWaline
-			? buildEnv.PUBLIC_WALINE_SERVER_URL || "https://waline.vercel.app"
-			: "https://waline.vercel.app",
+		serverURL:
+			buildEnv.PUBLIC_WALINE_SERVER_URL || "https://comments.dcelysion.cn",
 		// 设置 Waline 评论系统语言
 		lang: "zh-CN",
 		locale: { anonymous: "匿名用户" },

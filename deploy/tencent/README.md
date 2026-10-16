@@ -1,5 +1,7 @@
 # 腾讯云私有部署记录
 
+> 2026-10-17：已开放 Waline 评论域 HTTPS、普通用户账号页面及博客/EdgeOne 请求域；管理接口权限遗漏已修复并增加公开代理拦截，现有 Access 后台保持保护。源码默认 Waline，博客前端随本次 Git 发布切换；实际部署结果以发布回执为准。当前配置、旧评论增量处理、验证和回退见[公开接入记录](../../docs/plans/2026-10-17-waline-public-cutover.md)。下文带日期的私有部署状态为历史记录。
+
 2026-10-03 独立后台[真实接入与统一上线记录](../../docs/plans/2026-10-03-admin-runtime-integration.md)已建立；用户要求改在服务器验证四项接入后统一上线。`admin-edit-only.env.example`仅作回退参考，尚未应用正式数据库/服务切换。
 
 2026-10-02 独立后台的真实隔离联调与恢复结果见[私有联调记录](../../docs/plans/2026-10-02-admin-private-integration.md)。测试使用专用容器、数据库和回环 TLS，不改本文件所述既有服务或正式 release；MDX 构建及完整发布验收尚未完成。
@@ -77,7 +79,9 @@ ssh -4 -i '<受限权限私钥路径>' -o IdentitiesOnly=yes -o ExitOnForwardFai
 
 ## 构建与运维
 
-不设置环境覆盖时仍使用现有 Twikoo，避免影响尚未切换的其他部署。
+2026-10-17 起，源码默认使用 Waline，服务地址为 `https://comments.dcelysion.cn`；共享公开包、GitHub Pages 和本地构建采用同一默认配置。可通过 `PUBLIC_WALINE_SERVER_URL` 覆盖服务地址；需要回退 Twikoo 时，显式设置 `PUBLIC_COMMENT_PROVIDER=twikoo` 后重新构建并发布。切换只影响前端选择，不会迁移、删除或回滚评论数据库。
+
+以下显式 Waline 构建方式仍可使用；未设置这两个变量时结果相同。此处描述源码配置，不代表 Git 或生产发布已完成；前文私有预览阶段的历史部署记录保留。
 
 ```powershell
 $env:PUBLIC_COMMENT_PROVIDER = 'waline'
