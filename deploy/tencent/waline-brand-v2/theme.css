@@ -1,0 +1,187 @@
+/* DcElysion skin for the pinned @waline/admin 0.34.2 client.
+   Keep selectors above upstream specificity: its stylesheet is injected at runtime. */
+html:root {
+  color-scheme: light;
+  --wa-bg: oklch(0.968 0.003 308);
+  --wa-surface: #fff;
+  --wa-surface-strong: #fff;
+  --wa-surface-soft: oklch(0.95 0.015 308);
+  --wa-border: rgb(73 47 84 / 10%);
+  --wa-border-strong: rgb(73 47 84 / 22%);
+  --wa-text: oklch(0.30 0.02 308);
+  --wa-text-soft: oklch(0.50 0.02 308);
+  --wa-accent: oklch(0.54 0.07 308);
+  --wa-accent-strong: oklch(0.46 0.07 308);
+  --wa-accent-soft: oklch(0.95 0.015 308);
+  --wa-shadow: 0 12px 36px rgb(50 30 65 / 5%);
+  --wa-shadow-soft: 0 4px 20px rgb(50 30 65 / 4%);
+  --wa-radius-xl: 16px;
+  --wa-radius-lg: 16px;
+  --wa-radius-md: 12px;
+  --wa-radius-sm: 8px;
+  --dc-wordmark: url("./wordmark.png");
+}
+
+body.waline-body {
+  font-family: "MiSans", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+}
+
+body.waline-body .waline-header {
+  background: var(--wa-surface);
+  border-radius: var(--wa-radius-xl);
+}
+
+body.waline-body .waline-brand-mark {
+  width: 180px;
+  height: 60px;
+  flex: 0 0 auto;
+  background: var(--dc-wordmark) center / contain no-repeat;
+}
+
+/* The image is a complete wordmark; retain the site's text for screen readers. */
+body.waline-body .waline-brand-copy {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+body.waline-body .typecho-login {
+  border-radius: var(--wa-radius-xl);
+  padding: 32px;
+}
+
+body.waline-body .main .body.container {
+  background: var(--wa-surface);
+  border-radius: var(--wa-radius-xl);
+}
+
+body.waline-body input.text,
+body.waline-body input.text-l,
+body.waline-body textarea,
+body.waline-body select {
+  background: var(--wa-surface-soft);
+  color: var(--wa-text);
+  border-color: var(--wa-border);
+  border-radius: var(--wa-radius-sm);
+}
+
+body.waline-body .typecho-login input.text-l {
+  line-height: 1.5;
+}
+
+body.waline-body :is(input, textarea, select):focus {
+  border-color: var(--wa-accent);
+  outline: 2px solid var(--wa-accent-soft);
+  outline-offset: 2px;
+}
+
+body.waline-body :is(a, button):focus-visible {
+  outline: 2px solid var(--wa-accent);
+  outline-offset: 3px;
+}
+
+body.waline-body .btn {
+  border-radius: var(--wa-radius-sm);
+  box-shadow: none;
+}
+
+body.waline-body .btn.primary {
+  background: var(--wa-accent);
+  border-color: var(--wa-accent);
+  color: #fff;
+}
+
+body.waline-body .btn.primary:hover:not(:disabled) {
+  background: var(--wa-accent-strong);
+  border-color: var(--wa-accent-strong);
+}
+
+body.waline-body .btn:disabled {
+  opacity: .55;
+  cursor: not-allowed;
+}
+
+body.waline-body .typecho-list-table tr:hover td {
+  background: var(--wa-surface-soft);
+}
+
+@media (prefers-color-scheme: dark) {
+  html:root {
+    color-scheme: dark;
+    --wa-bg: oklch(0.21 0.012 308);
+    --wa-surface: oklch(0.255 0.015 308);
+    --wa-surface-strong: var(--wa-surface);
+    --wa-surface-soft: oklch(0.33 0.02 308);
+    --wa-border: rgb(255 255 255 / 10%);
+    --wa-border-strong: rgb(255 255 255 / 22%);
+    --wa-text: oklch(0.90 0.01 308);
+    --wa-text-soft: oklch(0.72 0.02 308);
+    --wa-accent: oklch(0.745 0.065 308);
+    --wa-accent-strong: oklch(0.81 0.065 308);
+    --wa-accent-soft: oklch(0.33 0.02 308);
+    --wa-warm: #393325;
+    --wa-warm-border: #6c5d36;
+    --wa-danger: #ee9999;
+    --wa-success: #83cfb2;
+    --wa-shadow: none;
+    --wa-shadow-soft: none;
+    --dc-wordmark: url("./wordmark-dark.png");
+  }
+
+  body.waline-body .btn.primary {
+    color: var(--wa-bg);
+  }
+}
+
+@media (max-width: 600px) {
+  body.waline-body .typecho-head-nav { padding: 12px 12px 0; }
+  body.waline-body .waline-header { gap: 12px; padding: 12px; }
+  body.waline-body .waline-brand-mark { width: 144px; height: 48px; }
+  body.waline-body .typecho-login-wrap { padding: 24px 12px; }
+  body.waline-body .typecho-login { padding: 24px 20px; }
+}
+
+/* Keep the native select interaction, with a consistently inset arrow. */
+body.waline-body .typecho-head-nav .operate .language-select {
+  position: relative;
+}
+
+body.waline-body .typecho-head-nav .operate .language-select select {
+  appearance: none;
+  padding-right: 44px;
+}
+
+body.waline-body .typecho-head-nav .operate .language-select::after {
+  content: "";
+  position: absolute;
+  right: 36px; /* Wrapper padding (20px) plus 16px inside the select. */
+  top: 50%;
+  width: 7px;
+  height: 7px;
+  border-right: 2px solid var(--wa-text);
+  border-bottom: 2px solid var(--wa-text);
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+body.waline-body .typecho-login :is(.forgot-password, .more-link) a {
+  color: var(--wa-accent);
+}
+
+body.waline-body .typecho-login :is(.forgot-password, .more-link) a:hover {
+  color: var(--wa-accent-strong);
+  text-decoration: underline;
+}
+
+@media (forced-colors: active) {
+  body.waline-body .typecho-head-nav .operate .language-select select {
+    appearance: auto;
+  }
+  body.waline-body .typecho-head-nav .operate .language-select::after {
+    display: none;
+  }
+}

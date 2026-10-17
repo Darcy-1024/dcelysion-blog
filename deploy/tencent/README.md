@@ -130,7 +130,7 @@ systemctl list-timers dcelysion-backup.timer
 
 私有 HTTP 代理仅监听 `127.0.0.1:8361`，与 HTTPS `127.0.0.1:8443` 共用配置；预览隧道必须指向 8361，直接访问 Waline 8360 无法获取静态管理脚本。未来正式域名使用相同资源路径。当前没有增加公网监听。
 
-仅适用于私有预览安装；当前公网实例的品牌增量发布见 [品牌样式说明](waline-brand-v1/README.md)，不要用此安装器覆盖公网配置。上传 `compose.yaml`、`nginx-comments-private.conf`、`show-password.js`、`avatar-upload-v1.js`、`install-waline-brand.sh`、完整 `waline-brand-v1/` 目录和 `install-admin-assets.sh` 至 `~/dcelysion-deploy/` 后，执行 `sudo bash ~/dcelysion-deploy/install-admin-assets.sh`。脚本校验下载资源、保存原配置、检查 Nginx/Compose，并只重建 Waline；数据库目录和密钥文件不变。资源位于容器外，容器重建后仍然保留。
+仅适用于私有预览安装；当前公网实例的品牌增量发布见 [品牌样式说明](waline-brand-v2/README.md)，不要用此安装器覆盖公网配置。上传 `compose.yaml`、`nginx-comments-private.conf`、`show-password.js`、`avatar-upload-v1.js`、`install-waline-brand.sh`、完整 `waline-brand-v2/` 目录和 `install-admin-assets.sh` 至 `~/dcelysion-deploy/` 后，执行 `sudo bash ~/dcelysion-deploy/install-admin-assets.sh`。脚本校验下载资源、保存原配置、检查 Nginx/Compose，并只重建 Waline；数据库目录和密钥文件不变。资源位于容器外，容器重建后仍然保留。
 
 每次执行输出 `/opt/dcelysion/config-backups/admin-assets-<时间>-<PID>`。回退时从该目录恢复 `compose.yaml` 至 `/opt/dcelysion/compose.yaml`、`nginx-comments-private.conf` 至 `/etc/nginx/sites-available/dcelysion-comments-private`，执行 `nginx -t`、`systemctl reload nginx`，再于 `/opt/dcelysion` 执行 `docker compose up -d --no-deps waline`。若回退配置没有 8361，将预览隧道目标恢复为 8360。版本化静态文件可保留，不影响回退。
 
