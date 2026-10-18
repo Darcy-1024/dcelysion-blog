@@ -4,6 +4,7 @@ import {
 	type WalineInstance,
 } from "@waline/client";
 import "@waline/client/style";
+import { syncWalineAuth } from "./content-like-auth";
 
 type WalineOptions = Omit<WalineInitOptions, "el">;
 
@@ -76,6 +77,7 @@ function mountWaline(): void {
 		if (instance) {
 			instanceElement = mountElement;
 			currentOptionsKey = optionsKey;
+			syncWalineAuth();
 		}
 	} catch (error) {
 		instance = null;

@@ -173,6 +173,8 @@ pnpm build
 - 重复进入页面时必须避免重复绑定监听器、重复创建播放器/观察器或重复注册自定义元素。
 - 长生命周期功能应提供清理逻辑。Svelte 使用挂载清理函数；原生脚本保存 handler 引用后在换页/卸载时移除。
 - 全局状态已有约定，如 `window.__fireflyMusic`、`window.__allPostMetaCache`；新增全局变量前先搜索现有命名和类型声明。
+
+点赞与 Waline 评论共用 `WALINE_USER` 身份。`content-like-auth.ts` 在点赞登录成功、凭证失效清理时同步评论状态；`waline-init.ts` 在首次挂载及 Swup 重建时恢复当前身份。固定版本 Waline 3.15.2 的响应式身份只监听 `localStorage`，临时登录也需通过该存储区域的合成 `storage` 事件传入内存，原始凭证仍留在 `sessionStorage`，不因此改成长久登录。升级 Waline/VueUse 时需复核此事件契约。
 - 主题、壁纸、布局、目录和音乐通过 CustomEvent 协作。修改事件名或 payload 时必须同步全部发送方和接收方。
 - 新增页面级脚本要验证：首次直达、站内进入、离开后再次进入、前进/后退、移动端尺寸变化。
 

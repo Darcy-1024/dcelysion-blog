@@ -13,6 +13,36 @@ export function getLikeToken(): string {
 	}
 	return "";
 }
+
+// Waline 3.15.2 listens to localStorage events, even for temporary logins.
+// Feed its reactive state without persisting a session-only account.
+export function syncWalineAuth(): void {
+	try {
+		let value = "{}";
+		for (const storage of [localStorage, sessionStorage]) {
+			try {
+				const raw = storage.getItem(USER_KEY);
+				const user = JSON.parse(raw || "null");
+				if (typeof user?.token === "string" && user.token) {
+					value = raw as string;
+					break;
+				}
+			} catch {
+				/* Ignore an unreadable entry and try the other storage. */
+			}
+		}
+		window.dispatchEvent(
+			new StorageEvent("storage", {
+				key: USER_KEY,
+				newValue: value,
+				storageArea: localStorage,
+			}),
+		);
+	} catch {
+		/* Storage can be unavailable. */
+	}
+}
+
 export function clearLikeToken(token: string): void {
 	for (const name of ["sessionStorage", "localStorage"] as const) {
 		try {
@@ -23,6 +53,7 @@ export function clearLikeToken(token: string): void {
 			/* Storage can be unavailable. */
 		}
 	}
+	syncWalineAuth();
 	window.dispatchEvent(new Event(LIKE_AUTH_EVENT));
 }
 // Only the configured server and the popup we opened may supply a login result.
@@ -71,13 +102,7 @@ export function loginForLike(
 				const storage = user.remember ? localStorage : sessionStorage;
 				const value = JSON.stringify(user);
 				storage.setItem(USER_KEY, value);
-				window.dispatchEvent(
-					new StorageEvent("storage", {
-						key: USER_KEY,
-						newValue: value,
-						storageArea: storage,
-					}),
-				);
+				syncWalineAuth();
 				window.dispatchEvent(new Event(LIKE_AUTH_EVENT));
 				popup.close();
 				finish(true);

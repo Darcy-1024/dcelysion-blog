@@ -196,14 +196,18 @@ function fixture() {
 			hold = new Promise((r) => (release = r));
 			return release;
 		},
-		message(origin = "https://comments.example", sender = popup) {
+		message(
+			origin = "https://comments.example",
+			sender = popup,
+			remember = true,
+		) {
 			const e = new Event("message");
 			Object.assign(e, {
 				origin,
 				source: sender,
 				data: {
 					type: "userInfo",
-					data: { token: "valid-token", remember: true, nick: "Reader" },
+					data: { token: "valid-token", remember, nick: "Reader" },
 				},
 			});
 			window.dispatchEvent(e);
@@ -349,4 +353,95 @@ test("current Waline account wins over an older session; expiry does not clear a
 	assert.equal(f.auth.getLikeToken(), "valid-token");
 	f.auth.clearLikeToken("old-token");
 	assert.equal(f.auth.getLikeToken(), "valid-token");
+});
+
+test("temporary like login updates Waline's localStorage listener without persisting the account", async () => {
+	const f = fixture();
+	let commentUser = {};
+	f.window.addEventListener("storage", (event) => {
+		// Contract used by the installed Waline client's VueUse useStorage.
+		if (event.storageArea === f.localStorage && event.key === "WALINE_USER")
+			commentUser = JSON.parse(event.newValue);
+	});
+	const pending = f.auth.loginForLike(
+		"https://comments.example",
+		"zh-CN",
+		new AbortController().signal,
+	);
+	f.message("https://comments.example", f.popup, false);
+	assert.equal(await pending, true);
+	assert.equal(commentUser.token, "valid-token");
+	assert.equal(f.localStorage.getItem("WALINE_USER"), null);
+	assert.equal(
+		JSON.parse(f.sessionStorage.getItem("WALINE_USER")).token,
+		"valid-token",
+	);
+	f.auth.clearLikeToken("valid-token");
+	assert.deepEqual(commentUser, {});
+	assert.equal(f.auth.getLikeToken(), "");
+});
+
+test("comment mount restores a temporary login after reload and Swup replacement", async () => {
+	const f = fixture();
+	f.sessionStorage.setItem(
+		"WALINE_USER",
+		JSON.stringify({ token: "session-token" }),
+	);
+	const mount = {
+		dataset: {
+			walineConfig: JSON.stringify({ serverURL: "https://comments.example" }),
+		},
+	};
+	const document = new EventTarget();
+	document.querySelector = () => mount;
+	f.window.location = { search: "", pathname: "/dynamic/entry/" };
+	const hooks = new Map();
+	f.window.swup = {
+		hooks: {
+			before: (name, handler) => hooks.set(name, handler),
+			on: (name, handler) => hooks.set(name, handler),
+		},
+	};
+	let commentUser = {};
+	let mounts = 0;
+	f.window.addEventListener("storage", (event) => {
+		if (event.storageArea === f.localStorage && event.key === "WALINE_USER")
+			commentUser = JSON.parse(event.newValue);
+	});
+	const context = vm.createContext({
+		exports: {},
+		window: f.window,
+		document,
+		URLSearchParams,
+		queueMicrotask,
+		console,
+		require(name) {
+			if (name === "./content-like-auth") return f.auth;
+			if (name === "@waline/client/style") return {};
+			assert.equal(name, "@waline/client");
+			return {
+				init() {
+					mounts += 1;
+					return { destroy() {}, update() {} };
+				},
+			};
+		},
+	});
+	vm.runInContext(compile("waline-init"), context);
+	context.exports.registerWaline();
+	await flush();
+	assert.equal(commentUser.token, "session-token");
+	f.window.dispatchEvent(new Event("pagehide"));
+	commentUser = {};
+	f.window.dispatchEvent(new Event("pageshow"));
+	await flush();
+	assert.equal(mounts, 2);
+	assert.equal(commentUser.token, "session-token");
+	hooks.get("content:replace")();
+	commentUser = {};
+	hooks.get("page:view")();
+	await flush();
+	assert.equal(mounts, 3);
+	assert.equal(commentUser.token, "session-token");
+	assert.equal(f.localStorage.getItem("WALINE_USER"), null);
 });
