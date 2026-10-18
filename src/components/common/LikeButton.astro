@@ -1,0 +1,71 @@
+---
+import { commentConfig } from "@/config";
+import Key from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+
+interface Props {
+	path: string;
+}
+const { path } = Astro.props;
+const enabled =
+	commentConfig.type === "waline" && commentConfig.waline?.serverURL;
+---
+{enabled && (
+  <content-like data-path={path} data-server={commentConfig.waline?.serverURL}
+    data-like={i18n(Key.contentLike)} data-liked={i18n(Key.contentLiked)}
+    data-lang={commentConfig.waline?.lang || "zh-CN"}
+    data-login-prompt={i18n(Key.contentLikeLoginPrompt)}
+    data-login-required={i18n(Key.contentLikeLoginRequired)}
+    data-error={i18n(Key.contentLikeError)}>
+    <button data-like-toggle type="button" disabled aria-pressed="false">
+      <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" /></svg>
+      <span data-label>{i18n(Key.contentLike)}</span>
+      <span data-count>—</span>
+    </button>
+    <span class="like-status" role="status"></span>
+    <ul data-like-users aria-label={i18n(Key.contentLikeUsers)}></ul>
+    <button data-like-more type="button" hidden>{i18n(Key.contentLikeMore)}</button>
+    <dialog data-like-dialog class="like-login-dialog" aria-label={i18n(Key.contentLikeLoginTitle)}>
+      <div class="like-login-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1.1-1.1a5.5 5.5 0 0 0-7.8 7.8L12 21l8.8-8.6a5.5 5.5 0 0 0 0-7.8Z" /></svg>
+      </div>
+      <h2>{i18n(Key.contentLikeLoginTitle)}</h2>
+      <p>{i18n(Key.contentLikeLoginPrompt)}</p>
+      <div class="like-login-actions">
+        <button data-like-cancel type="button" autofocus>{i18n(Key.contentLikeLoginCancel)}</button>
+        <button data-like-login type="button">{i18n(Key.contentLikeLoginAction)}</button>
+      </div>
+    </dialog>
+  </content-like>
+)}
+<script>
+  import { registerContentLike } from "@/scripts/content-like";
+  registerContentLike();
+</script>
+<style is:global>
+  content-like { display: flex; align-items: center; flex-wrap: wrap; gap: .75rem; margin-block: 1rem; }
+  content-like button { display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: .5rem 1rem; border-radius: 999px; background: var(--btn-regular-bg); color: var(--btn-content); transition: background .2s; }
+  content-like button:hover { background: var(--btn-regular-bg-hover); }
+  content-like button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+  content-like button:disabled { opacity: .6; cursor: wait; }
+  content-like svg { fill: none; stroke: currentColor; stroke-width: 1.8; }
+  content-like button[aria-pressed="true"] svg { fill: currentColor; }
+  content-like .like-status { font-size: .8rem; color: var(--content-meta); }
+  content-like [hidden] { display: none; }
+  content-like [data-like-users] { display: flex; flex-wrap: wrap; gap: .5rem 1rem; width: 100%; list-style: none; padding: 0; margin: 0; }
+  content-like [data-like-users]:empty { display: none; }
+  content-like [data-like-users] li { display: flex; align-items: center; gap: .4rem; max-width: 100%; color: var(--content-meta); font-size: .8rem; }
+  content-like [data-like-users] li > span:last-child { overflow-wrap: anywhere; }
+  content-like .like-avatar { position: relative; display: inline-flex; justify-content: center; align-items: center; flex: 0 0 28px; height: 28px; overflow: hidden; border-radius: 50%; background: var(--btn-regular-bg); color: var(--btn-content); }
+  content-like .like-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+  content-like [data-like-more] { font-size: .8rem; }
+  content-like .like-login-dialog { position: fixed; inset: 0; margin: auto; width: min(420px, calc(100vw - 2rem)); max-height: calc(100dvh - 2rem); overflow-y: auto; padding: 1.75rem; border: 1px solid var(--line-color); border-radius: 1.5rem; background: var(--card-bg); color: var(--btn-content); box-shadow: 0 20px 70px #0003; }
+  content-like .like-login-dialog::backdrop { background: #0006; backdrop-filter: blur(6px); }
+  content-like .like-login-icon { display: flex; align-items: center; justify-content: center; width: 56px; height: 56px; margin-bottom: 1.25rem; border-radius: 1rem; background: var(--btn-regular-bg); color: var(--primary); }
+  content-like .like-login-dialog h2 { margin: 0 0 .75rem; font-size: 1.2rem; font-weight: 700; line-height: 1.5; }
+  content-like .like-login-dialog p { margin: 0; color: var(--content-meta); font-size: .9rem; line-height: 1.8; }
+  content-like .like-login-actions { display: flex; justify-content: flex-end; flex-wrap: wrap; gap: .75rem; margin-top: 1.75rem; }
+  content-like .like-login-actions button { justify-content: center; border-radius: .85rem; font-weight: 600; }
+  content-like [data-like-login] { background: var(--primary); color: var(--card-bg); }
+  content-like [data-like-login]:hover { background: color-mix(in oklch, var(--primary) 85%, var(--btn-content)); }
+</style>

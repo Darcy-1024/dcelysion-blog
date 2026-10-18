@@ -1,5 +1,6 @@
 ---
 import { Icon } from "astro-icon/components";
+import LikeButton from "@/components/common/LikeButton.astro";
 import "@/styles/markdown.css";
 import "@/styles/markdown-extend.styl";
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
@@ -56,6 +57,7 @@ const profileUrl = url(dynamicConfig.profileUrl || "/about/");
 
 			<div class="page-content custom-md" data-dynamic-content></div>
 			<DynamicGallery sourceId="dynamic-template-content" />
+			<LikeButton path="" />
 			<DynamicInlineComments src="" />
 		</article>
 	</dynamic-entry>

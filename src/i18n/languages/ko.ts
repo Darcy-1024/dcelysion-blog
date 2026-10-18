@@ -2,6 +2,17 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const ko: Translation = {
+	[Key.contentLikeLoginTitle]: "로그인하고 좋아요를 남겨 주세요",
+	[Key.contentLikeLoginAction]: "로그인",
+	[Key.contentLikeLoginCancel]: "나중에",
+	[Key.contentLikeLoginPrompt]:
+		"좋아요를 누르려면 로그인하세요. 닉네임과 프로필 사진이 공개됩니다. 지금 로그인할까요?",
+	[Key.contentLikeLoginRequired]: "좋아요를 누르려면 로그인하세요.",
+	[Key.contentLikeUsers]: "좋아요를 누른 사람",
+	[Key.contentLikeMore]: "더 보기",
+	[Key.contentLike]: "좋아요",
+	[Key.contentLiked]: "좋아요 취소",
+	[Key.contentLikeError]: "요청을 완료하지 못했습니다. 다시 시도해 주세요.",
 	[Key.mediaReroute]: "미디어 경로 다시 선택",
 	[Key.mediaManualRoute]: "직접 선택",
 	[Key.mediaSourceR2]: "R2",

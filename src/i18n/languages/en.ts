@@ -2,6 +2,17 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const en: Translation = {
+	[Key.contentLikeLoginTitle]: "Sign in to share your appreciation",
+	[Key.contentLikeLoginAction]: "Sign in",
+	[Key.contentLikeLoginCancel]: "Not now",
+	[Key.contentLikeLoginPrompt]:
+		"Please sign in to like. Your nickname and avatar will be shown publicly. Sign in now?",
+	[Key.contentLikeLoginRequired]: "Please sign in to like.",
+	[Key.contentLikeUsers]: "People who liked this",
+	[Key.contentLikeMore]: "Show more people",
+	[Key.contentLike]: "Like",
+	[Key.contentLiked]: "Liked",
+	[Key.contentLikeError]: "Unable to complete the request. Please try again.",
 	[Key.mediaReroute]: "Choose media source again",
 	[Key.mediaManualRoute]: "Choose manually",
 	[Key.mediaSourceR2]: "R2",

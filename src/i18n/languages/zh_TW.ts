@@ -2,6 +2,17 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const zh_TW: Translation = {
+	[Key.contentLikeLoginTitle]: "登入後，為喜歡的內容按讚",
+	[Key.contentLikeLoginAction]: "前往登入",
+	[Key.contentLikeLoginCancel]: "暫時不要",
+	[Key.contentLikeLoginPrompt]:
+		"請登入後再按讚。按讚後將公開顯示你的暱稱和頭像。現在前往登入嗎？",
+	[Key.contentLikeLoginRequired]: "請登入後再按讚。",
+	[Key.contentLikeUsers]: "按讚者",
+	[Key.contentLikeMore]: "查看更多按讚者",
+	[Key.contentLike]: "按讚",
+	[Key.contentLiked]: "已按讚",
+	[Key.contentLikeError]: "請求未完成，請稍後重試。",
 	[Key.mediaReroute]: "重新選路",
 	[Key.mediaManualRoute]: "手動選路",
 	[Key.mediaSourceR2]: "R2",

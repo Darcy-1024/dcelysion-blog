@@ -2,6 +2,17 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const ru: Translation = {
+	[Key.contentLikeLoginTitle]: "Войдите, чтобы поддержать автора",
+	[Key.contentLikeLoginAction]: "Войти",
+	[Key.contentLikeLoginCancel]: "Не сейчас",
+	[Key.contentLikeLoginPrompt]:
+		"Войдите, чтобы поставить отметку. Ваше имя и аватар будут видны всем. Войти сейчас?",
+	[Key.contentLikeLoginRequired]: "Войдите, чтобы поставить отметку.",
+	[Key.contentLikeUsers]: "Кому понравилось",
+	[Key.contentLikeMore]: "Показать ещё",
+	[Key.contentLike]: "Нравится",
+	[Key.contentLiked]: "Вам нравится",
+	[Key.contentLikeError]: "Не удалось выполнить запрос. Повторите попытку.",
 	[Key.mediaReroute]: "Выбрать источник снова",
 	[Key.mediaManualRoute]: "Выбрать вручную",
 	[Key.mediaSourceR2]: "R2",

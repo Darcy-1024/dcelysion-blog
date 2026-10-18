@@ -1,136 +1,187 @@
 {
-  "stage": 4,
-  "status": "authorized-publishing",
-  "inputHashes": {
-    "src/config/manifests/music.json": "abadcb25d344300a6d5bcf03a42f450a64527b9c34432634babfef55944effff",
-    "src/config/manifests/gallery.json": "5814e2b96753f8add022ec8c43cdd35e408abaec9217f9a629aca902a51b1d4f",
-    "src/config/manifests/settings.json": "681463997004bd1cedcef37d83666f7df8b009af9e0a499e8a10a6d6dbb2c02b",
-    "src/config/manifests/media-distribution.json": "07250b39b4d3847825d3b054e5f7c30a8cce8cdeba00530db73922a23e45a469"
-  },
-  "distribution": {
-    "version": 1,
-    "snapshot": "stage4-20261012-d0a3e048174c76558290fa98250008b5d04e05d710babb4a5ad2f3d1c98b21b5",
-    "entries": [
-      {
-        "id": "live-music-cover",
-        "variant": "original",
-        "key": "covers/nights-crown-of-flowers-e6d348b6.webp",
-        "sha256": "e6d348b6059424571646258b57888bbad47f7c45bd77dc9833e07eb04c7e4890",
-        "size": 36502,
-        "mime": "image/webp",
-        "defaultUrl": "https://music.dcelysion.cn/covers/nights-crown-of-flowers-e6d348b6.webp",
-        "sources": {
-          "r2": "https://music.dcelysion.cn/covers/nights-crown-of-flowers-e6d348b6.webp",
-          "tencent": "https://media-tx.dcelysion.cn/media/objects/music/covers/nights-crown-of-flowers-e6d348b6.webp"
-        }
-      },
-      {
-        "id": "live-gallery-preview",
-        "variant": "preview",
-        "key": "wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
-        "sha256": "dd91e8df4ef27814897a85ab9c334992c7314d6b6b3f1a362c4516e763aa59c7",
-        "size": 69007,
-        "mime": "image/avif",
-        "defaultUrl": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
-        "sources": {
-          "r2": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
-          "tencent": "https://media-tx.dcelysion.cn/media/objects/gallery/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif"
-        }
-      }
-    ],
-    "capacityUrl": "https://media-tx.dcelysion.cn/media/capacity",
-    "probe": {
-      "id": "live-music-cover",
-      "variant": "original"
-    }
-  },
-  "mediaRouting": {
-    "enabled": true,
-    "mode": "auto",
-    "defaultSource": "r2",
-    "timeoutMs": 2500,
-    "probeBytes": 65536,
-    "minimumAdvantage": 0.2
-  },
-  "activationPolicy": {
-    "enabled": true,
-    "mode": "auto",
-    "defaultSource": "r2",
-    "timeoutMs": 2500,
-    "probeBytes": 65536,
-    "minimumAdvantage": 0.2
-  },
-  "serverProfile": {
-    "bytesPerSecond": 524288,
-    "concurrent": 4,
-    "monthlyBytes": 250000000000,
-    "enabled": false,
-    "advertiseCapacity": false
-  },
-  "previousFrontendRevision": "6813c8eb75fd230ceaf509cbd34302ac5b8678a7",
-  "previousPublicTreeSha256": "60b32f4fd9c821951606ad9ba016b1e92947eac1f84470fd4d332c199726db32",
-  "deliveryReceipts": [
-    {
-      "id": "live-music-cover",
-      "variant": "original",
-      "validationOnly": false,
-      "deliveryReceipts": [
-        {
-          "source": "r2",
-          "url": "https://music.dcelysion.cn/covers/nights-crown-of-flowers-e6d348b6.webp",
-          "get": 200,
-          "head": 200,
-          "sha256": "e6d348b6059424571646258b57888bbad47f7c45bd77dc9833e07eb04c7e4890",
-          "size": 36502,
-          "mime": "image/webp",
-          "cors": "https://blog.dcelysion.cn",
-          "tao": null,
-          "ranges": []
-        },
-        {
-          "source": "tencent",
-          "url": "https://media-tx.dcelysion.cn/media/objects/music/covers/nights-crown-of-flowers-e6d348b6.webp",
-          "get": 200,
-          "head": 200,
-          "sha256": "e6d348b6059424571646258b57888bbad47f7c45bd77dc9833e07eb04c7e4890",
-          "size": 36502,
-          "mime": "image/webp",
-          "cors": "*",
-          "tao": "*",
-          "ranges": []
-        }
-      ]
-    },
-    {
-      "id": "live-gallery-preview",
-      "variant": "preview",
-      "validationOnly": false,
-      "deliveryReceipts": [
-        {
-          "source": "r2",
-          "url": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
-          "get": 200,
-          "head": 200,
-          "sha256": "dd91e8df4ef27814897a85ab9c334992c7314d6b6b3f1a362c4516e763aa59c7",
-          "size": 69007,
-          "mime": "image/avif",
-          "cors": "https://blog.dcelysion.cn",
-          "tao": null,
-          "ranges": []
-        },
-        {
-          "source": "tencent",
-          "url": "https://media-tx.dcelysion.cn/media/objects/gallery/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
-          "get": 200,
-          "head": 200,
-          "sha256": "dd91e8df4ef27814897a85ab9c334992c7314d6b6b3f1a362c4516e763aa59c7",
-          "size": 69007,
-          "mime": "image/avif",
-          "cors": "*",
-          "tao": "*",
-          "ranges": []
-        }
-      ]
-    }
-  ]
+	"stage": 4,
+	"status": "active-browser-acceptance-pending",
+	"inputHashes": {
+		"src/config/manifests/music.json": "abadcb25d344300a6d5bcf03a42f450a64527b9c34432634babfef55944effff",
+		"src/config/manifests/gallery.json": "5814e2b96753f8add022ec8c43cdd35e408abaec9217f9a629aca902a51b1d4f",
+		"src/config/manifests/settings.json": "681463997004bd1cedcef37d83666f7df8b009af9e0a499e8a10a6d6dbb2c02b",
+		"src/config/manifests/media-distribution.json": "07250b39b4d3847825d3b054e5f7c30a8cce8cdeba00530db73922a23e45a469"
+	},
+	"distribution": {
+		"version": 1,
+		"snapshot": "stage4-20261012-d0a3e048174c76558290fa98250008b5d04e05d710babb4a5ad2f3d1c98b21b5",
+		"entries": [
+			{
+				"id": "live-music-cover",
+				"variant": "original",
+				"key": "covers/nights-crown-of-flowers-e6d348b6.webp",
+				"sha256": "e6d348b6059424571646258b57888bbad47f7c45bd77dc9833e07eb04c7e4890",
+				"size": 36502,
+				"mime": "image/webp",
+				"defaultUrl": "https://music.dcelysion.cn/covers/nights-crown-of-flowers-e6d348b6.webp",
+				"sources": {
+					"r2": "https://music.dcelysion.cn/covers/nights-crown-of-flowers-e6d348b6.webp",
+					"tencent": "https://media-tx.dcelysion.cn/media/objects/music/covers/nights-crown-of-flowers-e6d348b6.webp"
+				}
+			},
+			{
+				"id": "live-gallery-preview",
+				"variant": "preview",
+				"key": "wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
+				"sha256": "dd91e8df4ef27814897a85ab9c334992c7314d6b6b3f1a362c4516e763aa59c7",
+				"size": 69007,
+				"mime": "image/avif",
+				"defaultUrl": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
+				"sources": {
+					"r2": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
+					"tencent": "https://media-tx.dcelysion.cn/media/objects/gallery/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif"
+				}
+			}
+		],
+		"capacityUrl": "https://media-tx.dcelysion.cn/media/capacity",
+		"probe": {
+			"id": "live-music-cover",
+			"variant": "original"
+		}
+	},
+	"mediaRouting": {
+		"enabled": true,
+		"mode": "auto",
+		"defaultSource": "r2",
+		"timeoutMs": 2500,
+		"probeBytes": 65536,
+		"minimumAdvantage": 0.2
+	},
+	"activationPolicy": {
+		"enabled": true,
+		"mode": "auto",
+		"defaultSource": "r2",
+		"timeoutMs": 2500,
+		"probeBytes": 65536,
+		"minimumAdvantage": 0.2
+	},
+	"serverProfile": {
+		"bytesPerSecond": 524288,
+		"concurrent": 4,
+		"monthlyBytes": 250000000000,
+		"enabled": true,
+		"advertiseCapacity": true
+	},
+	"previousFrontendRevision": "6813c8eb75fd230ceaf509cbd34302ac5b8678a7",
+	"previousPublicTreeSha256": "60b32f4fd9c821951606ad9ba016b1e92947eac1f84470fd4d332c199726db32",
+	"deliveryReceipts": [
+		{
+			"id": "live-music-cover",
+			"variant": "original",
+			"validationOnly": false,
+			"deliveryReceipts": [
+				{
+					"source": "r2",
+					"url": "https://music.dcelysion.cn/covers/nights-crown-of-flowers-e6d348b6.webp",
+					"get": 200,
+					"head": 200,
+					"sha256": "e6d348b6059424571646258b57888bbad47f7c45bd77dc9833e07eb04c7e4890",
+					"size": 36502,
+					"mime": "image/webp",
+					"cors": "https://blog.dcelysion.cn",
+					"tao": null,
+					"ranges": []
+				},
+				{
+					"source": "tencent",
+					"url": "https://media-tx.dcelysion.cn/media/objects/music/covers/nights-crown-of-flowers-e6d348b6.webp",
+					"get": 200,
+					"head": 200,
+					"sha256": "e6d348b6059424571646258b57888bbad47f7c45bd77dc9833e07eb04c7e4890",
+					"size": 36502,
+					"mime": "image/webp",
+					"cors": "*",
+					"tao": "*",
+					"ranges": []
+				}
+			]
+		},
+		{
+			"id": "live-gallery-preview",
+			"variant": "preview",
+			"validationOnly": false,
+			"deliveryReceipts": [
+				{
+					"source": "r2",
+					"url": "https://gallery.dcelysion.cn/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
+					"get": 200,
+					"head": 200,
+					"sha256": "dd91e8df4ef27814897a85ab9c334992c7314d6b6b3f1a362c4516e763aa59c7",
+					"size": 69007,
+					"mime": "image/avif",
+					"cors": "https://blog.dcelysion.cn",
+					"tao": null,
+					"ranges": []
+				},
+				{
+					"source": "tencent",
+					"url": "https://media-tx.dcelysion.cn/media/objects/gallery/wallpaper-2026/_previews/d20-d30ec649-w1200-dd91e8df.avif",
+					"get": 200,
+					"head": 200,
+					"sha256": "dd91e8df4ef27814897a85ab9c334992c7314d6b6b3f1a362c4516e763aa59c7",
+					"size": 69007,
+					"mime": "image/avif",
+					"cors": "*",
+					"tao": "*",
+					"ranges": []
+				}
+			]
+		}
+	],
+	"publicationReceipt": {
+		"activatedAtUTC": "2026-10-12T12:07:33Z",
+		"versions": [
+			{
+				"origin": "https://blog.dcelysion.cn",
+				"schema": 1,
+				"releaseId": "blog-86156d7634b465eef1b5fb7324d2d4b708aec4c2",
+				"publicTreeSha256": "e4621957647ae2bc12c6d3932629d50bc0f1a2f2368d1fc49b7ec30c619ada5b",
+				"sourceRevision": "86156d7634b465eef1b5fb7324d2d4b708aec4c2",
+				"buildProvenance": "github-actions",
+				"deploymentEligible": true,
+				"probe": {
+					"path": "/__route/probe-v1.bin",
+					"bytes": 32768,
+					"sha256": "9ab5674dfb044ce308d393fc756a895a5808b8651dc9b5c6c506886369559d26"
+				}
+			},
+			{
+				"origin": "https://blog-eo.dcelysion.cn",
+				"schema": 1,
+				"releaseId": "blog-86156d7634b465eef1b5fb7324d2d4b708aec4c2",
+				"publicTreeSha256": "e4621957647ae2bc12c6d3932629d50bc0f1a2f2368d1fc49b7ec30c619ada5b",
+				"sourceRevision": "86156d7634b465eef1b5fb7324d2d4b708aec4c2",
+				"buildProvenance": "github-actions",
+				"deploymentEligible": true,
+				"probe": {
+					"path": "/__route/probe-v1.bin",
+					"bytes": 32768,
+					"sha256": "9ab5674dfb044ce308d393fc756a895a5808b8651dc9b5c6c506886369559d26"
+				}
+			}
+		],
+		"backup": "/opt/dcelysion-media-stage3/operator/stage4-before-activation-20261012",
+		"delivery": [
+			{
+				"id": "live-music-cover",
+				"bytes": 36502,
+				"sha256": "e6d348b6059424571646258b57888bbad47f7c45bd77dc9833e07eb04c7e4890"
+			},
+			{
+				"id": "live-gallery-preview",
+				"bytes": 69007,
+				"sha256": "dd91e8df4ef27814897a85ab9c334992c7314d6b6b3f1a362c4516e763aa59c7"
+			}
+		],
+		"capacity": {
+			"allowed": true,
+			"expiresAt": 1791806888944
+		},
+		"reservation": 442456
+	}
 }

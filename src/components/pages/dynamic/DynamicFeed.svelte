@@ -263,6 +263,9 @@ function createItem(entry: DynamicEntry) {
 		}
 	}
 
+	const like = root.querySelector<HTMLElement>("content-like");
+	if (like) like.dataset.path = `/dynamic/${entry.id}`;
+
 	const comments = root.querySelector<HTMLElement>("dynamic-inline-comments");
 	if (comments) {
 		if (showComments) {

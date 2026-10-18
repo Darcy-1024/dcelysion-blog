@@ -2,6 +2,22 @@
 
 基于腾讯固定 **Waline 1.41.6**（镜像摘要见 `../Dockerfile.waline-reset`），与管理客户端 **0.34.2** 配套。基础鉴权、昵称、通知和找回密码部署边界见 `../README.md`。本目录源码覆盖同版本镜像的 `/app/src/`，不升级上游。各功能安装状态以对应上线记录为准，头像上传见[2026-10-11 上线记录](../../../docs/plans/2026-10-11-avatar-upload-release.md)。
 
+## 登录账户内容点赞（2026-10-18 后端已部署）
+
+`005_content_likes.sql` 新建账户与路径唯一的 `dc_content_likes`；2026-10-18 已按用户推送部署授权完成生产迁移及增量镜像切换。GET `/api/content-like?path=/posts/example&offset=0` 公开读取点赞数与每页20位点赞者；可选当前 Waline Bearer 会话用于返回本人 `liked`。POST 同一地址，JSON `{ "path": "/posts/example", "liked": true }` 设置点赞，`false` 取消；必须登录且属于当前 guest/administrator，匿名、已封禁及过期版本会话不能写入。事务在账户行锁内重新验证 `auth_version`，与封禁、改密等账户变更串行；同一用户/路径重复设置幂等，不会累加。
+
+成功响应遵循 Waline `{ errno: 0, data: { count, liked, users: [{ id, nick, avatar }], hasMore, nextOffset } }`，POST 返回第一页。按点赞时间倒序、用户ID倒序；GET 将 `nextOffset` 作为后续 `offset` 直至 `null`，每页固定20，偏移量限0至9999999。并发新增/取消可能使偏移分页发生位移，前端按用户ID去重，刷新从第一页重读。读取与写入响应使用 `Cache-Control: no-store`，错误分别为400（入参）、401（登录）、405（不支持的方法）、503（存储暂不可用）；不泄露数据库错误。
+
+路径只接受站内绝对 pathname，统一去掉末尾斜杠（根路径除外）、合并重复斜杠并规范化中文编码；拒绝查询串、片段、完整外站地址、反斜杠与控制字符。点赞者昵称和头像读取当前账户值，空头像由前端显示占位图；列表与总数仅包括当前有效 guest/administrator，封禁后隐藏，删除账户级联删除记录。公开响应不包含邮箱、IP、令牌或账户版本，亦不接受客户端指定用户ID。
+
+旧匿名 `reaction0` 数量没有可验证的账户归属，继续保留原表和数值，**不迁移、不归属到任何用户，也不与新账户点赞数相加**。回退客户端与镜像即可停止新点赞功能，保留新表避免丢失已保存数据。
+
+定向验证：`node --test deploy/tencent/waline-overlay/content-like.test.cjs`。覆盖路径规范化、匿名拒绝、布尔入参、真实隔离PGlite迁移/唯一约束/分页/撤销/版本失效/封禁/删除级联、公开字段最小化、旧匿名计数保留及ThinkJS成功控制流；不等同于真实生产数据库或HTTP实例联调。
+
+本次另以临时 PostgreSQL 数据库和无公开端口容器通过真实 HTTP 登录、点赞/取消幂等、匿名401、非法入参400、旧会话401及 no-store 检查；测试账号未写入生产。生产 GET200、匿名 POST401、登录页及原评论读取正常，原账户/评论/计数行指纹不变。部署前数据库备份已通过 `pg_restore --list` 校验。当前镜像 `dcelysion/waline-content-like:20261018-v1` 仅在原 `dcelysion/waline-public:20261017-guard` 上新增三份点赞 JS；未覆盖 Nginx 或其他服务。后端上线不替代前端双域发布核验。
+
+受保护的备份与回执在服务器 `/opt/dcelysion/config-backups/content-like-20261018/`，数据库备份为 `/opt/dcelysion/backups/waline-20261018T080031Z.dump`。回退时恢复该目录的 `compose.yaml` 并仅重建运行 Waline 容器，保留新表及其数据；不恢复旧数据库覆盖上线后的正常写入。
+
 ## management-v1（第六阶段）
 
 - `logic/management.js`：只允许当前 Waline administrator 的 GET；其他方法405。page/pageSize、正整数ID及搜索/路径/状态有界。

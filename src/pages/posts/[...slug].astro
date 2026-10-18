@@ -8,6 +8,7 @@ import License from "@components/misc/License.astro";
 import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import MainGridLayout from "@layouts/MainGridLayout.astro";
+import LikeButton from "@/components/common/LikeButton.astro";
 import "@/styles/banner-post.css";
 import {
 	getRelatedPosts,
@@ -432,6 +433,7 @@ const seriesData = await getSeriesPosts(entry);
           <Markdown typography={entry.data.typography} class="mb-6 markdown-content onload-animation">
             <Content />
           </Markdown>
+          <LikeButton path={`/posts/${removeFileExtension(entry.id)}`} />
 
           {/* 打赏按钮 & 分享按钮 */}
           {
@@ -522,6 +524,7 @@ const seriesData = await getSeriesPosts(entry);
           <Markdown typography={entry.data.typography} class="mb-6 markdown-content onload-animation">
             <Content />
           </Markdown>
+          <LikeButton path={`/posts/${removeFileExtension(entry.id)}`} />
 
           {/* 打赏按钮 & 分享按钮 */}
           {

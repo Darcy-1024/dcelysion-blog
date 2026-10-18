@@ -2,6 +2,17 @@ import Key from "../i18nKey";
 import type { Translation } from "../translation";
 
 export const ja: Translation = {
+	[Key.contentLikeLoginTitle]: "ログインして、いいねを送ろう",
+	[Key.contentLikeLoginAction]: "ログイン",
+	[Key.contentLikeLoginCancel]: "今はしない",
+	[Key.contentLikeLoginPrompt]:
+		"いいねするにはログインしてください。ニックネームとアバターが公開されます。ログインしますか？",
+	[Key.contentLikeLoginRequired]: "いいねするにはログインしてください。",
+	[Key.contentLikeUsers]: "いいねした人",
+	[Key.contentLikeMore]: "もっと見る",
+	[Key.contentLike]: "いいね",
+	[Key.contentLiked]: "いいね済み",
+	[Key.contentLikeError]: "リクエストに失敗しました。もう一度お試しください。",
 	[Key.mediaReroute]: "メディア経路を再選択",
 	[Key.mediaManualRoute]: "手動で選択",
 	[Key.mediaSourceR2]: "R2",
