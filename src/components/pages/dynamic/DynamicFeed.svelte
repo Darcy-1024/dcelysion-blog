@@ -287,6 +287,10 @@ async function renderItems(items: DynamicEntry[]) {
 		const item = createItem(entry);
 		if (item) list.append(item);
 	}
+	// Template avatars also need activation when a page has no gallery images.
+	document.dispatchEvent(
+		new CustomEvent("media:images-added", { detail: list }),
+	);
 	if (restoreAnchorAfterRender) {
 		restoreAnchorAfterRender = false;
 		const target = document.getElementById(
