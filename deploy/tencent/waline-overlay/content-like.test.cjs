@@ -61,13 +61,16 @@ test('real SQL enforces account identity, idempotency, current auth_version, pag
   } finally { await db.close(); }
 });
 
-function controller(user, body, store) {
+function controller(user, body, store, options = {}) {
   class Base {
     constructor() { this.ctx = { state: { userInfo: user }, set() {}, throw(status) { throw Object.assign(new Error('HTTP'), { status }); } }; }
     get(key) { return { path: '/posts/test', offset: '0' }[key]; }
     post(key) { return body[key]; }
     success(data) { throw Object.assign(new Error('PREVENT_NEXT_PROCESS'), { data }); }
     fail(message) { return { error: message }; }
+    config() { return { avatarProxy: options.avatarProxy }; }
+    getModel(name) { assert.equal(name, 'Users'); return { select: options.select }; }
+    service(name) { assert.equal(name, 'avatar'); return { stringify: options.stringify }; }
   }
   const moduleValue = { exports: {} };
   new Function('require', 'module', readFileSync(path.join(__dirname, 'src/controller/content-like.js'), 'utf8'))(
@@ -91,4 +94,52 @@ test('controller fails closed before storage, rejects invalid writes and preserv
   const broken = controller(user, { path: '/posts/test', liked: true }, async () => { throw new Error('PRIVATE_DATABASE_PASSWORD'); });
   assert.deepEqual(await broken.postAction(), { error: 'Content likes are temporarily unavailable.' });
   assert.equal(broken.ctx.status, 503);
+});
+
+test('GET and POST resolve missing account avatars with Waline service without exposing fallback inputs', async () => {
+  const user = { objectId: 2, type: 'guest', auth_version: 0 };
+  for (const method of ['getAction', 'postAction']) {
+    let generated = 0;
+    const instance = controller(user, { path: '/posts/test', liked: true }, async () => ({
+      count: 2, liked: true, users: [
+        { id: 2, nick: '东方未晞', avatar: '' },
+        { id: 3, nick: 'uploaded', avatar: 'https://comments.example/api/avatar?id=abc' },
+      ], hasMore: false, nextOffset: null,
+    }), {
+      avatarProxy: 'https://proxy.example/avatar',
+      select: async (where, options) => {
+        assert.deepEqual(where, { objectId: ['IN', [2]] });
+        // SQL adapter supplies id and maps it to objectId; objectId is not a DB column.
+        assert.deepEqual(options.field, ['email', 'display_name', 'url']);
+        return [{ objectId: 2, email: 'private@example.invalid', display_name: '东方未晞', url: '' }];
+      },
+      stringify: async input => {
+        generated++;
+        assert.deepEqual(input, { mail: 'private@example.invalid', nick: '东方未晞', link: '' });
+        return 'https://avatar.example/resolved';
+      },
+    });
+    await assert.rejects(instance[method](), error => {
+      assert.equal(error.message, 'PREVENT_NEXT_PROCESS');
+      assert.deepEqual(error.data.users, [
+        { id: 2, nick: '东方未晞', avatar: 'https://proxy.example/avatar?url=https%3A%2F%2Favatar.example%2Fresolved' },
+        { id: 3, nick: 'uploaded', avatar: 'https://proxy.example/avatar?url=https%3A%2F%2Fcomments.example%2Fapi%2Favatar%3Fid%3Dabc' },
+      ]);
+      assert.equal(JSON.stringify(error.data).includes('private@example.invalid'), false);
+      return true;
+    });
+    assert.equal(generated, 1);
+  }
+});
+
+test('avatar resolution preserves uploads, absent accounts and empty service results without a proxy', async () => {
+  const instance = controller(null, {}, null, {
+    select: async () => [{ objectId: 2, email: 'private@example.invalid', display_name: 'empty', url: '' }],
+    stringify: async () => '',
+  });
+  const data = { users: [
+    { id: 1, nick: 'upload', avatar: 'https://avatar.example/upload' },
+    { id: 2, nick: 'empty', avatar: '' }, { id: 3, nick: 'deleted', avatar: '' },
+  ] };
+  assert.deepEqual(await instance.resolveAvatars(structuredClone(data)), data);
 });
