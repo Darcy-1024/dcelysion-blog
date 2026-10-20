@@ -1,4 +1,5 @@
 import { resolve } from "node:path";
+import { memosOrigin, memosUpstream } from "./memos.js";
 
 export type AdminConfig = {
 	port: number;
@@ -13,6 +14,13 @@ export type AdminConfig = {
 	requireTotp?: boolean;
 	contentRoot: string;
 	blogOrigin: string;
+	memosOrigin?: string;
+	memosBridge?: {
+		host: string;
+		port: number;
+		upstream: string;
+		credentialsFile: string;
+	};
 	ready: boolean;
 	missing: string[];
 };
@@ -102,6 +110,37 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): AdminConfig {
 				"ADMIN_WALINE_SECURITY_URL 必须是受信任的 /ui/profile 地址",
 			);
 	}
+	const trustedMemosOrigin = memosOrigin(env.ADMIN_MEMOS_ORIGIN, origin);
+	let memosBridge: AdminConfig["memosBridge"];
+	if (env.ADMIN_MEMOS_BRIDGE_ENABLED === "1") {
+		const bridgePort = Number(env.ADMIN_MEMOS_GATEWAY_PORT || 4324);
+		const bridgeHost = env.ADMIN_MEMOS_GATEWAY_HOST || "127.0.0.1";
+		const upstream = memosUpstream(
+			env.ADMIN_MEMOS_UPSTREAM || "http://127.0.0.1:5231",
+		);
+		if (
+			!trustedMemosOrigin ||
+			!env.ADMIN_MEMOS_CREDENTIALS_FILE ||
+			!Number.isSafeInteger(bridgePort) ||
+			bridgePort < 1 ||
+			bridgePort > 65535 ||
+			bridgePort === port ||
+			(!["127.0.0.1", "::1"].includes(bridgeHost) &&
+				!(
+					bridgeHost === "0.0.0.0" &&
+					env.ADMIN_MEMOS_GATEWAY_CONTAINER_ONLY === "1"
+				))
+		)
+			throw new Error(
+				"Memos 凭据桥要求独立 HTTPS 入口、私有凭据文件及回环或明确隔离容器监听",
+			);
+		memosBridge = {
+			host: bridgeHost,
+			port: bridgePort,
+			upstream,
+			credentialsFile: resolve(env.ADMIN_MEMOS_CREDENTIALS_FILE),
+		};
+	}
 	return {
 		port,
 		host,
@@ -117,5 +156,7 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): AdminConfig {
 		requireTotp: env.ADMIN_REQUIRE_TOTP === "1",
 		contentRoot: resolve(env.ADMIN_CONTENT_ROOT || process.cwd()),
 		blogOrigin,
+		memosOrigin: trustedMemosOrigin,
+		memosBridge,
 	};
 }

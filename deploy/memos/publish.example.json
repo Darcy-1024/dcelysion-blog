@@ -1,0 +1,19 @@
+{
+	"enabled": false,
+	"remoteUrl": "https://github.com/Darcy-1024/dcelysion-blog.git",
+	"branch": "master",
+	"authorName": "REPLACE_WITH_APPROVED_BOT",
+	"authorEmail": "bot@example.invalid",
+	"settleMs": 10000,
+	"withdrawalPolicy": "UNCONFIRMED",
+	"sync": {
+		"instanceId": "memos-trial-unique-instance",
+		"baseUrl": "http://127.0.0.1:5231",
+		"creator": "users/REPLACE_WITH_ACTUAL_RESOURCE_ID",
+		"timezone": "Asia/Shanghai",
+		"outputRoot": "/srv/dcelysion-memos-publisher/checkout",
+		"stateDir": "/var/lib/dcelysion-memos-publisher",
+		"tokenFile": "/var/lib/dcelysion-memos-publisher/pat",
+		"publish": false
+	}
+}

@@ -1,0 +1,14 @@
+# Prepared only. Optional dedicated network for the existing admin container.
+# docker compose -f compose.yaml -f compose.bridge.yaml config must be reviewed.
+# After explicit authorization, connect only the admin container to this NEW
+# network; never attach Memos to the existing database network.
+services:
+  memos:
+    networks:
+      memos-private:
+        aliases:
+          - dc-memos-origin
+networks:
+  memos-private:
+    name: dc-memos-private
+    internal: true

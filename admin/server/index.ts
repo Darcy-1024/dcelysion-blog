@@ -7,6 +7,8 @@ import { AuthService } from "./auth.js";
 import { readConfig } from "./config.js";
 import { DraftService } from "./drafts.js";
 import { productionMedia } from "./media-config.js";
+import { adminCsp } from "./memos.js";
+import { MemosBridge } from "./memos-bridge.js";
 import { productionPublishing } from "./publishing-config.js";
 
 const config = readConfig();
@@ -27,7 +29,38 @@ const jobs = drafts
 			media,
 		)
 	: null;
-const api = createApi(config, auth, drafts, jobs, media);
+const memosBridge =
+	auth && config.memosOrigin && config.memosBridge
+		? new MemosBridge({
+				adminOrigin: config.origin,
+				memosOrigin: config.memosOrigin,
+				upstream: config.memosBridge.upstream,
+				credentialsFile: config.memosBridge.credentialsFile,
+				verify: (token) => auth.verify(token),
+			})
+		: null;
+const api = createApi(
+	config,
+	auth,
+	drafts,
+	jobs,
+	media,
+	undefined,
+	undefined,
+	undefined,
+	memosBridge,
+);
+const memosServer = memosBridge
+	? createServer((req, res) => {
+			void memosBridge.handle(req, res).catch(() => {
+				if (!res.headersSent)
+					res.writeHead(503, { "cache-control": "no-store" });
+				res.end();
+			});
+		})
+	: null;
+if (memosServer && config.memosBridge)
+	memosServer.listen(config.memosBridge.port, config.memosBridge.host);
 media?.kick();
 jobs?.kick();
 const jobTimer = setInterval(() => {
@@ -82,12 +115,17 @@ const server = createServer(async (req, res) => {
 	if (process.env.NODE_ENV === "production") {
 		res.setHeader(
 			"content-security-policy",
-			"default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data: https:; connect-src 'self'; frame-src 'self'; object-src 'none'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'",
+			adminCsp(config.memosOrigin, !!memosBridge),
 		);
 	}
 	if (config.cookieSecure)
 		res.setHeader("strict-transport-security", "max-age=31536000");
-	res.setHeader("referrer-policy", "no-referrer");
+	// Navigation POST tickets need a non-opaque Origin. Send only the origin,
+	// never admin paths, when the explicitly enabled bridge needs this handshake.
+	res.setHeader(
+		"referrer-policy",
+		memosBridge ? "strict-origin" : "no-referrer",
+	);
 	res.setHeader("x-content-type-options", "nosniff");
 	if (req.headers.host !== new URL(config.origin).host) {
 		res.writeHead(421);
@@ -125,8 +163,10 @@ cleanup.unref();
 for (const signal of ["SIGINT", "SIGTERM"] as const)
 	process.on(signal, () => {
 		server.close();
+		memosServer?.close();
 		clearInterval(jobTimer);
 		void (async () => {
+			await memosBridge?.close();
 			await jobs?.close();
 			await media?.close();
 			await auth?.close();

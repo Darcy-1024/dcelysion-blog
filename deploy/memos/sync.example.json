@@ -1,0 +1,16 @@
+{
+	"instanceId": "memos-trial-unique-instance",
+	"baseUrl": "http://127.0.0.1:5231",
+	"creator": "users/REPLACE_WITH_ACTUAL_RESOURCE_ID",
+	"timezone": "Asia/Shanghai",
+	"outputRoot": "/opt/dcelysion-blog-export",
+	"stateDir": "/opt/dcelysion-memos/sync",
+	"tokenFile": "/opt/dcelysion-memos/sync/pat",
+	"publish": false,
+	"timeoutMs": 15000,
+	"maxRunMs": 300000,
+	"maxPages": 100,
+	"maxItems": 10000,
+	"maxAttachmentBytes": 20971520,
+	"maxTotalAttachmentBytes": 134217728
+}

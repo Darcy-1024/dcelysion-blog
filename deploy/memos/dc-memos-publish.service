@@ -1,0 +1,25 @@
+# Prepared only. Do not install/enable before explicit production authorization.
+[Unit]
+Description=Export approved public Memos through the existing Git publication chain
+After=network-online.target
+Wants=network-online.target
+ConditionPathExists=/etc/dcelysion-memos/publish.enabled
+ConditionPathExists=!/var/lib/dcelysion-memos-publisher/publication-halted.json
+
+[Service]
+Type=oneshot
+User=memos-publisher
+Group=memos-publisher
+WorkingDirectory=/opt/dcelysion-memos-tools
+# Node >=22.23 must be verified/provisioned separately; do not assume host Node.
+ExecStart=/usr/bin/node /opt/dcelysion-memos-tools/scripts/memos-sync/publish.mjs --config /etc/dcelysion-memos/publish.json --execute
+TimeoutStartSec=20min
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/dcelysion-memos-publisher/checkout /var/lib/dcelysion-memos-publisher
+Restart=no
+StandardOutput=journal
+StandardError=journal

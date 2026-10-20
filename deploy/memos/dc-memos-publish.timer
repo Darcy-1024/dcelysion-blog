@@ -1,0 +1,13 @@
+# Prepared only; not installed/enabled.
+[Unit]
+Description=Bounded Memos publication polling
+
+[Timer]
+OnBootSec=2min
+OnUnitInactiveSec=60s
+AccuracySec=5s
+Unit=dc-memos-publish.service
+Persistent=false
+
+[Install]
+WantedBy=timers.target

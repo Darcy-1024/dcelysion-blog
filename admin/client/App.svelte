@@ -10,6 +10,8 @@ import Editor from "./Editor.svelte";
 import { apiMessage, connectionMessage } from "./i18n";
 import Management from "./Management.svelte";
 import MediaLibrary from "./MediaLibrary.svelte";
+import MemosEmbed from "./MemosEmbed.svelte";
+import { memosWords } from "./memos-words.js";
 import { words as managementWords } from "./management-words.js";
 import Publishing from "./Publishing.svelte";
 
@@ -67,6 +69,8 @@ let overviewJobId: string | null = null;
 let managementMode: "comments" | "users" | "account" | null = null;
 let managementRef: { canLeave(): boolean } | undefined;
 let mediaLibrary = false;
+let memosMode = false;
+let memosRef: { canLeave(): boolean } | undefined;
 let configurationKind: ConfigurationKind | null = null;
 let configurationRef: { canLeave(): boolean } | undefined;
 let editorRef: { canLeave(): boolean } | undefined;
@@ -91,6 +95,7 @@ let editorBusy = false;
 let editorRequestVersion = 0;
 let createRequest: Record<string, unknown> | null = null;
 function leaveEditor() {
+	if (memosRef && !memosRef.canLeave()) return false;
 	if (managementRef && !managementRef.canLeave()) return false;
 	managementMode = null;
 	managementRef = undefined;
@@ -103,9 +108,17 @@ function leaveEditor() {
 	configurationRef = undefined;
 	editor = null;
 	editorRef = undefined;
+	memosMode = false;
+	memosRef = undefined;
 	editorRequestVersion++;
 	editorBusy = false;
 	return true;
+}
+function changeMemos() {
+	if (!leaveEditor()) return;
+	memosMode = true;
+	publishing = mediaLibrary = false;
+	if (drawer) closeDrawer();
 }
 function changeConfiguration(next: ConfigurationKind) {
 	if (!leaveEditor()) return;
@@ -422,8 +435,9 @@ function changePage(next: number) {
       <div class="brand"><div class="mark">D</div><div><strong>DcElysion</strong><small>内容管理后台</small></div></div>
       <div class="nav-group"><span class="nav-label">概览与数据</span>{#each ['overview','analytics'] as view}<button class:active={dashboardMode===view} onclick={()=>dashboardNavigate({view})}>{analyticsWords[view as 'overview'|'analytics']}</button>{/each}</div>
       <div class="nav-group"><span class="nav-label">内容管理</span>
-        <button class:active={kind === "posts" && !dashboardMode && !publishing && !mediaLibrary && !configurationKind && !managementMode} disabled={editorBusy} onclick={() => changeKind("posts")}><Icon icon="material-symbols:article-outline-rounded" />{words.posts}</button>
-        <button class:active={kind === "dynamic" && !dashboardMode && !publishing && !mediaLibrary && !configurationKind && !managementMode} disabled={editorBusy} onclick={() => changeKind("dynamic")}><Icon icon="material-symbols:dynamic-feed-outline-rounded" />{words.dynamic}</button>
+        <button class:active={kind === "posts" && !memosMode && !dashboardMode && !publishing && !mediaLibrary && !configurationKind && !managementMode} disabled={editorBusy} onclick={() => changeKind("posts")}><Icon icon="material-symbols:article-outline-rounded" />{words.posts}</button>
+        <button class:active={kind === "dynamic" && !memosMode && !dashboardMode && !publishing && !mediaLibrary && !configurationKind && !managementMode} disabled={editorBusy} onclick={() => changeKind("dynamic")}><Icon icon="material-symbols:dynamic-feed-outline-rounded" />{words.dynamic}</button>
+        <button class:active={memosMode} disabled={editorBusy} onclick={changeMemos}>{memosWords.nav}</button>
         <button class:active={configurationKind==='music'} onclick={() => changeConfiguration('music')}>BGM 歌单</button>
         <button class:active={configurationKind==='gallery'} onclick={() => changeConfiguration('gallery')}>相册</button>
         <button class:active={configurationKind==='settings'} onclick={() => changeConfiguration('settings')}>站点设置</button>
@@ -434,9 +448,11 @@ function changePage(next: number) {
       <div class="side-bottom"><span class="avatar">{owner.name.slice(0, 1)}</span><div class="account"><strong>{owner.name}</strong><small>站点管理员</small></div><button class="icon-button" title={words.logout} aria-label={words.logout} onclick={() => void logout()}><Icon icon="material-symbols:logout-rounded" /></button></div>
     </aside>
     <main class="content">
-      <header class="topbar"><button bind:this={menuButton} class="menu-button" aria-label={words.menu} aria-expanded={drawer} onclick={() => drawer = true}><Icon icon="material-symbols:menu-rounded" /></button><div class="breadcrumb">内容管理 <span>/</span> {dashboardMode?analyticsWords[dashboardMode]:managementMode?managementWords[managementMode]:configurationKind==='music'?'BGM 歌单':configurationKind==='gallery'?'相册':configurationKind==='settings'?'站点设置':mediaLibrary ? "统一媒体库" : publishing ? "改动与发布" : kind === "posts" ? words.posts : words.dynamic}</div><div class="top-account">{owner.name}</div></header>
+      <header class="topbar"><button bind:this={menuButton} class="menu-button" aria-label={words.menu} aria-expanded={drawer} onclick={() => drawer = true}><Icon icon="material-symbols:menu-rounded" /></button><div class="breadcrumb">内容管理 <span>/</span> {memosMode?memosWords.nav:dashboardMode?analyticsWords[dashboardMode]:managementMode?managementWords[managementMode]:configurationKind==='music'?'BGM 歌单':configurationKind==='gallery'?'相册':configurationKind==='settings'?'站点设置':mediaLibrary ? "统一媒体库" : publishing ? "改动与发布" : kind === "posts" ? words.posts : words.dynamic}</div><div class="top-account">{owner.name}</div></header>
       <div class="page-body">
-       {#if dashboardMode}
+       {#if memosMode}
+        <MemosEmbed bind:this={memosRef} onexpired={() => expired = true}/>
+       {:else if dashboardMode}
         {#key dashboardMode}<Dashboard mode={dashboardMode} bind:filters={analyticsFilters} onexpired={()=>expired=true} onnavigate={dashboardNavigate}/>{/key}
        {:else if managementMode}
         <Management bind:this={managementRef} bind:mode={managementMode} initialStatus={overviewCommentStatus} onexpired={()=>expired=true} onsignout={()=>{owner=null;managementMode=null;managementRef=undefined;}} />

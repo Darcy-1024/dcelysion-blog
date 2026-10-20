@@ -18,6 +18,7 @@ import {
 import type { JobService } from "./jobs.js";
 import { ManagementError, ManagementService, objectId } from "./management.js";
 import type { MediaService } from "./media.js";
+import type { MemosBridge } from "./memos-bridge.js";
 import { OverviewService } from "./overview.js";
 import { servePreview } from "./preview.js";
 
@@ -39,6 +40,7 @@ export function createApi(
 		drafts,
 		management,
 	),
+	memosBridge: MemosBridge | null = null,
 ) {
 	const cookieName = config.cookieSecure ? "__Host-dc_admin" : "dc_admin_local";
 	const attempts = new Map<string, { count: number; until: number }>();
@@ -218,6 +220,25 @@ export function createApi(
 			return error(res, 503, "AUTH_UPSTREAM", "身份状态暂时无法验证");
 		}
 		if (!owner) return error(res, 401, "UNAUTHORIZED", "请重新登录");
+		if (url.pathname === "/api/memos" && req.method === "GET")
+			return send(res, 200, {
+				ok: true,
+				data: {
+					origin: config.memosOrigin || "",
+					access: memosBridge ? "unified-session" : "awaiting-unified-auth",
+				},
+			});
+		if (url.pathname === "/api/memos/entry" && req.method === "POST") {
+			if (!memosBridge)
+				return error(res, 503, "MEMOS_UNAVAILABLE", "Memos 统一登录尚未配置");
+			try {
+				await body(req);
+				const ticket = await memosBridge.issueTicket(cookie(req), owner);
+				return send(res, 200, { ok: true, data: { ticket } });
+			} catch {
+				return error(res, 503, "MEMOS_UNAVAILABLE", "Memos 入口暂时不可用");
+			}
+		}
 		if (
 			req.method === "GET" &&
 			["/api/analytics", "/api/overview", "/api/overview/host"].includes(
