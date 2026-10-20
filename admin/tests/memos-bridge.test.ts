@@ -59,7 +59,7 @@ async function fixture(
 				},
 				{
 					headers: {
-						"set-cookie":
+						"grpc-metadata-set-cookie":
 							"memos_refresh=refresh.initial; Path=/; HttpOnly; SameSite=Lax",
 					},
 				},
@@ -77,7 +77,7 @@ async function fixture(
 				},
 				{
 					headers: {
-						"set-cookie":
+						"grpc-metadata-set-cookie":
 							"memos_refresh=refresh.rotated; Path=/; HttpOnly; SameSite=Lax",
 					},
 				},

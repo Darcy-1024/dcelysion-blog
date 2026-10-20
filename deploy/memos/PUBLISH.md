@@ -1,6 +1,8 @@
-# Memos 发布适配与运维（阶段三准备）
+# Memos 发布适配与运维
 
-2026-10-19：本地实现，**没有安装、启用生产任务或推送 GitHub**。统一登录实现与限制见 [SSO.md](SSO.md)，同步规则仍见 [SYNC.md](SYNC.md)。
+2026-10-21：Linux 发布运行时、独立 clone 和 service 已安装。用户明确授权的仓库专用可写 Deploy Key 已注册（ID `167100845`，标题 `Memos controlled publisher 20261020`），私钥只存服务器。生产配置 `enabled:true`，timer 已 enabled/active；仓库配置样例仍 `enabled:false`。首次测试提交 `9c448b34bd797a157eb81f2a92ff317aa6adc696` 已观察双站版本/公开树一致，并核对正文和两张合成图片字节；公开、编辑、撤回及浏览器统一登录已通过，浏览器上传未测，退出人工验收按用户要求跳过。后续结果见 [生产验收报告](../../docs/plans/2026-10-21-memos-production-acceptance.md)。统一登录限制见 [SSO.md](SSO.md)，同步规则见 [SYNC.md](SYNC.md)。
+
+该首次发布两站公开树摘要均为 `247f0ffbcfc927052d63c98215f91a1e172e01749b2405dd612b236530c6ca5b`；它是该提交的历史回执，不代表网站会永久停留于此版本。
 
 ## 入口与默认禁用
 
@@ -18,16 +20,16 @@ node scripts/memos-sync/observe.mjs --commit <40位完整提交SHA>
 
 发布执行器拒绝没有 `git config --local memos.publisher true` 标记的仓库、非目标 origin fetch/push URL、错误分支、linked worktree/symlink、进行中的 merge/rebase/cherry-pick。只接受独立 clone，不使用开发工作区或暂停的后台 builder。
 
-下面是**获授权后**的准备入口，不是执行记录：
+以下是独立 clone 的结构示例；正式 clone 已由 [publisher-runtime.py](publisher-runtime.py) 建立，不能在现有目录重复 clone：
 
 ```sh
 git clone --single-branch --branch master https://github.com/Darcy-1024/dcelysion-blog.git /srv/dcelysion-memos-publisher/checkout
 git -C /srv/dcelysion-memos-publisher/checkout config --local memos.publisher true
 ```
 
-`/opt/dcelysion-memos-tools` 放经过审阅的脚本与已有运行依赖；工具目录与可被 Git 快进的输出 clone 分离，不在输出 clone 安装依赖或构建。固定版本运行 Node >=22.23；当前服务器已有容器 Node 并不证明 `/usr/bin/node` 可用。示例 service 的 Node 路径、用户/目录权限、Git HTTPS 凭据方式需安装时核实，不自动安装宿主机运行时。
+正式 `/opt/dcelysion-memos-publisher-tools` 放经过审阅的脚本与 Linux 运行依赖；工具目录与可被 Git 快进的 `/srv/dcelysion-memos-publisher/checkout` 分离，不在输出 clone 安装依赖或构建。运行镜像已验证 Node、Git/SSH 及 Sharp/libvips 实际小图编码；不依赖宿主机 `/usr/bin/node`。Git 使用仅该仓库的 SSH Deploy Key，发布适配器精确核对 SSH origin。
 
-状态 `/var/lib/dcelysion-memos-publisher` 为0700，PAT/配置/Git凭据为0600；配置 `/etc/dcelysion-memos/publish.json` 为私有文件。状态绑定实例、作者、输出绝对路径与时区，不能把阶段二fixture映射复制到生产，也不能更换 clone 路径后继续用旧绑定。
+正式状态 `/var/lib/dcelysion-memos-publisher` 为0700，PAT/配置/Git凭据为0600，由运行用户持有；配置位于该私有目录的 `config.json`。`/etc/dcelysion-memos/publish.json` 仅是旧 service 样例路径。状态绑定实例、作者、输出绝对路径与时区，不能把阶段二 fixture 映射复制到生产，也不能更换 clone 路径后继续用旧绑定。
 
 ## 一轮任务与重试
 
@@ -37,7 +39,7 @@ git -C /srv/dcelysion-memos-publisher/checkout config --local memos.publisher tr
 4. 按持久映射检查相对HEAD的所有待提交变化，涵盖“前轮已同步但未提交”的文件。只允许托管 Markdown/图片的具名 `git add -- <paths>`；校验暂存路径集合、文件字节与源摘要，提交 `chore(dynamic): sync public Memos updates`。不提交私有正文、映射、原图、日志或业务代码。
 5. 提交后、普通 push 前再次检查源。推送结果不明不生成第二个提交；恢复时检查远端是否等于或已包含原候选，再分开记录。远端不包含候选且已前进则停止。
 
-Memos 请求沿用客户端有界退避重试。Git 命令有45秒超时；Git/冲突/源变化/上传失败不盲目重推，保存 halt 标记，需要核对后 `--resume`。API不可用不会被当成撤回。未完成的本地同步 journal 先回滚到已知状态，再取新源；不会重放旧候选。
+Memos 请求沿用客户端有界退避重试。Git 命令有45秒超时；未创建发布 journal/commit 前观察到源变化，返回 `source-changed-retry`，下一轮重新读源，不永久 halt。已提交候选的源变化、Git/冲突或不明推送失败仍保存 halt，核对后才可 `--resume`，不能盲目重推。API 不可用不会被当成撤回。未完成的本地同步 journal 先回滚到已知状态，再取新源；不会重放旧候选。
 
 ## 回执与现有部署链
 
@@ -57,7 +59,9 @@ Memos 请求沿用客户端有界退避重试。Git 命令有45秒超时；Git/�
 
 ## 调度、停机与恢复
 
-[service](dc-memos-publish.service) 和 [timer](dc-memos-publish.timer) 只是未安装样例：每轮结束60秒后再触发，不积压并发；还要求 `/etc/dcelysion-memos/publish.enabled` 文件存在。halt文件存在则跳过。没有安装timer/webhook/机器人，没有创建 enable 文件。
+[service](dc-memos-publish.service) 和 [timer](dc-memos-publish.timer) 是保留的默认关闭样例；正式 unit 由 [publisher-runtime.py](publisher-runtime.py) 生成，实际配置路径和启动保护以该脚本及服务器 unit 为准。正式 timer 已启用，每轮结束60秒后检查新变化，没有 webhook。
+
+正式一轮使用 `sudo systemctl start --no-block dc-memos-publish.service`，先执行 `production-setup.py refresh-origin` 核对固定镜像、容器身份和内部网络并刷新回环源站，再启动带 host flock 的运行容器。不要绕过前置检查直接向可能已失效的容器 IP 发送 PAT。host 锁覆盖发布及最长30分钟部署观察：Release 资产存在且 Cloudflare/EdgeOne 都观察到目标版本/公开树后才结束，下一轮不能越过尚未完成的发布。前置、运行或超时失败均停止 timer 并留下 runtime halt，需检查当前状态后恢复。
 
 获授权后停机入口为 `systemctl disable --now dc-memos-publish.timer`，等运行中的service结束/人工停止，再确认进程、锁及journal。停同步不停止Memos、不影响现有静态站点。
 

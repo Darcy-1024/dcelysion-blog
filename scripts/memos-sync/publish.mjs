@@ -24,6 +24,7 @@ export function validatePublication(raw) {
 	if (
 		typeof raw.enabled !== "boolean" ||
 		(!/^https:\/\/github\.com\/[\w.-]+\/[\w.-]+\.git$/u.test(raw.remoteUrl) &&
+			!/^git@github\.com:[\w.-]+\/[\w.-]+\.git$/u.test(raw.remoteUrl) &&
 			!path.isAbsolute(raw.remoteUrl ?? "")) ||
 		!/^[a-zA-Z0-9][a-zA-Z0-9/_-]*$/u.test(raw.branch ?? "") ||
 		raw.branch.includes("..") ||
@@ -190,6 +191,9 @@ export async function publish(
 	const client = suppliedClient ?? new MemosClient({ ...config.sync, token });
 	let base;
 	let latestReceipt;
+	let retryFreshSource = false;
+	const sourceChanged = (error) =>
+		error instanceof Error && /^Source changed/u.test(error.message);
 	const write = (target, value) =>
 		atomicWrite(target, JSON.stringify(value, null, 2));
 	const fetchHead = async () => {
@@ -301,10 +305,11 @@ export async function publish(
 						throw new Error("Unrecorded local commits refused");
 				}
 			} catch (error) {
-				await write(haltFile, {
-					status: "halted",
-					at: new Date().toISOString(),
-				});
+				if (!sourceChanged(error) || (await bytesOrNull(journalFile)))
+					await write(haltFile, {
+						status: "halted",
+						at: new Date().toISOString(),
+					});
 				throw error;
 			}
 		},
@@ -365,17 +370,31 @@ export async function publish(
 				await finish(store, state, journal);
 				return latestReceipt;
 			} catch (error) {
-				await write(haltFile, {
-					status: "halted",
-					at: new Date().toISOString(),
-				});
+				if (!sourceChanged(error) || (await bytesOrNull(journalFile)))
+					await write(haltFile, {
+						status: "halted",
+						at: new Date().toISOString(),
+					});
 				throw error;
 			}
 		},
-		failed: async () => {
+		failed: async (error) => {
 			// Called inside both locks, including source/download/apply failures.
+			if (sourceChanged(error) && !(await bytesOrNull(journalFile))) {
+				retryFreshSource = true;
+				return;
+			}
 			await write(haltFile, { status: "halted", at: new Date().toISOString() });
 		},
+	}).catch((error) => {
+		if (!retryFreshSource) throw error;
+		return {
+			status: "source-changed-retry",
+			localSync: "pending-fresh-read",
+			git: "not-pushed",
+			build: "not-requested",
+			deployment: "unverified",
+		};
 	});
 }
 

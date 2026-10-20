@@ -1,6 +1,6 @@
 # 独立管理后台：第九阶段本地验收
 
-2026-10-20：新增“动态 · Memos”内嵌页与默认关闭的独立作者凭据桥，复用现有后台身份/会话撤销规则，2FA按后台配置生效；保留新窗口入口。当前只完成本地代码、协议与安全测试，未部署真实Memos或桥接入口。配置、原版协议依据、Cookie/CSP及真实验收边界见 [Memos统一登录说明](../deploy/memos/SSO.md) 和 [阶段三报告](../docs/plans/2026-10-20-memos-stage3-publish.md)。独立发布适配默认禁用，不恢复暂停的后台MDX执行器。
+2026-10-21：“动态 · Memos”内嵌页、独立作者凭据桥与真实 Memos v0.31.0 已部署，复用原后台身份/会话撤销规则，2FA 按后台配置生效，保留新窗口入口。Memos 为 PRIVATE、注册关闭，桥使用普通作者 `users/dcelysion`（USER）；公网全路径经 tunnel 到回环18446网关。真实 REST 登录的 `Grpc-Metadata-Set-Cookie` 差异已补解析与协议测试，生产升级和浏览器内嵌/新窗口可用已确认；浏览器上传未测，退出人工验收按用户要求跳过。配置样例默认关闭；生产发布器已 `enabled:true`，timer 已启用。首次测试发布已核对双站版本/公开树、正文与两图；最新回执及未完成项见 [生产验收报告](../docs/plans/2026-10-21-memos-production-acceptance.md)，安全边界见 [Memos统一登录说明](../deploy/memos/SSO.md)。未恢复暂停的后台 MDX 执行器。
 
 2026-10-04 当前完整 API＋客户端已在腾讯固定 Linux 依赖镜像整体打包，候选SHA `c007dae3287415fafe3575551d9de88ba536b69467d15ae3daac142f65cc2d0c`。现有隔离后台已换为完整候选并通过真实2FA、私有草稿读取/保存、自建统计及匿名拒绝；仅隔离库补007，旧容器/配置/预算保留可回退。正式配置模板见 `deploy/tencent/admin-unified.env.example`；详细包清单、证据、私有入口和切换/回退步骤见[统一上线准备记录](../docs/plans/2026-10-04-admin-launch-readiness.md#2026-10-04-完整候选包整合交付)。正式服务未切换；MDX仍暂停，候选服务器S3受限出口与腾讯双源仍待接通。
 

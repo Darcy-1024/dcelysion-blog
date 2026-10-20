@@ -6,8 +6,8 @@ services:
     platform: linux/amd64
     restart: unless-stopped
     user: "10001:10001"
-    ports:
-      - "127.0.0.1:${MEMOS_HOST_PORT:-5231}:5230"
+    # No published ports. Production uses compose.bridge.yaml and the guarded
+    # host-loopback Nginx origin installed by production-setup.py connect-origin.
     environment:
       TZ: Asia/Shanghai
       MEMOS_PORT: "5230"

@@ -123,6 +123,21 @@ test("default disabled returns before touching missing checkout/network", async 
 		() => validatePublication({ ...config, branch: "--evil" }),
 		/Invalid/u,
 	);
+	assert.equal(
+		validatePublication({
+			...config,
+			remoteUrl: "git@github.com:owner/repo.git",
+		}).remoteUrl,
+		"git@github.com:owner/repo.git",
+	);
+	assert.throws(
+		() =>
+			validatePublication({
+				...config,
+				remoteUrl: "git@other.example:owner/repo.git",
+			}),
+		/Invalid/u,
+	);
 });
 
 test("local bare remote gets only named managed files, stable edit/withdraw identity, no-op makes no commit", async (t) => {
@@ -175,17 +190,14 @@ test("unrelated dirty and staged files stop without pushing", async (t) => {
 
 test("source change during debounce stops; resume coalesces to latest public version", async (t) => {
 	const f = await fixture(t);
-	await assert.rejects(
-		f.run({
-			inject: async (point) => {
-				if (point === "after-sync") f.records[0].content = "最新正文";
-			},
-		}),
-		/Source changed/u,
-	);
+	const retry = await f.run({
+		inject: async (point) => {
+			if (point === "after-sync") f.records[0].content = "最新正文";
+		},
+	});
+	assert.equal(retry.status, "source-changed-retry");
 	assert.equal(await f.remoteHead(), f.baseline);
-	await assert.rejects(f.run(), /halted/u);
-	await f.run({ resume: true });
+	await f.run();
 	const entry = (await f.state()).entries["memos/one"];
 	assert.match(
 		await fs.readFile(
@@ -198,15 +210,13 @@ test("source change during debounce stops; resume coalesces to latest public ver
 
 test("withdrawal after local sync never pushes stale candidate, resumed batch is no-op", async (t) => {
 	const f = await fixture(t);
-	await assert.rejects(
-		f.run({
-			inject: async (point) => {
-				if (point === "after-sync") f.records[0].visibility = "PRIVATE";
-			},
-		}),
-		/Source changed/u,
-	);
-	assert.equal((await f.run({ resume: true })).status, "no-git-change");
+	const retry = await f.run({
+		inject: async (point) => {
+			if (point === "after-sync") f.records[0].visibility = "PRIVATE";
+		},
+	});
+	assert.equal(retry.status, "source-changed-retry");
+	assert.equal((await f.run()).status, "no-git-change");
 	assert.equal(await f.remoteHead(), f.baseline);
 });
 

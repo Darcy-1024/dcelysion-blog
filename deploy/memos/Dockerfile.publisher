@@ -1,0 +1,6 @@
+FROM dcelysion/waline-reset:1.41.6-r1
+USER root
+RUN apk add --no-cache git openssh-client
+USER 1000:1000
+WORKDIR /tools
+ENTRYPOINT ["node", "/tools/runtime.mjs"]

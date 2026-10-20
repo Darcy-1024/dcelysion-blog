@@ -1,8 +1,8 @@
 # Memos → 博客本地同步器
 
-2026-10-20 补充：本文件描述的独立 `index.mjs` 仍不执行Git/部署；阶段三新增受控外层发布适配，见 [PUBLISH.md](PUBLISH.md)。后台内嵌及用户已选的作者凭据桥见 [SSO.md](SSO.md)。这些是本地实现，生产默认禁用，未安装真实Memos。
+2026-10-21：真实 Memos v0.31.0 已安装，PRIVATE、注册关闭，指定作者为 `users/dcelysion`（USER）。本文件的独立 `index.mjs` 仍不执行 Git/部署，配置仍要求 `publish:false`；生产外层发布器已配置 `enabled:true`，定时器仍关闭。首次测试发布 `9c448b34bd797a157eb81f2a92ff317aa6adc696` 已验证双站版本/公开树、正文和两张合成图片；编辑、撤回和真实浏览器流程仍在联调，见 [生产验收报告](../../docs/plans/2026-10-21-memos-production-acceptance.md)。外层运维见 [PUBLISH.md](PUBLISH.md)，作者凭据桥见 [SSO.md](SSO.md)。
 
-2026-10-18：实现与合成验证；未安装 Memos、未写服务器、未接正式发布。固定契约为 Memos **v0.31.0 /api/v1**。与 [部署操作稿](README.md) 的准备状态分别记录。
+2026-10-18 的本地实现与合成验证是历史证据；当前固定契约仍为 Memos **v0.31.0 /api/v1**。生产状态与 [部署说明](README.md) 分别记录，不能用本地 fixture 替代真实验收。
 
 ## 入口和配置
 
@@ -19,7 +19,7 @@ node scripts/memos-sync/index.mjs --config /private/sync.json --apply
 
 `timezone` 应与 `src/config/siteConfig.ts` 的 `siteConfig.timezone` 一致，当前为 Asia/Shanghai。绝对路径按运行系统填写；Windows 可以用 `F:/...`，但私有状态仍须在输出仓库外并限制 Windows ACL。Linux 状态目录要求 0700、PAT 文件要求 0600；文件原子写入使用 0600。不要将这些目录或备份挂到静态服务器。同步账号应独占输出目录及私有状态；其他编辑器、Git 更新与构建也必须在同步任务结束后串行运行。
 
-尚无真实可用 PAT/实例，不要把样例执行命令当安装授权。阶段三已提供独立clone适配器和未启用的timer/service样例；机器人权限、生产配置与真实调度仍未安装/授权。没有webhook。
+真实作者 PAT 已在服务器私有目录创建，运行时使用 UID1000、0600 的单文件副本，不输出其内容。独立 clone、运行镜像与 service 已安装，专用可写 Deploy Key 已授权注册；timer 仍 disabled/inactive。源码样例不含真实配置/凭据，不因生产授权改变默认开关。没有 webhook。
 
 ## 导出规则
 
@@ -43,7 +43,7 @@ Memos 下载原件按 SHA 放私有 `originals/<sha256>`，输出按转码结果
 
 ## 状态、冲突与恢复
 
-私有 `state.json` 保存实例/作者/输出根目录/时区绑定、generation、memo→路径/slug/首次时间、源摘要、附件 SHA 映射、最近同步代数。`lastPublishedVersion` 当前始终 null：没有真实发布。`receipt.json` 是最近成功本地应用回执，分开标记 Git disabled、build not-run、deployment disabled；退出非零和 stderr 的 failed 回执代表本次失败，不能只看上次成功文件。常规日志不含 PAT、API 响应或正文。
+私有 `state.json` 保存实例/作者/输出根目录/时区绑定、generation、memo→路径/slug/首次时间、源摘要、附件 SHA 映射、最近同步代数。`lastPublishedVersion` 仍为 null：该字段尚未定义完整内容验收后的写入规则，不能用它判断外层是否已发布。`receipt.json` 是最近成功本地应用回执，分开标记 Git disabled、build not-run、deployment disabled；真实 Git/构建/双站上线看外层发布及观察回执。退出非零和 stderr 的 failed 回执代表本次失败，不能只看上次成功文件。常规日志不含 PAT、API 响应或正文。
 
 只有映射拥有且当前字节 SHA 与上次成功输出完全一致的文件可改/撤回。人工改动、缺失、同名文件、显式 slug 冲突使**整次**停止，保留人工内容；当前采用较保守的整批冲突边界。先人工核对/备份再解决，不删状态强行覆盖，也不导入历史动态。
 

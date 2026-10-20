@@ -352,9 +352,13 @@ export class MemosBridge {
 		const bytes = await responseBytes(response, 256 * 1024);
 		if (!response.ok || response.status >= 300)
 			return failure(502, "unavailable");
+		// v0.31.0 REST gateway carries gRPC response metadata under this header.
+		// Consume it only from our fixed private upstream; never forward it to clients.
 		const cookie =
-			response.headers
-				.getSetCookie()
+			[
+				...response.headers.getSetCookie(),
+				response.headers.get("grpc-metadata-set-cookie") || "",
+			]
 				.find((value) => value.startsWith("memos_refresh="))
 				?.split(";")[0] || "";
 		if (!/^memos_refresh=[A-Za-z0-9_.-]+$/u.test(cookie))

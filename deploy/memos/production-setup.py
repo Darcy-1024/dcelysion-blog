@@ -71,6 +71,65 @@ if action == 'install':
                            'ports': container['HostConfig']['PortBindings'],
                            'networks': list(container['NetworkSettings']['Networks'])})
     print(json.dumps({'status': 'installed', 'version': profile['version'], 'image': container['Image']}))
+elif action == 'resume-install':
+    assert (ROOT/'OWNER').read_text().strip() == 'dcelysion-memos-production-20261020'
+    assert not (ROOT/'initialized.json').exists()
+    # Registry transport fallback; content remains pinned to the identical OCI digest.
+    image = 'mirror.ccs.tencentyun.com/neosmemo/memos:0.31.0@sha256:24c2707ddd8fbd2ceaa7a61ecab86a53cdcde640b24ce572b73da14b00b5785f'
+    run('docker', 'image', 'inspect', image, stdout=subprocess.DEVNULL)
+    compose = ROOT/'compose.yaml'
+    compose.write_text(compose.read_text().replace('image: neosmemo/memos:', 'image: mirror.ccs.tencentyun.com/neosmemo/memos:'))
+    os.chdir(ROOT)
+    run('docker', 'compose', '-f', 'compose.yaml', '-f', 'compose.bridge.yaml', 'up', '-d', '--pull', 'never')
+    for attempt in range(30):
+        try:
+            profile = api('/api/v1/instance/profile')
+            break
+        except (OSError, ValueError):
+            time.sleep(1)
+    else:
+        raise RuntimeError('Memos did not become healthy')
+    assert profile['version'] == '0.31.0'
+    container = json.loads(subprocess.check_output(['docker', 'inspect', 'dcelysion-memos-memos-1']))[0]
+    save('installed.json', {'version': profile['version'], 'image': container['Image'], 'registry': 'tencent-mirror-same-oci-digest', 'ports': container['HostConfig']['PortBindings']})
+    print(json.dumps({'status': 'installed', 'version': profile['version'], 'image': container['Image']}))
+elif action in ('connect-origin', 'refresh-origin'):
+    assert (ROOT/'OWNER').read_text().strip() == 'dcelysion-memos-production-20261020'
+    container = json.loads(subprocess.check_output(['docker', 'inspect', 'dcelysion-memos-memos-1']))[0]
+    labels = container['Config']['Labels']
+    assert labels['com.docker.compose.project'] == 'dcelysion-memos'
+    assert labels['com.docker.compose.service'] == 'memos'
+    assert container['State']['Running']
+    assert container['Config']['Image'].endswith('@sha256:24c2707ddd8fbd2ceaa7a61ecab86a53cdcde640b24ce572b73da14b00b5785f')
+    assert set(container['NetworkSettings']['Networks']) == {'dc-memos-private'}
+    assert json.loads(subprocess.check_output(['docker', 'network', 'inspect', 'dc-memos-private']))[0]['Internal']
+    address = container['NetworkSettings']['Networks']['dc-memos-private']['IPAddress']
+    assert address.startswith('172.')
+    config = Path('/etc/nginx/sites-available/dcelysion-memos-origin')
+    enabled = Path('/etc/nginx/sites-enabled/dcelysion-memos-origin')
+    if action == 'connect-origin':
+        assert not config.exists() and not enabled.exists()
+    else:
+        assert enabled.is_symlink() and enabled.resolve() == config
+        assert 'listen 127.0.0.1:5231;' in config.read_text()
+    # Docker internal networks suppress published ports. Keep that isolation and
+    # expose the raw origin ONLY to host operators/synchronizer on loopback.
+    config.write_text('server {\n    listen 127.0.0.1:5231;\n    server_name 127.0.0.1 localhost;\n    access_log off;\n    error_log /var/log/nginx/dc-memos-origin-error.log crit;\n    client_max_body_size 32m;\n    location / {\n        proxy_pass http://'+address+':5230;\n        proxy_set_header Host localhost;\n        proxy_request_buffering off;\n    }\n}\n')
+    if not enabled.is_symlink():
+        enabled.symlink_to(config)
+    run('nginx', '-t')
+    run('systemctl', 'reload', 'nginx')
+    for attempt in range(15):
+        try:
+            profile = api('/api/v1/instance/profile')
+            break
+        except (OSError, ValueError):
+            time.sleep(1)
+    else:
+        raise RuntimeError('Origin refresh health check failed')
+    assert profile['version'] == '0.31.0'
+    save('installed.json', {'version': profile['version'], 'commit': profile['commit'], 'image': container['Image'], 'origin': BASE, 'privateContainerIP': address})
+    print(json.dumps({'status': 'private-origin-ready', 'version': profile['version'], 'commit': profile['commit']}))
 elif action == 'initialize':
     assert (ROOT/'OWNER').read_text().strip() == 'dcelysion-memos-production-20261020'
     assert not (ROOT/'author.json').exists(), 'Do not overwrite existing identity'
