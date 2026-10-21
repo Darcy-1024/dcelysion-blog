@@ -44,7 +44,10 @@ run("git", ["init", "--quiet"]);
 run("git", ["apply", "--unidiff-zero", "--check", patch]);
 run("git", ["apply", "--unidiff-zero", patch]);
 for (const entry of proof.sourceFiles) {
-	if (hash(await fs.readFile(path.join(workspace, entry.path))) !== entry.afterSHA256)
+	if (
+		hash(await fs.readFile(path.join(workspace, entry.path))) !==
+		entry.afterSHA256
+	)
 		throw new Error(`Patched source mismatch: ${entry.path}`);
 }
 const web = path.join(workspace, "web");
