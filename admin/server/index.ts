@@ -9,6 +9,7 @@ import { DraftService } from "./drafts.js";
 import { productionMedia } from "./media-config.js";
 import { adminCsp } from "./memos.js";
 import { MemosBridge } from "./memos-bridge.js";
+import { MemosFrontend } from "./memos-frontend.js";
 import { productionPublishing } from "./publishing-config.js";
 
 const config = readConfig();
@@ -36,6 +37,9 @@ const memosBridge =
 				memosOrigin: config.memosOrigin,
 				upstream: config.memosBridge.upstream,
 				credentialsFile: config.memosBridge.credentialsFile,
+				frontend: config.memosBridge.frontendDirectory
+					? await MemosFrontend.load(config.memosBridge.frontendDirectory)
+					: undefined,
 				verify: (token) => auth.verify(token),
 			})
 		: null;

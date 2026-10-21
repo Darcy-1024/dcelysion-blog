@@ -1,8 +1,13 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import * as fs from "node:fs/promises";
 import { createServer, request as httpRequest } from "node:http";
 import type { AddressInfo } from "node:net";
+import os from "node:os";
+import path from "node:path";
 import test from "node:test";
 import { encodeMemosRefresh, MemosBridge } from "../server/memos-bridge.js";
+import { MemosFrontend } from "../server/memos-frontend.js";
 
 const adminOrigin = "https://admin.example.test";
 const memosOrigin = "https://memos.example.test";
@@ -17,7 +22,11 @@ const refreshedToken = "ey.fixture.refreshed";
 type Fixture = Awaited<ReturnType<typeof fixture>>;
 async function fixture(
 	t: test.TestContext,
-	options: { maxBodyBytes?: number; maxResponseBytes?: number } = {},
+	options: {
+		maxBodyBytes?: number;
+		maxResponseBytes?: number;
+		frontend?: MemosFrontend;
+	} = {},
 ) {
 	let now = Date.parse("2026-10-19T00:00:00.000Z");
 	const f = {
@@ -182,6 +191,105 @@ async function fixture(
 function upstreamCalls(f: Fixture, suffix: string) {
 	return f.calls.filter((call) => call.url.endsWith(suffix));
 }
+
+async function frontendFixture(t: test.TestContext) {
+	const directory = await fs.mkdtemp(
+		path.join(os.tmpdir(), "dc-memos-frontend-"),
+	);
+	t.after(() => fs.rm(directory, { recursive: true, force: true }));
+	await fs.mkdir(path.join(directory, "assets"));
+	const entries = [];
+	for (const [name, body] of [
+		["index.html", "<html>patched-memos</html>"],
+		["assets/emoji.js", "// trusted-emoji-build"],
+	]) {
+		await fs.writeFile(path.join(directory, name), body);
+		entries.push({
+			path: name,
+			bytes: Buffer.byteLength(body),
+			sha256: createHash("sha256").update(body).digest("hex"),
+		});
+	}
+	const manifest = {
+		schema: 1,
+		upstreamCommit: "2b2192d4e153bd04f1d325b60fd880cf00d68b01",
+		patchSHA256: "a".repeat(64),
+		entries,
+	};
+	const save = () =>
+		fs.writeFile(
+			path.join(directory, "frontend-manifest.json"),
+			JSON.stringify(manifest),
+		);
+	await save();
+	return { directory, manifest, save };
+}
+
+test("sealed Memos frontend validates provenance, safe paths and exact bytes", async (t) => {
+	const f = await frontendFixture(t);
+	const build = await MemosFrontend.load(f.directory);
+	assert.equal(build.index().bytes.toString(), "<html>patched-memos</html>");
+	assert.equal(build.asset("/frontend-manifest.json"), undefined);
+	f.manifest.entries[1].path = "../outside.js";
+	await f.save();
+	await assert.rejects(MemosFrontend.load(f.directory), /Invalid frontend/u);
+	f.manifest.entries[1].path = "assets/emoji.js";
+	await f.save();
+	await fs.writeFile(
+		path.join(f.directory, "assets/emoji.js"),
+		"// tampered-build-byte",
+	);
+	await assert.rejects(
+		MemosFrontend.load(f.directory),
+		/Frontend (?:size|digest) mismatch/u,
+	);
+	// Already loaded immutable buffers never reread a changed file.
+	assert.equal(
+		build.asset("/assets/emoji.js")?.bytes.toString(),
+		"// trusted-emoji-build",
+	);
+});
+
+test("frontend HTML and new assets retain gateway auth, revocation, HEAD and upstream route checks", async (t) => {
+	const source = await frontendFixture(t);
+	const frontend = await MemosFrontend.load(source.directory);
+	const f = await fixture(t, { frontend });
+	assert.equal((await f.request("/assets/emoji.js")).status, 401);
+	const cookie = await f.login();
+	const asset = await f.request("/assets/emoji.js", { headers: { cookie } });
+	assert.equal(asset.status, 200);
+	assert.equal(
+		asset.headers.get("content-type"),
+		"text/javascript; charset=utf-8",
+	);
+	assert.match(asset.headers.get("cache-control") || "", /no-store/u);
+	assert.equal(await asset.text(), "// trusted-emoji-build");
+	assert.equal(upstreamCalls(f, "/assets/emoji.js").length, 0);
+	const page = await f.request("/", { headers: { cookie } });
+	assert.equal(await page.text(), "<html>patched-memos</html>");
+	assert.equal(
+		(
+			await f.request("/assets/emoji.js", {
+				method: "HEAD",
+				headers: { cookie },
+			})
+		).status,
+		200,
+	);
+	assert.equal(
+		(await f.request("/assets/%2fsecret", { headers: { cookie } })).status,
+		400,
+	);
+	f.redirect = true;
+	assert.equal((await f.request("/", { headers: { cookie } })).status, 502);
+	f.redirect = false;
+	f.valid = false;
+	assert.equal(
+		(await f.request("/assets/emoji.js", { headers: { cookie } })).status,
+		401,
+	);
+	assert.equal((await f.request("/", { headers: { cookie } })).status, 401);
+});
 
 test("Memos bridge refuses unauthenticated HTML, Connect, REST, attachment and share requests despite supplied tokens", async (t) => {
 	const f = await fixture(t);

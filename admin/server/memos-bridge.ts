@@ -4,6 +4,7 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import path from "node:path";
 import type { Owner } from "./auth.js";
 import { memosUpstream } from "./memos.js";
+import type { MemosFrontend } from "./memos-frontend.js";
 
 export type MemosCredentials = {
 	username: string;
@@ -16,6 +17,7 @@ export type MemosBridgeOptions = {
 	upstream: string;
 	credentialsFile?: string;
 	credentials?: MemosCredentials;
+	frontend?: MemosFrontend;
 	verify: (token: string) => Promise<Owner | null>;
 	fetcher?: typeof fetch;
 	now?: () => number;
@@ -634,6 +636,15 @@ export class MemosBridge {
 			if (session.refreshing || session.accessExpires <= this.now() + 60000)
 				await this.refresh(session);
 			if (!(await this.valid(session))) return failure(401, "unauthenticated");
+			const frontendAsset = ["GET", "HEAD"].includes(method)
+				? this.options.frontend?.asset(pathname)
+				: undefined;
+			if (frontendAsset) {
+				res.setHeader("content-type", frontendAsset.type);
+				res.writeHead(200);
+				res.end(method === "HEAD" ? undefined : frontendAsset.bytes);
+				return;
+			}
 			const headers = new Headers();
 			for (const key of [
 				"content-type",
@@ -661,7 +672,16 @@ export class MemosBridge {
 				await response.body?.cancel();
 				return failure(502, "unavailable");
 			}
-			const bytes = await responseBytes(response, this.maxResponse);
+			let bytes = await responseBytes(response, this.maxResponse);
+			const frontendPage =
+				this.options.frontend &&
+				["GET", "HEAD"].includes(method) &&
+				response.ok &&
+				response.headers.get("content-type")?.startsWith("text/html") &&
+				!/^\/(?:api|file|_bridge)(?:\/|$)|^\/memos\.api\./u.test(pathname)
+					? this.options.frontend.index()
+					: undefined;
+			if (frontendPage) bytes = frontendPage.bytes;
 			if (!(await this.valid(session))) return failure(401, "unauthenticated");
 			for (const key of [
 				"content-type",
@@ -672,6 +692,7 @@ export class MemosBridge {
 				const value = response.headers.get(key);
 				if (value) res.setHeader(key, value);
 			}
+			if (frontendPage) res.setHeader("content-type", frontendPage.type);
 			this.headers(
 				res,
 				response.headers.get("content-security-policy") || undefined,

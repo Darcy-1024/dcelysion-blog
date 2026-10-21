@@ -1,0 +1,283 @@
+{
+	"upstreamCommit": "2b2192d4e153bd04f1d325b60fd880cf00d68b01",
+	"archiveSHA256": "5bfdc2fe5e1a684d2ab4c2e37821aaacb6aca2bfa7d49bc11c0dcad5208b4db9",
+	"lockSHA256": "6ddc14634290e7fb3f97081e172ca0a37b7cef95809002f9af9a27201b4e02df",
+	"patchSHA256": "8e827c1ea05006b727f005e5b3282cb08105808750cc32f2050d1e88251d44ee",
+	"sourceFiles": [
+		{
+			"path": "web/src/components/MemoEditor/Editor/controller.ts",
+			"beforeSHA256": "254302d37b79885f7171d2af369cf382bf548a71d75b32096e4611f80c578b1f",
+			"afterSHA256": "7347aa48179438c62118fcf4ad3d22ef966acc07bdbee2aa8cf1f29e0eae269b"
+		},
+		{
+			"path": "web/src/components/MemoEditor/Toolbar/EditorToolbar.tsx",
+			"beforeSHA256": "ba8f8c6f15c4a4924cc1a5b67baec3aacf1ad92145a54c4e2c1438ba8956da20",
+			"afterSHA256": "3d4f94ed0e09702fb9efb92a982adcae660cf266a3255a101b12bb55822f1582"
+		},
+		{
+			"path": "web/src/components/MemoEditor/Toolbar/EmojiPickerDialog.tsx",
+			"beforeSHA256": null,
+			"afterSHA256": "81be97c1c73c996f20e0b89cab65b9db0941a49973ec0e9a0512113a1f16d568"
+		},
+		{
+			"path": "web/src/components/MemoEditor/Toolbar/InsertMenu.tsx",
+			"beforeSHA256": "478a462217d837f97c7277c82ce5feefc625ed13a082b6b9668525a183d64e8f",
+			"afterSHA256": "89f7b82ee2f8d8bd3eb747d0d57d1f9ec2a5996d874bee2dbb28d44359fb3efe"
+		},
+		{
+			"path": "web/src/components/MemoEditor/index.tsx",
+			"beforeSHA256": "a7b85e88d8b6db9eb85aac393bad798e610de15e76bcffda92bac27b5301dbfb",
+			"afterSHA256": "58def6ab28fed334ddaab5583c55b074a5ba69d15e40b54c91d83b29148c58c8"
+		},
+		{
+			"path": "web/src/components/MemoEditor/types/components.ts",
+			"beforeSHA256": "4ce89858f087f2da602388857f81a55f9bbbce2859ea1ea8ad5fd8d57e6c6ef9",
+			"afterSHA256": "c158712bef88e6d9559deebe1b14ddd53ce9bd356397c8d6234da2708dad5ba3"
+		},
+		{
+			"path": "web/src/components/MemoEditor/types/editorController.ts",
+			"beforeSHA256": "10e633005e06b3b7259d9ca0e236b08694e832a7e081a20dca9575afef9e1912",
+			"afterSHA256": "a663d67fb0e99af50e3e88d0daa82de8d3752c9ddd0661b73b1eb141af325d31"
+		},
+		{
+			"path": "web/src/locales/ar.json",
+			"beforeSHA256": "12e32e13ac1b75e17f8a7d26c830b6e48a499657ffde09002ac1ee4eeb41f72c",
+			"afterSHA256": "b479ac5e4d7e117d0bbe4f27a610c2a05615662dc8a2b2ce1636a1317d73df90"
+		},
+		{
+			"path": "web/src/locales/az.json",
+			"beforeSHA256": "63ede3d54a5b7c21141b57a3bc1eff7dba45d9cc96b1ae2b66aa39316472a43e",
+			"afterSHA256": "7324513f26d617fd2d5e8315e9a0dd728a9ce4a700ec4234926ca592824abe12"
+		},
+		{
+			"path": "web/src/locales/bg.json",
+			"beforeSHA256": "cd09f255c81cb53041ef33b8d553385332c8aa010b96655ef7cfacf2f500e74c",
+			"afterSHA256": "5a68a600440ca2a25502341768b6fd75057c4f5d1f186b4585ad8d5d58db300b"
+		},
+		{
+			"path": "web/src/locales/ca.json",
+			"beforeSHA256": "dc548a0ba310e30eb09978823dcf7cd17be5fc93321dbf7acbd600f735cd3309",
+			"afterSHA256": "1d775d94f4c9881f6d9f29b7c44f06b0dcefa3f0bb0c0bf380291cbfcbfa5964"
+		},
+		{
+			"path": "web/src/locales/cs.json",
+			"beforeSHA256": "49acd2b22ef17a18b3a5b73020bbc9e301d781030bd3161b568708b3199da810",
+			"afterSHA256": "3de5baff7739dbb09b296fd62dc5fad24451e478e3921bde42a44456ea1001a0"
+		},
+		{
+			"path": "web/src/locales/da.json",
+			"beforeSHA256": "6b5a474441b5d8d8c61ef79f8d0e351383e9489e6db48a098af80d426ac26991",
+			"afterSHA256": "6667335239eafc922694e1acb57fdb9f2229b6e84c7e90080ed52bae81c1653f"
+		},
+		{
+			"path": "web/src/locales/de.json",
+			"beforeSHA256": "185cad442be4ead92ac957f897d5044dc919f27b5210cfdd41b6f6d729b5e90e",
+			"afterSHA256": "8cf2217b7b8e15609fbee03ec57c5e0da708a8c1b9191fbac9813ed89b71947a"
+		},
+		{
+			"path": "web/src/locales/el.json",
+			"beforeSHA256": "75d4f87f1a786701eb11df9d49db0530221ee0bc3014a960d71f5ffd477e477c",
+			"afterSHA256": "f0980cebb6eefe340071323e5891f22c64af7b78f334c3c1ab9a7a4aa2b471f4"
+		},
+		{
+			"path": "web/src/locales/en-GB.json",
+			"beforeSHA256": "19192d4b9255d2bb242441e74ebec4acc6495d791f3d428a3ee226a03f2c5791",
+			"afterSHA256": "5091660df9a18e869c02b03e559e2a9d9351a459cd1c5408e88836bfaa792910"
+		},
+		{
+			"path": "web/src/locales/en.json",
+			"beforeSHA256": "443a0fc0ba1f156e058e2847faeccff9b2ac553f1fb0517d84810517672d00c7",
+			"afterSHA256": "37c69bc5d05be453294265845862664514c2a3edcb5b9e729b84d929c2b70307"
+		},
+		{
+			"path": "web/src/locales/es.json",
+			"beforeSHA256": "ebafa436b140ecf169810dafe4280d07da2fc8cc675db0949b5f303f5ac5332c",
+			"afterSHA256": "c2ad5d491034bcea0095c1558b06793bc550d5c5e71fc65fc093c5594752424b"
+		},
+		{
+			"path": "web/src/locales/et.json",
+			"beforeSHA256": "0d95a7a5d08f552af277168166664040186322d6bc277d074f3a9261068e2cf2",
+			"afterSHA256": "4bfc01a416f38873bbbd3e6b882c86f7899fe605cfa0ac56fbcb2d9cf559becf"
+		},
+		{
+			"path": "web/src/locales/fa.json",
+			"beforeSHA256": "bfefbdee140afe84fee3070c4250c32448c034c6efc42324595f6efc47955a92",
+			"afterSHA256": "d8b33f4b1851973fe544e7bd441c365cd68071f3c3c456591e4d642b54b13b09"
+		},
+		{
+			"path": "web/src/locales/fi.json",
+			"beforeSHA256": "0826d6a5e958c31c72ddb97d11a89424ee7094cd46c44e62c98d9f6682e1b0da",
+			"afterSHA256": "b05115b77f6057388b0cf5b8d5e5917526adfc45389bd2934624c67e827372e2"
+		},
+		{
+			"path": "web/src/locales/fr.json",
+			"beforeSHA256": "fae414f4773da1d87e6e128078d18fef7a998c0ef3ec5c795b04d9f913953274",
+			"afterSHA256": "d685bc26f6978e78daac5445476ce96ee72bd9ff5e62931e8287021ed49dd7d3"
+		},
+		{
+			"path": "web/src/locales/gl.json",
+			"beforeSHA256": "346fcab8ac5e044da3251b6caa431e95aaabed2327f2d6b4bbf33cef93938d28",
+			"afterSHA256": "c6bfc9873f3203f252dc4eaf567a9a3573bad15cf06569a62d771acf1e474c4b"
+		},
+		{
+			"path": "web/src/locales/he.json",
+			"beforeSHA256": "da2c09e0bf9e21f9e79acc988404a8e52733685b5cf6b59060cea529d11dc4fa",
+			"afterSHA256": "3f07c9737d29cf2f099d8c3d6860234e4fbf3122da8af0a7767777ec2a50e31d"
+		},
+		{
+			"path": "web/src/locales/hi.json",
+			"beforeSHA256": "35218a72271caa7dc453c6fb9d0e5775cf1541d4b18fa48b8902a1db743665bf",
+			"afterSHA256": "3ab0ea9c4d22be904c279023282d9f8da2fcf91d6b3d87248c14fc119169aab7"
+		},
+		{
+			"path": "web/src/locales/hr.json",
+			"beforeSHA256": "afc89347beb3fa1e550b2028995bfc6f646a07689ad0beb6f82a749d0a0c2b5b",
+			"afterSHA256": "fab46f260d37306e2e0abed5056a4411d9523efdd47371a049d25fd4aff61f74"
+		},
+		{
+			"path": "web/src/locales/hu.json",
+			"beforeSHA256": "f331228c994d242dc3163b9ecf1fa06fa612986a4e69e57f90266f534e6b7676",
+			"afterSHA256": "7dc3a504c7dbd2759d18a51670b7832df7ed3aedba577188908469701e68b385"
+		},
+		{
+			"path": "web/src/locales/id.json",
+			"beforeSHA256": "43b7aceb421045df31ebe6079ad10bcfa6a7e965ddc98560a7ba3bfa6e537ae1",
+			"afterSHA256": "e64c3b3ac04912d95c0da44bbc143e8d81db45e8645676dcad4edd1abfa24333"
+		},
+		{
+			"path": "web/src/locales/it.json",
+			"beforeSHA256": "12881ffc8e0d42db7ad9f6cf4a0e4f67eb33b46864bac95b058b2b25c89a59bf",
+			"afterSHA256": "3c4db79989d9db5adc3ed9600698cd35de4719ab720f7667732f2c6245f28a93"
+		},
+		{
+			"path": "web/src/locales/ja.json",
+			"beforeSHA256": "d45c0c8f4b4301f3b711a306c2e3bd6e1ed37123016bed8b3575e1b8cee16582",
+			"afterSHA256": "b648aa8ba315d0d1791b56759181ad077072270954cc40425adb9186686d21be"
+		},
+		{
+			"path": "web/src/locales/ka-GE.json",
+			"beforeSHA256": "952ec8f7ed427a079643f343fe6d4f21c2dcae21498eda108fc4f22510422692",
+			"afterSHA256": "89ecdce909e5ea57d7a4c4ae516d4f4eadcf882da5c800a1b8dcf5ebf0c68c84"
+		},
+		{
+			"path": "web/src/locales/ko.json",
+			"beforeSHA256": "1535b489c8dd07b01702149a119b8ae451d945e39229a8a84a349b4a0395c9f8",
+			"afterSHA256": "23b1bc8e6ab98c2def66e08953683045d4d34059045617fa91f59d74e7a00a58"
+		},
+		{
+			"path": "web/src/locales/lt.json",
+			"beforeSHA256": "404654f486c14f26b9bfb567e2e171921231df27f3082208c9c971ff76f71fe1",
+			"afterSHA256": "01026f3e51296d2f4b03cd60c6274d4b0c37d860b29e3618f42fe3fffa01110f"
+		},
+		{
+			"path": "web/src/locales/lv.json",
+			"beforeSHA256": "a572cc46f64b1cf5518549f07d48d411c3321a7993215265cd5bdd597ebfcbcf",
+			"afterSHA256": "8f49942eaf3df99e91e9d2812db53fbdd0ee92749f56d516dd09c10a0bf56106"
+		},
+		{
+			"path": "web/src/locales/mr.json",
+			"beforeSHA256": "262ce054e0f79310a85b3d94f1534ccb74a0ae70f1b0fc72989a837c70009fca",
+			"afterSHA256": "8f9fa19d924bb2e66e1c529e0f7a201ac1c75e07d9a7a9142f3d5ee725be6e9e"
+		},
+		{
+			"path": "web/src/locales/nb.json",
+			"beforeSHA256": "690684342cf18ae03ac64c9b80ab39b0723a3091e0029cd1e87ba6d3e307bcfd",
+			"afterSHA256": "40400818efb50d353e98914e2a00009c7f43afaed8bf7c53c0fc3f8539af93d0"
+		},
+		{
+			"path": "web/src/locales/nl.json",
+			"beforeSHA256": "5dc050dff425300e7cd4979a8f92f50c82121407c6b3e3444920c3bfc1c12665",
+			"afterSHA256": "ac0f727fe6519f58c7f535a8039198d9b0de156aaea6b5f3e67d72405704f311"
+		},
+		{
+			"path": "web/src/locales/pl.json",
+			"beforeSHA256": "e8cfa642e9d118e81fe86d9749c202862e53d84cdc741b0591b87a591ade44ca",
+			"afterSHA256": "5b3e31e35b4f21533cccad5e7f1425085e5ef2d74d2c22037995d78a2bcbe673"
+		},
+		{
+			"path": "web/src/locales/pt-BR.json",
+			"beforeSHA256": "1eb47c3a0894a9f7685bc2b22be8e45fce32021a6817be9465ee6a61f5cf9cae",
+			"afterSHA256": "1eb46208a6f507df64119abb0eacc33991af64e0a39362b968fbcbe8e0364b7d"
+		},
+		{
+			"path": "web/src/locales/pt-PT.json",
+			"beforeSHA256": "e849ad613bc7f01fb30c6f17a75feaaff8c669a5142407d6f08e5fa407c7479f",
+			"afterSHA256": "af99ae358636e9ffd8e61b5ed9eeb9d58c716d444d232309edd8bd9b691b7398"
+		},
+		{
+			"path": "web/src/locales/ro.json",
+			"beforeSHA256": "85ff23bf94a0ed4391d17061be06eb647f5b5d55eee36c53a71416405c9a716c",
+			"afterSHA256": "d55fd0b7d92d5900a04cb6b7fe35d4ff5de83dff45e30f0556711174bcb23bac"
+		},
+		{
+			"path": "web/src/locales/ru.json",
+			"beforeSHA256": "6e0653faae459b9818a2e92d1976ae56c8498eed14e11a9ac4bc44c190d672aa",
+			"afterSHA256": "051509d56cfa9fa1c19bab4950de9f0452ff11ee7756c98a6b52de6ae5efcbb0"
+		},
+		{
+			"path": "web/src/locales/sk.json",
+			"beforeSHA256": "a8ee9467632500ca9bfa168e35b0feea1a3f9be6fefeb69848c643444b0f12ce",
+			"afterSHA256": "14b5db46eed5ddd06c034a4fcd5ea45537f07e8b1bcc8c46330e3e0186b9149a"
+		},
+		{
+			"path": "web/src/locales/sl.json",
+			"beforeSHA256": "5571de894d7012c6c4286e23e4dbbe151a440424cfa8818e68ba261635dcd662",
+			"afterSHA256": "1d9f6cca89ad2896a30aaa4cce853f4e0894e670ca5c126d7868358f6df1e3d9"
+		},
+		{
+			"path": "web/src/locales/sr.json",
+			"beforeSHA256": "6df373f199083318b96252d5048697af482d77dd8f30a99271c3feb599d53f27",
+			"afterSHA256": "adf10aa0c41a9ccd23c26666d120451c48b91d6494b230f1eab8944265e3b85d"
+		},
+		{
+			"path": "web/src/locales/sv.json",
+			"beforeSHA256": "217fb169a33ba53713a458ed5aeaf793c9f717f88775e2d8c0b2ef6e51492471",
+			"afterSHA256": "064c9197ba03ffb0ac2634d52615dbfeb01bc7282bb226c59cd2c7ccc118e230"
+		},
+		{
+			"path": "web/src/locales/th.json",
+			"beforeSHA256": "715990db98762178ee359048c4720a33a9e5ad7d2350788e7f96059b153a9f88",
+			"afterSHA256": "e0bc8846767ac80504c5e21fce21b12bc59e036302d12c24b71d2b0013d6486c"
+		},
+		{
+			"path": "web/src/locales/tr.json",
+			"beforeSHA256": "c26d2aad495d9600b617eeb83e38d8d780d783c9c9e11978fde9e13e3cb57b40",
+			"afterSHA256": "ba8d47518f686f3268824e1f95b2a8c9656feb98987368836c7a8fc4f79436c3"
+		},
+		{
+			"path": "web/src/locales/uk.json",
+			"beforeSHA256": "5fc35305a86862c770950aad4efee8772bb9379e913f8204da0d480391f79fd1",
+			"afterSHA256": "b7eff5a264ef2300de178d716579eb79b1726c750b978e1f0ce2b43070f52c11"
+		},
+		{
+			"path": "web/src/locales/vi.json",
+			"beforeSHA256": "2ee63b4e0665fb12098936654231ec2d9e2e78df23822b7747d232bb24a4b6fb",
+			"afterSHA256": "7c80c53e958a9075f481590ee302a6ab5272ff590a4b3ace1a4455802b0cfbac"
+		},
+		{
+			"path": "web/src/locales/zh-Hans.json",
+			"beforeSHA256": "d5035b080480b64a948a6bcd3c2c455c4b387e9761936b823b8c40bcc0ab671e",
+			"afterSHA256": "57d38f45843851274fcef96f7f156f65f29894ad7f680fccd1a698849fa00252"
+		},
+		{
+			"path": "web/src/locales/zh-Hant.json",
+			"beforeSHA256": "8694c0d9af36289a0d33d16d4f54127abdc36f2e1a4d6ab24dfb96b1e8dc3804",
+			"afterSHA256": "425f61c8140050b71b1a1e8964f3baa56877094cf4a49546b3630d7a2bec2baf"
+		},
+		{
+			"path": "web/tests/editor-controller.test.ts",
+			"beforeSHA256": "1490eadbe84c9f4e60887d80b79d92757eb45679307d64db59a938c97804607b",
+			"afterSHA256": "482bf26750d0f4cc9eaa8a981ebd0876e2715565b7123242f071214d5cd9fc87"
+		},
+		{
+			"path": "web/tests/formatting-toolbar.test.tsx",
+			"beforeSHA256": "c41bfb6c547c11fc9a5be42454c0126cfbba60526627f2e63fdec8d0a25c83dc",
+			"afterSHA256": "78675370d4f3581bfb66b4e70fc486984e85d5fa8a8448c8801aa1e8729df79f"
+		},
+		{
+			"path": "web/tests/insert-menu.test.tsx",
+			"beforeSHA256": "ad429b571add813e911c4390f168be1f785f6d73e68d21b8666b63c9dc53cfef",
+			"afterSHA256": "38cc1ffd44cc3a96c8c003f78f602a537d853004688f99de797ced3b26cf0657"
+		}
+	]
+}

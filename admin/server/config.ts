@@ -20,6 +20,7 @@ export type AdminConfig = {
 		port: number;
 		upstream: string;
 		credentialsFile: string;
+		frontendDirectory?: string;
 	};
 	ready: boolean;
 	missing: string[];
@@ -139,6 +140,9 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): AdminConfig {
 			port: bridgePort,
 			upstream,
 			credentialsFile: resolve(env.ADMIN_MEMOS_CREDENTIALS_FILE),
+			frontendDirectory: env.ADMIN_MEMOS_FRONTEND_DIRECTORY
+				? resolve(env.ADMIN_MEMOS_FRONTEND_DIRECTORY)
+				: undefined,
 		};
 	}
 	return {

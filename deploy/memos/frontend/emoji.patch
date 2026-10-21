@@ -1,0 +1,659 @@
+diff --git a/web/src/components/MemoEditor/Editor/controller.ts b/web/src/components/MemoEditor/Editor/controller.ts
+index c50ec05f..422dd55c 100644
+--- a/web/src/components/MemoEditor/Editor/controller.ts
++++ b/web/src/components/MemoEditor/Editor/controller.ts
+@@ -42,0 +43,11 @@ export function createController(view: EditorView, formatting: FormattingControl
++    insertText: (text) => {
++      if (!text) return;
++      const { from, to } = view.state.selection.main;
++      view.dispatch({
++        changes: { from, to, insert: text },
++        selection: { anchor: from + text.length },
++        scrollIntoView: true,
++        userEvent: "input.emoji",
++      });
++      view.focus();
++    },
+diff --git a/web/src/components/MemoEditor/Toolbar/EditorToolbar.tsx b/web/src/components/MemoEditor/Toolbar/EditorToolbar.tsx
+index d91af936..d7236f0d 100644
+--- a/web/src/components/MemoEditor/Toolbar/EditorToolbar.tsx
++++ b/web/src/components/MemoEditor/Toolbar/EditorToolbar.tsx
+@@ -41,0 +42 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
++  onInsertEmoji,
+@@ -102,0 +104 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
++          onInsertEmoji={onInsertEmoji}
+diff --git a/web/src/components/MemoEditor/Toolbar/EmojiPickerDialog.tsx b/web/src/components/MemoEditor/Toolbar/EmojiPickerDialog.tsx
+new file mode 100644
+index 00000000..c5fd8914
+--- /dev/null
++++ b/web/src/components/MemoEditor/Toolbar/EmojiPickerDialog.tsx
+@@ -0,0 +1,117 @@
++import { useRef, useState } from "react";
++import { flushSync } from "react-dom";
++import { Button } from "@/components/ui/button";
++import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
++import { Input } from "@/components/ui/input";
++import { SPACE_EMOJI } from "@/lib/space-emoji";
++import { useTranslate } from "@/utils/i18n";
++
++const commonEmoji = [
++  ["😀", "开心 笑 smile happy"],
++  ["😄", "高兴 大笑 laugh happy"],
++  ["😂", "笑哭 laugh tears"],
++  ["🤣", "大笑 laugh rofl"],
++  ["😊", "微笑 smile blush"],
++  ["🥰", "喜欢 爱 love hearts"],
++  ["😍", "爱 心 love heart eyes"],
++  ["😘", "亲亲 kiss love"],
++  ["😎", "酷 cool sunglasses"],
++  ["🤔", "思考 think"],
++  ["🤗", "拥抱 hug"],
++  ["🤭", "偷笑 giggle"],
++  ["😅", "汗 尴尬 sweat"],
++  ["🥲", "含泪 tear"],
++  ["🥹", "感动 tear moved"],
++  ["😢", "伤心 哭 sad cry"],
++  ["😭", "大哭 cry"],
++  ["😤", "生气 angry"],
++  ["😡", "愤怒 angry"],
++  ["😴", "睡觉 sleep"],
++  ["🥱", "困 yawn"],
++  ["🤯", "震惊 shock"],
++  ["😱", "惊讶 scream"],
++  ["🙃", "倒脸 upside down"],
++  ["🫠", "融化 melting"],
++  ["👍", "赞 好 thumbs up"],
++  ["👎", "踩 thumbs down"],
++  ["👏", "鼓掌 clap"],
++  ["🙌", "庆祝 hooray"],
++  ["🙏", "感谢 祈祷 thanks pray"],
++  ["💪", "加油 力量 strong"],
++  ["👌", "好的 okay"],
++  ["✌️", "胜利 victory"],
++  ["👋", "你好 再见 wave hello"],
++  ["🤝", "握手 handshake"],
++  ["❤️", "红心 爱 heart love"],
++  ["💔", "心碎 broken heart"],
++  ["💕", "爱心 hearts"],
++  ["✨", "闪光 sparkle"],
++  ["🎉", "庆祝 celebration party"],
++  ["🔥", "火 热 fire"],
++  ["✅", "完成 对勾 done check"],
++  ["❌", "错误 cross"],
++  ["💯", "满分 hundred"],
++] as const;
++const emojis = [...new Map([...SPACE_EMOJI, ...commonEmoji].map(([emoji, label]) => [emoji, { emoji, label }])).values()];
++
++interface Props {
++  open: boolean;
++  onOpenChange: (open: boolean) => void;
++  onSelect: (emoji: string) => void;
++  disabled?: boolean;
++}
++
++export default function EmojiPickerDialog({ open, onOpenChange, onSelect, disabled }: Props) {
++  const t = useTranslate();
++  const [query, setQuery] = useState("");
++  const searchRef = useRef<HTMLInputElement>(null);
++  const search = query.trim().toLocaleLowerCase();
++  const options = emojis.filter(({ emoji, label }) => emoji.includes(search) || label.toLocaleLowerCase().includes(search));
++  return (
++    <Dialog
++      open={open}
++      onOpenChange={(next) => {
++        if (!next) setQuery("");
++        onOpenChange(next);
++      }}
++    >
++      <DialogContent size="sm" initialFocus={searchRef}>
++        <DialogHeader>
++          <DialogTitle>{t("editor.insert-menu.insert-emoji")}</DialogTitle>
++          <DialogDescription>{t("editor.insert-menu.emoji-description")}</DialogDescription>
++        </DialogHeader>
++        <Input
++          ref={searchRef}
++          value={query}
++          onChange={(event) => setQuery(event.target.value)}
++          aria-label={t("editor.insert-menu.emoji-search")}
++          placeholder={t("editor.insert-menu.emoji-search")}
++        />
++        <div className="grid grid-cols-6 sm:grid-cols-8 gap-1 max-h-64 overflow-y-auto overscroll-contain">
++          {options.map(({ emoji, label }) => (
++            <Button
++              key={emoji}
++              type="button"
++              variant="ghost"
++              size="icon"
++              className="text-xl"
++              aria-label={label}
++              title={label}
++              disabled={disabled}
++              onClick={() => {
++                flushSync(() => {
++                  onOpenChange(false);
++                  setQuery("");
++                });
++                onSelect(emoji);
++              }}
++            >
++              {emoji}
++            </Button>
++          ))}
++        </div>
++        {!options.length && <p role="status">{t("editor.insert-menu.emoji-empty")}</p>}
++      </DialogContent>
++    </Dialog>
++  );
++}
+diff --git a/web/src/components/MemoEditor/Toolbar/InsertMenu.tsx b/web/src/components/MemoEditor/Toolbar/InsertMenu.tsx
+index 93c84c54..f8e11a60 100644
+--- a/web/src/components/MemoEditor/Toolbar/InsertMenu.tsx
++++ b/web/src/components/MemoEditor/Toolbar/InsertMenu.tsx
+@@ -11,0 +12 @@ import {
++  SmilePlusIcon,
+@@ -32,0 +34 @@ import type { LocalFile } from "../types/attachment";
++import EmojiPickerDialog from "./EmojiPickerDialog";
+@@ -39,0 +42 @@ const InsertMenu = (props: InsertMenuProps) => {
++  const [emojiDialogOpen, setEmojiDialogOpen] = useState(false);
+@@ -149,0 +153 @@ const InsertMenu = (props: InsertMenuProps) => {
++    { key: "emoji", label: t("editor.insert-menu.insert-emoji"), icon: SmilePlusIcon, onClick: () => setEmojiDialogOpen(true) },
+@@ -210,0 +215,7 @@ const InsertMenu = (props: InsertMenuProps) => {
++      <EmojiPickerDialog
++        open={emojiDialogOpen}
++        onOpenChange={setEmojiDialogOpen}
++        onSelect={props.onInsertEmoji}
++        disabled={insertionDisabled}
++      />
++
+diff --git a/web/src/components/MemoEditor/index.tsx b/web/src/components/MemoEditor/index.tsx
+index 0fd3b4d0..138304a9 100644
+--- a/web/src/components/MemoEditor/index.tsx
++++ b/web/src/components/MemoEditor/index.tsx
+@@ -273,0 +274,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
++  const handleInsertEmoji = useCallback(
++    (emoji: string) => {
++      if (!getState().ui.isLoading.saving) editorRef.current?.insertText(emoji);
++    },
++    [getState],
++  );
++
+@@ -399,0 +407 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
++            onInsertEmoji={handleInsertEmoji}
+diff --git a/web/src/components/MemoEditor/types/components.ts b/web/src/components/MemoEditor/types/components.ts
+index 8dba2eda..4ef98d65 100644
+--- a/web/src/components/MemoEditor/types/components.ts
++++ b/web/src/components/MemoEditor/types/components.ts
+@@ -76,0 +77 @@ export interface EditorToolbarProps {
++  onInsertEmoji: (emoji: string) => void;
+@@ -116,0 +118 @@ export interface InsertMenuProps {
++  onInsertEmoji: (emoji: string) => void;
+diff --git a/web/src/components/MemoEditor/types/editorController.ts b/web/src/components/MemoEditor/types/editorController.ts
+index 00f9f413..78a6f080 100644
+--- a/web/src/components/MemoEditor/types/editorController.ts
++++ b/web/src/components/MemoEditor/types/editorController.ts
+@@ -19,0 +20,2 @@ export interface EditorController {
++  /** Insert plain text inline, replacing the selection and preserving undo. */
++  insertText(text: string): void;
+diff --git a/web/src/locales/ar.json b/web/src/locales/ar.json
+index 9d656439..c087b960 100644
+--- a/web/src/locales/ar.json
++++ b/web/src/locales/ar.json
+@@ -150,0 +151,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/az.json b/web/src/locales/az.json
+index a0780ff7..a2df58fd 100644
+--- a/web/src/locales/az.json
++++ b/web/src/locales/az.json
+@@ -262,0 +263,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/bg.json b/web/src/locales/bg.json
+index d731784e..302f187d 100644
+--- a/web/src/locales/bg.json
++++ b/web/src/locales/bg.json
+@@ -186,0 +187,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/ca.json b/web/src/locales/ca.json
+index 72a325ce..d0460f03 100644
+--- a/web/src/locales/ca.json
++++ b/web/src/locales/ca.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/cs.json b/web/src/locales/cs.json
+index d747efa0..2638d106 100644
+--- a/web/src/locales/cs.json
++++ b/web/src/locales/cs.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/da.json b/web/src/locales/da.json
+index c9495c68..118caa57 100644
+--- a/web/src/locales/da.json
++++ b/web/src/locales/da.json
+@@ -186,0 +187,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/de.json b/web/src/locales/de.json
+index b92a46bf..e16a3edf 100644
+--- a/web/src/locales/de.json
++++ b/web/src/locales/de.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/el.json b/web/src/locales/el.json
+index 2ac84728..9494c7fd 100644
+--- a/web/src/locales/el.json
++++ b/web/src/locales/el.json
+@@ -186,0 +187,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/en-GB.json b/web/src/locales/en-GB.json
+index 84c14e29..723b8dcd 100644
+--- a/web/src/locales/en-GB.json
++++ b/web/src/locales/en-GB.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/en.json b/web/src/locales/en.json
+index 44925732..22d995dd 100644
+--- a/web/src/locales/en.json
++++ b/web/src/locales/en.json
+@@ -262,0 +263,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/es.json b/web/src/locales/es.json
+index b1b35c18..1ef22b74 100644
+--- a/web/src/locales/es.json
++++ b/web/src/locales/es.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/et.json b/web/src/locales/et.json
+index 12fadc6b..94b23fb1 100644
+--- a/web/src/locales/et.json
++++ b/web/src/locales/et.json
+@@ -186,0 +187,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/fa.json b/web/src/locales/fa.json
+index 01659f45..33fabc73 100644
+--- a/web/src/locales/fa.json
++++ b/web/src/locales/fa.json
+@@ -150,0 +151,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/fi.json b/web/src/locales/fi.json
+index a1efe4a4..7bfab18e 100644
+--- a/web/src/locales/fi.json
++++ b/web/src/locales/fi.json
+@@ -186,0 +187,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/fr.json b/web/src/locales/fr.json
+index 1e7b356e..66c2ba7b 100644
+--- a/web/src/locales/fr.json
++++ b/web/src/locales/fr.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/gl.json b/web/src/locales/gl.json
+index 3b6cc8d5..39bfb604 100644
+--- a/web/src/locales/gl.json
++++ b/web/src/locales/gl.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/he.json b/web/src/locales/he.json
+index 4e0624ca..a5867574 100644
+--- a/web/src/locales/he.json
++++ b/web/src/locales/he.json
+@@ -236,0 +237,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/hi.json b/web/src/locales/hi.json
+index 2366c60a..462d9ffa 100644
+--- a/web/src/locales/hi.json
++++ b/web/src/locales/hi.json
+@@ -150,0 +151,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/hr.json b/web/src/locales/hr.json
+index 973d7bb3..c38d09b3 100644
+--- a/web/src/locales/hr.json
++++ b/web/src/locales/hr.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/hu.json b/web/src/locales/hu.json
+index 2e69cc93..5ca980f9 100644
+--- a/web/src/locales/hu.json
++++ b/web/src/locales/hu.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/id.json b/web/src/locales/id.json
+index c48c5f5e..743aa806 100644
+--- a/web/src/locales/id.json
++++ b/web/src/locales/id.json
+@@ -150,0 +151,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/it.json b/web/src/locales/it.json
+index 66747877..33f602bf 100644
+--- a/web/src/locales/it.json
++++ b/web/src/locales/it.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/ja.json b/web/src/locales/ja.json
+index bd1d8243..dd2beb49 100644
+--- a/web/src/locales/ja.json
++++ b/web/src/locales/ja.json
+@@ -151,0 +152,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/ka-GE.json b/web/src/locales/ka-GE.json
+index f4411c87..857e68c9 100644
+--- a/web/src/locales/ka-GE.json
++++ b/web/src/locales/ka-GE.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/ko.json b/web/src/locales/ko.json
+index 391cb34e..299e154b 100644
+--- a/web/src/locales/ko.json
++++ b/web/src/locales/ko.json
+@@ -150,0 +151,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/lt.json b/web/src/locales/lt.json
+index aad84b23..958a13db 100644
+--- a/web/src/locales/lt.json
++++ b/web/src/locales/lt.json
+@@ -186,0 +187,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/lv.json b/web/src/locales/lv.json
+index ce808841..9d916b66 100644
+--- a/web/src/locales/lv.json
++++ b/web/src/locales/lv.json
+@@ -186,0 +187,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/mr.json b/web/src/locales/mr.json
+index 9eb3083e..dfeb751b 100644
+--- a/web/src/locales/mr.json
++++ b/web/src/locales/mr.json
+@@ -150,0 +151,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/nb.json b/web/src/locales/nb.json
+index 6e35ba43..9ddda5bd 100644
+--- a/web/src/locales/nb.json
++++ b/web/src/locales/nb.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/nl.json b/web/src/locales/nl.json
+index d3efa614..de7a61fc 100644
+--- a/web/src/locales/nl.json
++++ b/web/src/locales/nl.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/pl.json b/web/src/locales/pl.json
+index 63e03157..8fa7642f 100644
+--- a/web/src/locales/pl.json
++++ b/web/src/locales/pl.json
+@@ -164,0 +165,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/pt-BR.json b/web/src/locales/pt-BR.json
+index 35eed2c3..5ad78ea9 100644
+--- a/web/src/locales/pt-BR.json
++++ b/web/src/locales/pt-BR.json
+@@ -150,0 +151,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/pt-PT.json b/web/src/locales/pt-PT.json
+index 8fc7bb93..3ed4c7fe 100644
+--- a/web/src/locales/pt-PT.json
++++ b/web/src/locales/pt-PT.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/ro.json b/web/src/locales/ro.json
+index 94c94f0f..481a64d6 100644
+--- a/web/src/locales/ro.json
++++ b/web/src/locales/ro.json
+@@ -186,0 +187,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/ru.json b/web/src/locales/ru.json
+index 59d305b9..ea6a3553 100644
+--- a/web/src/locales/ru.json
++++ b/web/src/locales/ru.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/sk.json b/web/src/locales/sk.json
+index 5c492207..c5390fd6 100644
+--- a/web/src/locales/sk.json
++++ b/web/src/locales/sk.json
+@@ -186,0 +187,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/sl.json b/web/src/locales/sl.json
+index 71694b18..7f84989f 100644
+--- a/web/src/locales/sl.json
++++ b/web/src/locales/sl.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/sr.json b/web/src/locales/sr.json
+index 32f6488b..78897bbd 100644
+--- a/web/src/locales/sr.json
++++ b/web/src/locales/sr.json
+@@ -186,0 +187,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/sv.json b/web/src/locales/sv.json
+index fde20e4b..c407281c 100644
+--- a/web/src/locales/sv.json
++++ b/web/src/locales/sv.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/th.json b/web/src/locales/th.json
+index 0ab77d0f..30e86c4f 100644
+--- a/web/src/locales/th.json
++++ b/web/src/locales/th.json
+@@ -150,0 +151,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/tr.json b/web/src/locales/tr.json
+index 17ed687e..ac56d824 100644
+--- a/web/src/locales/tr.json
++++ b/web/src/locales/tr.json
+@@ -191,0 +192,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/uk.json b/web/src/locales/uk.json
+index 211d3c99..9e6cbcad 100644
+--- a/web/src/locales/uk.json
++++ b/web/src/locales/uk.json
+@@ -148,0 +149,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/vi.json b/web/src/locales/vi.json
+index 2e32aac3..157696a9 100644
+--- a/web/src/locales/vi.json
++++ b/web/src/locales/vi.json
+@@ -150,0 +151,4 @@
++      "insert-emoji": "Insert emoji",
++      "emoji-search": "Search emoji",
++      "emoji-empty": "No matching emoji",
++      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+diff --git a/web/src/locales/zh-Hans.json b/web/src/locales/zh-Hans.json
+index 3dfa3390..930845a4 100644
+--- a/web/src/locales/zh-Hans.json
++++ b/web/src/locales/zh-Hans.json
+@@ -208,0 +209,4 @@
++      "insert-emoji": "插入表情",
++      "emoji-search": "搜索表情",
++      "emoji-empty": "没有匹配的表情",
++      "emoji-description": "选择表情插入光标位置，按 Esc 关闭。",
+diff --git a/web/src/locales/zh-Hant.json b/web/src/locales/zh-Hant.json
+index 450a2454..ac35fe16 100644
+--- a/web/src/locales/zh-Hant.json
++++ b/web/src/locales/zh-Hant.json
+@@ -243,0 +244,4 @@
++      "insert-emoji": "插入表情",
++      "emoji-search": "搜尋表情",
++      "emoji-empty": "沒有符合的表情",
++      "emoji-description": "選擇表情插入游標位置，按 Esc 關閉。",
+diff --git a/web/tests/editor-controller.test.ts b/web/tests/editor-controller.test.ts
+index da2db570..0a059965 100644
+--- a/web/tests/editor-controller.test.ts
++++ b/web/tests/editor-controller.test.ts
+@@ -0,0 +1 @@
++import { history, redo, undo } from "@codemirror/commands";
+@@ -10,0 +12,16 @@ describe("source editor controller", () => {
++  it("inserts emoji inline, replaces selected text and continues at the caret with undo", () => {
++    const v = new EditorView({ state: EditorState.create({ doc: "hello world", extensions: [history()] }) });
++    const c = createController(v, {} as never);
++    v.dispatch({ selection: { anchor: 6, head: 11 } });
++    c.insertText("🥹");
++    expect(c.getMarkdown()).toBe("hello 🥹");
++    expect(c.getCursor()).toBe("hello 🥹".length);
++    c.insertText("✨");
++    expect(c.getMarkdown()).toBe("hello 🥹✨");
++    expect(undo(v)).toBe(true);
++    expect(c.getMarkdown()).not.toContain("✨");
++    expect(redo(v)).toBe(true);
++    expect(c.getMarkdown()).toBe("hello 🥹✨");
++    v.destroy();
++  });
++
+diff --git a/web/tests/formatting-toolbar.test.tsx b/web/tests/formatting-toolbar.test.tsx
+index cdc164c3..e1fbd168 100644
+--- a/web/tests/formatting-toolbar.test.tsx
++++ b/web/tests/formatting-toolbar.test.tsx
+@@ -29,0 +30 @@ function makeController(opts: { active?: Partial<ActiveFormatState> } = {}) {
++    insertText: vi.fn(),
+diff --git a/web/tests/insert-menu.test.tsx b/web/tests/insert-menu.test.tsx
+index 1d4937b2..5ec08b98 100644
+--- a/web/tests/insert-menu.test.tsx
++++ b/web/tests/insert-menu.test.tsx
+@@ -4,0 +5 @@ import { EditorToolbar } from "@/components/MemoEditor/Toolbar/EditorToolbar";
++import EmojiPickerDialog from "@/components/MemoEditor/Toolbar/EmojiPickerDialog";
+@@ -36,0 +38 @@ const renderMenu = (onInsertImages = vi.fn(), isSaving = false, hosted = false)
++        onInsertEmoji={vi.fn()}
+@@ -43,0 +46,9 @@ describe("InsertMenu", () => {
++  test("searches emoji by Chinese label and inserts the chosen Unicode text", () => {
++    const onSelect = vi.fn();
++    const onOpenChange = vi.fn();
++    render(<EmojiPickerDialog open onOpenChange={onOpenChange} onSelect={onSelect} />);
++    fireEvent.change(screen.getByRole("textbox", { name: "editor.insert-menu.emoji-search" }), { target: { value: "笑哭" } });
++    fireEvent.click(screen.getByRole("button", { name: "笑哭 laugh tears" }));
++    expect(onSelect).toHaveBeenCalledWith("😂");
++    expect(onOpenChange).toHaveBeenCalledWith(false);
++  });
+@@ -56,0 +68 @@ describe("InsertMenu", () => {
++      "editor.insert-menu.insert-emoji",
+@@ -106 +118,7 @@ describe("InsertMenu", () => {
+-        <EditorToolbar onSave={vi.fn()} onAudioRecorderClick={vi.fn()} viewToggles={viewToggles} onInsertImages={vi.fn()} />
++        <EditorToolbar
++          onSave={vi.fn()}
++          onAudioRecorderClick={vi.fn()}
++          viewToggles={viewToggles}
++          onInsertImages={vi.fn()}
++          onInsertEmoji={vi.fn()}
++        />
