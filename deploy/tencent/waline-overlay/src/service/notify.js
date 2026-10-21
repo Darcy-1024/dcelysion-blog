@@ -3,6 +3,7 @@ const crypto = require('node:crypto');
 const FormData = require('form-data');
 const nodemailer = require('../../password-reset/node_modules/nodemailer');
 const nunjucks = require('nunjucks');
+const { enabled: interactionMailEnabled } = require('../lib/interaction-mail-worker.js');
 
 module.exports = class NotifyService extends think.Service {
   constructor(controller) {
@@ -514,7 +515,7 @@ module.exports = class NotifyService extends think.Service {
       const discord = await this.discord({ title, content }, comment, parent);
       const lark = await this.lark({ title, content }, comment, parent);
 
-      if (
+      if (!interactionMailEnabled(process.env) &&
         [wechat, qq, telegram, qywxAmWechat, pushplus, discord, lark].every((item) =>
           think.isEmpty(item),
         )

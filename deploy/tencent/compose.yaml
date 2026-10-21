@@ -64,6 +64,46 @@ services:
       SENDER_EMAIL: ${SMTP_USER:-}
       SENDER_NAME: DcElysion
       AUTHOR_EMAIL: ${AUTHOR_EMAIL:-}
+      INTERACTION_NOTIFY_ENABLED: ${INTERACTION_NOTIFY_ENABLED:-false}
+      INTERACTION_NOTIFY_EMAIL: ${INTERACTION_NOTIFY_EMAIL:-lin507793465@gmail.com}
+    networks:
+      - database
+      - outbound
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    logging: *logging
+
+  interaction-mail:
+    # Enable the profile only after migration 006 and SMTP checks; see overlay README.
+    profiles: ["interaction-mail"]
+    image: dcelysion/waline-public:20261017-guard
+    command: ["node", "/app/src/lib/interaction-mail-worker.js"]
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      TZ: UTC
+      PG_HOST: postgres
+      PG_PORT: "5432"
+      PG_DB: waline
+      PG_USER: waline
+      PG_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+      PG_SSL: "false"
+      SITE_NAME: DcElysion
+      SITE_URL: ${SITE_URL:-https://blog.dcelysion.cn}
+      AUTHOR_EMAIL: ${AUTHOR_EMAIL:-}
+      INTERACTION_NOTIFY_ENABLED: ${INTERACTION_NOTIFY_ENABLED:-false}
+      INTERACTION_NOTIFY_EMAIL: ${INTERACTION_NOTIFY_EMAIL:-lin507793465@gmail.com}
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-465}
+      SMTP_SECURE: ${SMTP_SECURE:-true}
+      SMTP_USER: ${SMTP_USER:-}
+      SMTP_PASS: ${SMTP_PASS:-}
+      SENDER_EMAIL: ${SMTP_USER:-}
+      SENDER_NAME: DcElysion
     networks:
       - database
       - outbound
