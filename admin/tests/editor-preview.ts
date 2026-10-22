@@ -96,6 +96,8 @@ const server = createServer(async (req, res) => {
 			".html": "text/html",
 			".js": "text/javascript",
 			".css": "text/css",
+			".png": "image/png",
+			".ttf": "font/ttf",
 		};
 		const contents = await readFile(file);
 		res.writeHead(200, {

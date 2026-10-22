@@ -1,5 +1,7 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
+import logoLight from "../../public/assets/brand/dcelysion-portal-v3.png";
+import logoDark from "../../public/assets/brand/dcelysion-portal-v3-dark.png";
 import { onMount } from "svelte";
 import type { ConfigurationKind } from "../shared/configuration.js";
 import type { DraftDetail } from "../shared/contracts";
@@ -133,7 +135,9 @@ function dashboardNavigate(target: {
 	private?: boolean;
 	jobId?: string;
 }) {
-	if (target.view === "content") {
+	if (target.view === "memos") {
+		changeMemos();
+	} else if (target.view === "content") {
 		changeKind(target.kind || "posts", false);
 		privateMode = !!target.private;
 		status =
@@ -150,7 +154,9 @@ function dashboardNavigate(target: {
 		changeConfiguration(target.view as ConfigurationKind);
 	else if (leaveEditor()) {
 		publishing = mediaLibrary = false;
-		if (target.view === "publishing") {
+		if (target.view === "media") {
+			mediaLibrary = true;
+		} else if (target.view === "publishing") {
 			publishing = true;
 			overviewJobId = target.jobId || null;
 		} else
@@ -233,6 +239,29 @@ let page = 1;
 let data: Page | null = null;
 let loading = false;
 let drawer = false;
+let mobile = false;
+let dark = false;
+let themeOverride: boolean | null = null;
+let navigation: HTMLElement;
+function toggleTheme() {
+ dark = !dark;
+ themeOverride = dark;
+ document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+ try { localStorage.setItem('dc-admin-theme', dark ? 'dark' : 'light'); } catch {}
+}
+function openDrawer() {
+ drawer = true;
+ requestAnimationFrame(() => navigation?.querySelector<HTMLButtonElement>('button')?.focus());
+}
+function trapDrawer(event: KeyboardEvent) {
+ if (!drawer || event.key !== 'Tab') return;
+ const buttons = Array.from(navigation.querySelectorAll<HTMLButtonElement>('button:not(:disabled), a[href]'));
+ const first = buttons[0], last = buttons[buttons.length - 1];
+ if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
+ else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+}
+$: pageTitle = memosMode ? memosWords.nav : dashboardMode ? analyticsWords[dashboardMode] : managementMode ? managementWords[managementMode] : configurationKind === 'music' ? 'BGM 歌单' : configurationKind === 'gallery' ? '相册' : configurationKind === 'settings' ? '站点设置' : mediaLibrary ? '统一媒体库' : publishing ? '改动与发布' : kind === 'posts' ? words.posts : words.dynamic;
+$: sectionTitle = dashboardMode ? '概览与数据' : managementMode ? '评论与账号' : configurationKind || mediaLibrary ? '媒体与站点' : '内容创作';
 let menuButton: HTMLButtonElement;
 let requestVersion = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -280,7 +309,19 @@ async function initialize() {
 }
 onMount(() => {
 	void initialize();
-	return () => {
+ const colorQuery = matchMedia('(prefers-color-scheme: dark)');
+ const mobileQuery = matchMedia('(max-width: 760px)');
+ try { const saved = localStorage.getItem('dc-admin-theme'); if (saved === 'dark' || saved === 'light') themeOverride = saved === 'dark'; } catch {}
+ const syncColor = () => { if (themeOverride === null) { dark = colorQuery.matches; document.documentElement.dataset.theme = dark ? 'dark' : 'light'; } };
+ dark = themeOverride ?? colorQuery.matches;
+ document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+ const syncMobile = () => { mobile = mobileQuery.matches; if (!mobile) drawer = false; };
+ syncMobile();
+ colorQuery.addEventListener('change', syncColor);
+ mobileQuery.addEventListener('change', syncMobile);
+ return () => {
+ colorQuery.removeEventListener('change', syncColor);
+ mobileQuery.removeEventListener('change', syncMobile);
 		clearTimeout(timer);
 	};
 });
@@ -395,7 +436,7 @@ function changeKind(next: Kind, shouldLoad = true) {
 }
 function closeDrawer() {
 	drawer = false;
-	menuButton?.focus();
+	requestAnimationFrame(() => menuButton?.focus());
 }
 function changeFilter() {
 	page = 1;
@@ -412,14 +453,14 @@ function changePage(next: number) {
 </script>
 
 {#if testEnvironment}<div class="test-banner" role="status">{testEnvironment}</div>{/if}
-<svelte:window onkeydown={(event) => { if (event.key === "Escape" && drawer) closeDrawer(); }} />
+<svelte:window onkeydown={(event) => { if (event.key === "Escape" && drawer) closeDrawer(); trapDrawer(event); }} />
 
 {#if booting}
   <main class="center"><div class="loader" aria-label={words.loading}></div><p>{words.loading}</p></main>
 {:else if !configured}
-  <main class="center"><section class="notice"><div class="mark">D</div><h1>{missing.length ? "后台尚未配置" : "无法连接后台"}</h1>{#if missing.length}<p>请在服务端配置以下字段，然后重启后台服务。</p><code>{missing.join(" · ")}</code><p class="muted">页面可查看，登录及内容接口当前不可用。</p>{:else}<p class="error" role="alert">{errorText || "请检查服务状态并刷新页面。"}</p>{/if}</section></main>
+  <main class="center"><section class="notice"><img class="brand-logo" src={dark ? logoDark : logoLight} alt="DcElysion" /><h1>{missing.length ? "后台尚未配置" : "无法连接后台"}</h1>{#if missing.length}<p>请在服务端配置以下字段，然后重启后台服务。</p><code>{missing.join(" · ")}</code><p class="muted">页面可查看，登录及内容接口当前不可用。</p>{:else}<p class="error" role="alert">{errorText || "请检查服务状态并刷新页面。"}</p>{/if}</section></main>
 {:else if !owner}
-  <main class="center"><section class="login-card"><div class="mark">D</div><p class="eyebrow">DCELYSION · ADMIN</p><h1>欢迎回来</h1><p class="muted">使用现有 Waline 管理账号登录。</p>
+  <main class="center login-layout"><div class="login-story"><p class="eyebrow">DCELYSION / WORKSPACE</p><h2>让灵感，<br />在这里生长。</h2><p>写下生活，收藏热爱。<br />从一篇文章、一张照片开始。</p><div class="login-orbit" aria-hidden="true"><span>✦</span></div><small>你的博客，你的创作空间。</small></div><section class="login-card"><img class="brand-logo" src={dark ? logoDark : logoLight} alt="DcElysion" /><p class="eyebrow">DCELYSION · ADMIN</p><h1>欢迎回来</h1><p class="muted">使用现有 Waline 管理账号登录。</p>
     <form onsubmit={(event) => { event.preventDefault(); void login(); }}>
       <label>{words.username}<input name="identity" autocomplete="username" bind:value={identity} required /></label>
       <label>{words.password}<input name="password" type="password" autocomplete="current-password" bind:value={password} required /></label>
@@ -431,24 +472,24 @@ function changePage(next: number) {
 {:else}
   <div class="shell with-comment-nav">
     {#if drawer}<button class="scrim" aria-label={words.close} onclick={closeDrawer}></button>{/if}
-    <aside class:open={drawer} aria-label="主导航">
-      <div class="brand"><div class="mark">D</div><div><strong>DcElysion</strong><small>内容管理后台</small></div></div>
-      <div class="nav-group"><span class="nav-label">概览与数据</span>{#each ['overview','analytics'] as view}<button class:active={dashboardMode===view} onclick={()=>dashboardNavigate({view})}>{analyticsWords[view as 'overview'|'analytics']}</button>{/each}</div>
-      <div class="nav-group"><span class="nav-label">内容管理</span>
+    <aside bind:this={navigation} class:open={drawer} aria-label="主导航" inert={mobile && !drawer}>
+      <div class="brand"><img class="brand-logo" src={dark ? logoDark : logoLight} alt="DcElysion" /><button class="drawer-close icon-button" aria-label={words.close} onclick={closeDrawer}>×</button></div><nav class="side-nav" aria-label="后台功能">
+      <div class="nav-group"><span class="nav-label">概览与数据</span>{#each ['overview','analytics'] as view}<button class:active={dashboardMode===view} onclick={()=>dashboardNavigate({view})}><Icon icon={view === 'overview' ? 'material-symbols:space-dashboard-outline-rounded' : 'material-symbols:monitoring-rounded'} />{analyticsWords[view as 'overview'|'analytics']}</button>{/each}</div>
+      <div class="nav-group"><span class="nav-label">内容创作</span>
         <button class:active={kind === "posts" && !memosMode && !dashboardMode && !publishing && !mediaLibrary && !configurationKind && !managementMode} disabled={editorBusy} onclick={() => changeKind("posts")}><Icon icon="material-symbols:article-outline-rounded" />{words.posts}</button>
-        <button class:active={kind === "dynamic" && !memosMode && !dashboardMode && !publishing && !mediaLibrary && !configurationKind && !managementMode} disabled={editorBusy} onclick={() => changeKind("dynamic")}><Icon icon="material-symbols:dynamic-feed-outline-rounded" />{words.dynamic}</button>
-        <button class:active={memosMode} disabled={editorBusy} onclick={changeMemos}>{memosWords.nav}</button>
-        <button class:active={configurationKind==='music'} onclick={() => changeConfiguration('music')}>BGM 歌单</button>
-        <button class:active={configurationKind==='gallery'} onclick={() => changeConfiguration('gallery')}>相册</button>
-        <button class:active={configurationKind==='settings'} onclick={() => changeConfiguration('settings')}>站点设置</button>
-        <button class:active={publishing} disabled={editorBusy} onclick={()=>{if(leaveEditor()){publishing=true;mediaLibrary=false;if(drawer)closeDrawer();}}}>改动与发布</button>
-        <button class:active={mediaLibrary} disabled={editorBusy} onclick={()=>{if(leaveEditor()){mediaLibrary=true;publishing=false;if(drawer)closeDrawer();}}}>统一媒体库</button>
+        <button class:active={kind === "dynamic" && !memosMode && !dashboardMode && !publishing && !mediaLibrary && !configurationKind && !managementMode} disabled={editorBusy} onclick={() => changeKind("dynamic")}><Icon icon="material-symbols:dynamic-feed-outline-rounded" />动态归档</button>
+        <button class:active={memosMode} disabled={editorBusy} onclick={changeMemos}><Icon icon="material-symbols:edit-note-rounded" />{memosWords.nav}</button>
       </div>
-      <div class="nav-group"><span class="nav-label">评论与账号</span>{#each ['comments','users','account'] as item}<button class:active={managementMode===item} onclick={()=>changeManagement(item as 'comments'|'users'|'account')}>{managementWords[item as 'comments'|'users'|'account']}</button>{/each}</div>
-      <div class="side-bottom"><span class="avatar">{owner.name.slice(0, 1)}</span><div class="account"><strong>{owner.name}</strong><small>站点管理员</small></div><button class="icon-button" title={words.logout} aria-label={words.logout} onclick={() => void logout()}><Icon icon="material-symbols:logout-rounded" /></button></div>
+      <div class="nav-group"><span class="nav-label">媒体与站点</span>
+        <button class:active={mediaLibrary} disabled={editorBusy} onclick={()=>{if(leaveEditor()){mediaLibrary=true;publishing=false;if(drawer)closeDrawer();}}}><Icon icon="material-symbols:perm-media-outline-rounded" />统一媒体库</button>
+        <button class:active={configurationKind==='music'} onclick={() => changeConfiguration('music')}><Icon icon="material-symbols:music-note-rounded" />BGM 歌单</button>
+        <button class:active={configurationKind==='gallery'} onclick={() => changeConfiguration('gallery')}><Icon icon="material-symbols:photo-library-outline-rounded" />相册</button>
+      </div>
+      <div class="nav-group"><span class="nav-label">评论与账号</span>{#each ['comments','users','account'] as item}<button class:active={managementMode===item} onclick={()=>changeManagement(item as 'comments'|'users'|'account')}><Icon icon={item === 'comments' ? 'material-symbols:forum-outline-rounded' : item === 'users' ? 'material-symbols:group-outline-rounded' : 'material-symbols:shield-person-outline-rounded'} />{managementWords[item as 'comments'|'users'|'account']}</button>{/each}</div>
+      </nav><div class="side-bottom"><span class="avatar">{owner.name.slice(0, 1)}</span><div class="account"><strong>{owner.name}</strong><small>站点管理员</small></div><button class="icon-button" title={words.logout} aria-label={words.logout} onclick={() => void logout()}><Icon icon="material-symbols:logout-rounded" /></button></div>
     </aside>
-    <main class="content">
-      <header class="topbar"><button bind:this={menuButton} class="menu-button" aria-label={words.menu} aria-expanded={drawer} onclick={() => drawer = true}><Icon icon="material-symbols:menu-rounded" /></button><div class="breadcrumb">内容管理 <span>/</span> {memosMode?memosWords.nav:dashboardMode?analyticsWords[dashboardMode]:managementMode?managementWords[managementMode]:configurationKind==='music'?'BGM 歌单':configurationKind==='gallery'?'相册':configurationKind==='settings'?'站点设置':mediaLibrary ? "统一媒体库" : publishing ? "改动与发布" : kind === "posts" ? words.posts : words.dynamic}</div><div class="top-account">{owner.name}</div></header>
+    <main class="content" inert={mobile && drawer}>
+      <header class="topbar"><button bind:this={menuButton} class="menu-button" aria-label={words.menu} aria-expanded={drawer} onclick={openDrawer}><Icon icon="material-symbols:menu-rounded" /></button><div class="breadcrumb">{sectionTitle} <span>/</span> <strong>{pageTitle}</strong></div><div class="top-tools"><button class="icon-button" onclick={toggleTheme} aria-label={dark ? '切换浅色模式' : '切换深色模式'} title={dark ? '切换浅色模式' : '切换深色模式'}><Icon icon={dark ? 'material-symbols:light-mode-outline-rounded' : 'material-symbols:dark-mode-outline-rounded'} /></button>{#if blogOrigin}<a class="blog-link" href={blogOrigin} target="_blank" rel="noopener noreferrer">查看博客 <Icon icon="material-symbols:open-in-new-rounded" /></a>{/if}</div></header>
       <div class="page-body">
        {#if memosMode}
         <MemosEmbed bind:this={memosRef} onexpired={() => expired = true}/>
@@ -465,8 +506,8 @@ function changePage(next: number) {
        {:else if editor}
         {#key editor}<Editor bind:this={editorRef} initial={editor} onback={() => { if (leaveEditor()) void load(); }} onexpired={() => expired = true} onreplace={(detail) => editor = detail} />{/key}
        {:else}
-       <div class="heading"><div><p class="eyebrow">CONTENT LIBRARY</p><h1>{kind === "posts" ? words.posts : words.dynamic}</h1><p class="muted">打开仓库内容建立私有修订，或创建私有草稿。保存不会更改公开内容。</p></div><div class="count">{data ? `${data.total} 条内容` : "—"}</div></div>
-        <div class="editor-actions"><button class="primary" disabled={editorBusy} onclick={() => { creating = !creating; newPath = ""; createRequest = null; }}>新建私有草稿</button><button disabled={editorBusy} onclick={switchPrivate}>{privateMode ? "仓库内容" : "私有草稿"}</button></div>
+       <div class="heading library-heading"><div><p class="eyebrow">CONTENT LIBRARY</p><h1>{kind === "posts" ? '文章书架' : '动态归档'} <span class="count">{privateMode ? draftPage?.total ?? 0 : data?.total ?? '—'}</span></h1><p class="muted">{kind === 'posts' ? '让想法成为文字，慢慢积累自己的作品。' : '管理保存在博客仓库中的动态与图片。'}</p></div><button class="primary" disabled={editorBusy} onclick={() => { creating = !creating; newPath = ""; createRequest = null; }}><Icon icon="material-symbols:add-rounded" />新建私有草稿</button></div>
+       <div class="library-tabs" aria-label="内容来源"><button class:active={!privateMode} aria-pressed={!privateMode} disabled={editorBusy} onclick={()=>{if(privateMode)switchPrivate();}}>仓库内容</button><button class:active={privateMode} aria-pressed={privateMode} disabled={editorBusy} onclick={()=>{if(!privateMode)switchPrivate();}}>私有草稿</button><span>私有保存不会更改公开内容</span></div>
         {#if creating}<form class="new-draft panel" onsubmit={(event) => { event.preventDefault(); void createDraft(newPath); }}><label>拟用文件路径（含 .md / 文章可用 .mdx）<input bind:value={newPath} oninput={() => createRequest = null} placeholder={kind === "posts" ? "my-post.md" : "2026-09-30-120000.md"} required disabled={editorBusy} /></label><button disabled={editorBusy} type="submit">创建并编辑</button><p class="muted">仅预留受控内容路径，现有 URL 和文件不会变动。</p></form>{/if}
         {#if privateMode}
          <section class="panel"><h2 class="private-title">私有草稿 · {draftPage?.total ?? 0} 条</h2>{#if errorText}<div class="feedback error" role="alert"><p>{errorText}</p><button onclick={() => void load()}>重试</button></div>{:else if loading}<p class="feedback">正在加载…</p>{:else if !draftPage?.items.length}<p class="feedback">还没有私有草稿</p>{:else}{#each draftPage.items as draft}<article class="row"><div class="row-main"><strong>{draft.path}</strong><p>r{draft.revision} · {new Date(draft.updated_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}{draft.snapshot ? " · 私有副本" : ""}</p></div><button disabled={editorBusy} onclick={() => void openDraft(draft.id)}>继续编辑</button></article>{/each}{/if}{#if draftPage && draftPage.total > 30}<footer class="pagination"><span>第 {page} 页</span><div><button disabled={page <= 1 || loading} onclick={() => changePage(page - 1)}>上一页</button><button disabled={page * 30 >= draftPage.total || loading} onclick={() => changePage(page + 1)}>下一页</button></div></footer>{/if}</section>

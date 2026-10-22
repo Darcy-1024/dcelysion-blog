@@ -99,6 +99,8 @@ async function staticFile(res: ServerResponse, pathname: string) {
 			".html": "text/html",
 			".js": "text/javascript",
 			".css": "text/css",
+			".png": "image/png",
+			".ttf": "font/ttf",
 			".svg": "image/svg+xml",
 		};
 		const contents = await readFile(file);

@@ -1,6 +1,6 @@
 export const memosWords = {
-	nav: "动态 · Memos",
-	title: "用 Memos 写动态",
+	nav: "动态",
+	title: "动态",
 	intro: "使用原版 Memos。公开动态通过同步和构建后更新到博客。",
 	open: "新窗口打开 Memos",
 	login: "通过后台账号使用 Memos；如嵌入受限，可使用新窗口入口。",

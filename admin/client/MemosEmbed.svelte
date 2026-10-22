@@ -1,4 +1,5 @@
 <script lang="ts">
+import Icon from "@iconify/svelte";
 import { onMount, tick } from "svelte";
 import { memosWords as words } from "./memos-words.js";
 
@@ -77,12 +78,12 @@ onMount(() => {
 </script>
 
 <section class="memos-page">
-  <div class="heading"><div><h1>{words.title}</h1><p class="muted">{words.intro}</p></div>
-    {#if origin && access === 'unified-session'}<button class="memos-open" disabled={entering} onclick={() => void enter('_blank')}>{words.open} ↗</button>{:else}<span class="memos-open" aria-disabled="true">{words.open} · 待启用</span>{/if}
+  <div class="heading"><div><p class="eyebrow">LIFE & NOTES</p><h1>{words.title}</h1><p class="muted">{words.intro}</p></div>
+    {#if origin && access === 'unified-session'}<button class="memos-open" disabled={entering} onclick={() => void enter('_blank')}>{words.open} ↗</button>{:else}<span class="memos-status">入口待就绪</span>{/if}
   </div>
   {#if loading}<p role="status">正在读取入口…</p>
-  {:else if failed}<div class="panel"><p role="alert">{words.unavailable}</p><button onclick={() => void load()}>{words.retry}</button></div>
-  {:else if !origin}<div class="panel"><h2>{words.unconfigured}</h2><p>{words.setup}</p></div>
+  {:else if failed}<div class="panel memos-empty"><span class="memos-symbol"><Icon icon="material-symbols:edit-note-rounded" /></span><h2>随时记录新的灵感</h2><p role="alert">{words.unavailable}</p><button onclick={() => void load()}>{words.retry}</button></div>
+  {:else if !origin}<div class="panel memos-empty"><span class="memos-symbol"><Icon icon="material-symbols:edit-note-rounded" /></span><h2>{words.unconfigured}</h2><p>{words.setup}</p></div>
   {:else if access !== 'unified-session'}<div class="panel"><h2>{words.authPending}</h2><p>{words.authDetail}</p></div>
   {:else}
     <div class="memos-notice"><p>{words.login} {words.logout}</p><button aria-expanded={help} onclick={() => help = !help}>{words.help}</button>
@@ -99,9 +100,11 @@ onMount(() => {
 .memos-open { display: inline-block; white-space: nowrap; padding: .65rem .85rem; border: 1px solid currentColor; border-radius: .65rem; }
 .memos-notice { margin: .8rem 0; font-size: .85rem; }
 .memos-notice p { margin: .4rem 0; }
-iframe { display: block; width: 100%; height: max(32rem, calc(100dvh - 18rem)); border: 1px solid #d6dce4; border-radius: .75rem; background: white; }
+iframe { display: block; width: 100%; height: max(32rem, calc(100dvh - 18rem)); border: 1px solid var(--border); border-radius: .75rem; background: var(--surface); }
 @media (max-width: 600px) {
   iframe { height: max(30rem, calc(100dvh - 16rem)); border-radius: .35rem; }
   .memos-open { width: 100%; text-align: center; box-sizing: border-box; }
 }
+.memos-notice{padding:16px 20px;background:var(--accent-soft);color:var(--text-muted);border-radius:16px}.panel{padding:24px}iframe{border-radius:18px;border-color:var(--border)}
+.memos-empty{min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:12px}.memos-symbol{display:grid;place-items:center;width:64px;height:64px;background:var(--accent-soft);color:var(--accent);font-size:34px;border-radius:20px}.memos-empty h2{font-size:20px;margin:8px 0 0}.memos-empty p{max-width:560px;color:var(--text-muted);font-size:13px;line-height:1.8;margin:0}.memos-status{padding:7px 12px;border-radius:20px;background:var(--surface);color:var(--text-muted);font-size:12px}.heading .eyebrow{margin:0 0 8px}
 </style>

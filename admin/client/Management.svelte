@@ -283,8 +283,8 @@ async function reconcile() {
 </script>
 
 <section class="management">
-<div class="heading"><div><p class="eyebrow">WALINE MANAGEMENT</p><h1>{words[mode]}</h1><p class="muted">{words.noTwikoo}</p></div><button disabled={busy} onclick={()=>void initialize()}>{words.refresh}</button></div>
-{#if info}<div class="panel management-source"><strong>{words.source}</strong><code>{info.source}</code><small>{info.overlay}</small></div>{/if}
+<div class="heading"><div><p class="eyebrow">COMMUNITY</p><h1>{words[mode]}</h1><p class="muted">{mode === "comments" ? "读一读留言，让每一次交流都有回应。" : mode === "users" ? "查看读者资料，管理社区成员。" : "管理个人资料与登录会话。"}</p></div><button disabled={busy} onclick={()=>void initialize()}>{words.refresh}</button></div>
+{#if info}<details class="panel management-source"><summary>服务来源</summary><p class="muted">{words.noTwikoo}</p><code>{info.source}</code><small>{info.overlay}</small></details>{/if}
 {#if error}<p class="feedback error" role="alert">{error}</p>{/if}
 {#if notice}<p class="feedback" role="status">{notice}</p>{/if}
 {#if busy}<p role="status">{words.loading}</p>{/if}

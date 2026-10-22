@@ -18,6 +18,6 @@ $: if (src !== previous) {
 </span>
 
 <style>
-.user-avatar { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; overflow: hidden; border-radius: 50%; background: #e8edf4; color: #213047; font-size: 20px; }
+.user-avatar { display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex-shrink: 0; overflow: hidden; border-radius: 50%; background: var(--accent-soft); color: var(--accent); font-size: 20px; }
 img { width: 100%; height: 100%; object-fit: cover; }
 </style>

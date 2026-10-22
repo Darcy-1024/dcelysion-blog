@@ -19,7 +19,6 @@ import {
 } from "./editor-session";
 import { apiMessage, editorWords as words } from "./i18n";
 import MediaLibrary from "./MediaLibrary.svelte";
-import Publishing from "./Publishing.svelte";
 
 let {
 	initial,
@@ -282,5 +281,4 @@ function diff(a: string, b: string) {
    {#if initial.draft.kind === "dynamic"}<h2>动态图片顺序</h2>{#if !imageInfo.sortable}<p class="muted">复杂图片或代码语法请在源码中调整顺序。</p>{:else}{#each imageInfo.items as image, index}<div class="image-order"><code title={image.raw}>{index + 1}. {image.raw}</code><div><button disabled={operationBusy || index === 0} aria-label={`上移图片 ${index + 1}`} onclick={() => session.edit(moveImage(session.source, index, index - 1))}>↑</button><button disabled={operationBusy || index === imageInfo.items.length - 1} aria-label={`下移图片 ${index + 1}`} onclick={() => session.edit(moveImage(session.source, index, index + 1))}>↓</button></div></div>{/each}{/if}{/if}
   </section></div>
 </section>
-<Publishing draft={view.detail.draft} locked={view.dirty || view.busy || operationBusy || view.state==='conflict'} {onexpired}/>
 <MediaLibrary purpose="article" onselect={insertManaged} {onexpired}/>
