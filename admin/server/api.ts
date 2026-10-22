@@ -1,5 +1,10 @@
 import { createHash, randomUUID } from "node:crypto";
+import { readFile } from "node:fs/promises";
 import type { IncomingMessage, ServerResponse } from "node:http";
+import {
+	configurationPaths,
+	parseConfiguration,
+} from "../shared/configuration.js";
 import {
 	AnalyticsInputError,
 	AnalyticsService,
@@ -15,6 +20,7 @@ import {
 	draftKind,
 	uuid,
 } from "./drafts.js";
+import { safeFile } from "./executor.js";
 import type { JobService } from "./jobs.js";
 import { ManagementError, ManagementService, objectId } from "./management.js";
 import type { MediaService } from "./media.js";
@@ -220,6 +226,28 @@ export function createApi(
 			return error(res, 503, "AUTH_UPSTREAM", "身份状态暂时无法验证");
 		}
 		if (!owner) return error(res, 401, "UNAUTHORIZED", "请重新登录");
+		if (url.pathname === "/api/configuration/current" && req.method === "GET") {
+			const kind = url.searchParams.get("kind");
+			if (kind !== "music" && kind !== "gallery")
+				return error(res, 400, "INVALID_INPUT", "不支持的配置类型");
+			try {
+				const source = await readFile(
+					await safeFile(config.contentRoot, configurationPaths[kind]),
+					"utf8",
+				);
+				return send(res, 200, {
+					ok: true,
+					data: parseConfiguration(kind, source),
+				});
+			} catch {
+				return error(
+					res,
+					503,
+					"CONFIG_UNAVAILABLE",
+					"当前配置暂时无法读取，请重试",
+				);
+			}
+		}
 		if (url.pathname === "/api/memos" && req.method === "GET")
 			return send(res, 200, {
 				ok: true,

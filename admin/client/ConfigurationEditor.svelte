@@ -24,6 +24,7 @@ import {
 	configurationWords as words,
 } from "./i18n.js";
 import MediaLibrary from "./MediaLibrary.svelte";
+import CurrentCollection from "./CurrentCollection.svelte";
 
 
 let {
@@ -307,13 +308,14 @@ onMount(() => {
 <section class="configuration-page">
  <div class="heading configuration-heading"><div><p class="eyebrow">{workspace.eyebrow}</p><h1>{words[kind]}</h1><p class="muted">{workspace.intro}</p></div>{#if detail}<button disabled={operation || view.busy} onclick={() => void open()}><Icon icon="material-symbols:add-rounded" />新建私有修订</button>{/if}</div>
  {#if error}<p role="alert" class="error configuration-alert">{error}</p>{/if}
- {#if !detail}
+ {#if !detail && kind === 'settings'}
  <section class="panel configuration-welcome">
   <div class="collection-art" aria-hidden="true"><Icon icon={workspace.icon} /></div>
   <div class="collection-intro"><p class="eyebrow">YOUR COLLECTION</p><h2>{workspace.empty}</h2><p>{workspace.description}</p><button class="primary" disabled={operation || view.busy || loading} onclick={() => void open()}><Icon icon="material-symbols:add-rounded" />{operation ? words.loading : workspace.start}</button><small>只保存到私有区，不会直接改变博客公开内容。</small></div>
  </section>
  <div class="collection-guide" aria-label="整理流程">{#each workspace.features as feature,index}<div><span>0{index+1}</span><strong>{feature}</strong></div>{/each}</div>
  {/if}
+ {#if !detail && kind !== 'settings'}<CurrentCollection {kind} {onexpired} busy={operation} onedit={() => void open()}/>{/if}
  <details class="panel revision-panel" open={!detail && revisions.length > 0}><summary><span><Icon icon="material-symbols:history-rounded" />私有修订</span><small>{loading ? words.loading : error ? '暂不可用' : revisions.length ? revisions.length + ' 份 · 可继续编辑' : '暂无修订'}</small></summary>
   {#if loading}<p class="muted" role="status">{words.loading}</p>{:else if !revisions.length && !error}<p class="muted">创建后，保存的修订会出现在这里，方便下次继续整理。</p>{/if}
   <div class="configuration-revisions">{#each revisions as revision}<button disabled={operation || view.busy} onclick={() => void open(revision.id)}><span class="revision-version">r{revision.revision}</span><span><strong>{words.reopen}</strong><small>{new Date(revision.updated_at).toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" })}</small></span><Icon icon="material-symbols:arrow-forward-rounded" /></button>{/each}</div>

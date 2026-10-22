@@ -13,6 +13,7 @@ import { apiMessage, connectionMessage } from "./i18n";
 import Management from "./Management.svelte";
 import MediaLibrary from "./MediaLibrary.svelte";
 import MemosEmbed from "./MemosEmbed.svelte";
+import UserAvatar from "./UserAvatar.svelte";
 import { memosWords } from "./memos-words.js";
 import { words as managementWords } from "./management-words.js";
 import Publishing from "./Publishing.svelte";
@@ -72,6 +73,7 @@ let managementMode: "comments" | "users" | "account" | null = null;
 let managementRef: { canLeave(): boolean } | undefined;
 let mediaLibrary = false;
 let memosMode = false;
+let memosVisited = false;
 let memosRef: { canLeave(): boolean } | undefined;
 let configurationKind: ConfigurationKind | null = null;
 let configurationRef: { canLeave(): boolean } | undefined;
@@ -97,7 +99,7 @@ let editorBusy = false;
 let editorRequestVersion = 0;
 let createRequest: Record<string, unknown> | null = null;
 function leaveEditor() {
-	if (memosRef && !memosRef.canLeave()) return false;
+	if (memosMode && memosRef && !memosRef.canLeave()) return false;
 	if (managementRef && !managementRef.canLeave()) return false;
 	managementMode = null;
 	managementRef = undefined;
@@ -111,7 +113,6 @@ function leaveEditor() {
 	editor = null;
 	editorRef = undefined;
 	memosMode = false;
-	memosRef = undefined;
 	editorRequestVersion++;
 	editorBusy = false;
 	return true;
@@ -227,6 +228,19 @@ let blogOrigin = "";
 let missing: string[] = [];
 let booting = true;
 let owner: { id: number; name: string } | null = null;
+$: if (!owner) memosVisited = false;
+$: if (owner && memosMode) memosVisited = true;
+let ownerAvatar = "";
+async function loadOwnerAvatar() {
+ const current = owner;
+ ownerAvatar = "";
+ if (!current) return;
+ try {
+  const result = await request<{avatar: string}>("/api/manage/account");
+  if (owner === current && result.ok) ownerAvatar = result.data.avatar || "";
+ } catch { /* Keep the initials when the profile service is unavailable. */ }
+}
+$: if (!owner) ownerAvatar = "";
 let identity = "";
 let password = "";
 let code = "";
@@ -297,6 +311,7 @@ async function initialize() {
 			const me = await request<{ id: number; name: string }>("/api/me");
 			if (me.ok) {
 				owner = me.data;
+				void loadOwnerAvatar();
 				await load();
 			} else if (me.error.code !== "UNAUTHORIZED")
 				errorText = apiMessage(me.error);
@@ -339,6 +354,7 @@ async function login() {
 			return;
 		}
 		owner = result.data;
+		void loadOwnerAvatar();
 		password = "";
 		code = "";
 		expired = false;
@@ -486,17 +502,19 @@ function changePage(next: number) {
         <button class:active={configurationKind==='gallery'} onclick={() => changeConfiguration('gallery')}><Icon icon="material-symbols:photo-library-outline-rounded" />相册</button>
       </div>
       <div class="nav-group"><span class="nav-label">评论与账号</span>{#each ['comments','users','account'] as item}<button class:active={managementMode===item} onclick={()=>changeManagement(item as 'comments'|'users'|'account')}><Icon icon={item === 'comments' ? 'material-symbols:forum-outline-rounded' : item === 'users' ? 'material-symbols:group-outline-rounded' : 'material-symbols:shield-person-outline-rounded'} />{managementWords[item as 'comments'|'users'|'account']}</button>{/each}</div>
-      </nav><div class="side-bottom"><span class="avatar">{owner.name.slice(0, 1)}</span><div class="account"><strong>{owner.name}</strong><small>站点管理员</small></div><button class="icon-button" title={words.logout} aria-label={words.logout} onclick={() => void logout()}><Icon icon="material-symbols:logout-rounded" /></button></div>
+      </nav><div class="side-bottom"><UserAvatar src={ownerAvatar} name={owner.name}/><div class="account"><strong>{owner.name}</strong><small>站点管理员</small></div><button class="icon-button" title={words.logout} aria-label={words.logout} onclick={() => void logout()}><Icon icon="material-symbols:logout-rounded" /></button></div>
     </aside>
     <main class="content" inert={mobile && drawer}>
       <header class="topbar"><button bind:this={menuButton} class="menu-button" aria-label={words.menu} aria-expanded={drawer} onclick={openDrawer}><Icon icon="material-symbols:menu-rounded" /></button><div class="breadcrumb">{sectionTitle} <span>/</span> <strong>{pageTitle}</strong></div><div class="top-tools"><button class="icon-button" onclick={toggleTheme} aria-label={dark ? '切换浅色模式' : '切换深色模式'} title={dark ? '切换浅色模式' : '切换深色模式'}><Icon icon={dark ? 'material-symbols:light-mode-outline-rounded' : 'material-symbols:dark-mode-outline-rounded'} /></button>{#if blogOrigin}<a class="blog-link" href={blogOrigin} target="_blank" rel="noopener noreferrer">查看博客 <Icon icon="material-symbols:open-in-new-rounded" /></a>{/if}</div></header>
       <div class="page-body">
-       {#if memosMode}
-        <MemosEmbed bind:this={memosRef} onexpired={() => expired = true}/>
-       {:else if dashboardMode}
+       {#if memosVisited}
+        <div hidden={!memosMode} inert={!memosMode}><MemosEmbed bind:this={memosRef} onexpired={() => expired = true}/></div>
+       {/if}
+       {#if !memosMode}
+       {#if dashboardMode}
         {#key dashboardMode}<Dashboard mode={dashboardMode} bind:filters={analyticsFilters} onexpired={()=>expired=true} onnavigate={dashboardNavigate}/>{/key}
        {:else if managementMode}
-        <Management bind:this={managementRef} bind:mode={managementMode} initialStatus={overviewCommentStatus} onexpired={()=>expired=true} onsignout={()=>{owner=null;managementMode=null;managementRef=undefined;}} />
+        <Management {blogOrigin} bind:this={managementRef} bind:mode={managementMode} initialStatus={overviewCommentStatus} onexpired={()=>expired=true} onsignout={()=>{owner=null;managementMode=null;managementRef=undefined;}} />
        {:else if configurationKind}
         {#key configurationKind}<ConfigurationEditor bind:this={configurationRef} kind={configurationKind} onexpired={() => expired=true}/>{/key}
        {:else if mediaLibrary}
@@ -523,6 +541,7 @@ function changePage(next: number) {
         </section>
         {/if}
         {/if}
+       {/if}
       </div>
     </main>
   </div>
