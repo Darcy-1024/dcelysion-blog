@@ -59,6 +59,80 @@ const safeUserMethods = new Set([
 	"UpdateMemoView",
 	"DeleteMemoView",
 ]);
+const profileFields = new Set([
+	"display_name",
+	"email",
+	"avatar_url",
+	"description",
+]);
+const updateUserPath = "/memos.api.v1.UserService/UpdateUser";
+const utf8 = new TextDecoder("utf-8", { fatal: true });
+function protobufFields(
+	bytes: Uint8Array,
+): Array<{ field: number; value: Uint8Array }> {
+	const fields: Array<{ field: number; value: Uint8Array }> = [];
+	let offset = 0;
+	const varint = (): number => {
+		let value = 0;
+		for (let shift = 0; shift <= 28 && offset < bytes.length; shift += 7) {
+			const byte = bytes[offset++];
+			value += (byte & 127) * 2 ** shift;
+			if (!(byte & 128)) return value;
+		}
+		return failure(400, "invalid_argument");
+	};
+	while (offset < bytes.length) {
+		const tag = varint();
+		const field = Math.floor(tag / 8);
+		if (field < 1 || tag % 8 !== 2) return failure(403, "permission_denied");
+		const length = varint();
+		if (length > bytes.length - offset) return failure(400, "invalid_argument");
+		fields.push({ field, value: bytes.subarray(offset, offset + length) });
+		offset += length;
+	}
+	return fields;
+}
+function profileUpdate(body: Buffer, session: BridgeSession): void {
+	if (body.length > 4 * 1024 * 1024) failure(413, "resource_exhausted");
+	try {
+		const request = protobufFields(body);
+		if (
+			request.length !== 2 ||
+			request[0].field !== 1 ||
+			request[1].field !== 2
+		)
+			failure(403, "permission_denied");
+		const user = protobufFields(request[0].value);
+		const seen = new Set<number>();
+		for (const entry of user) {
+			if (seen.has(entry.field) || ![1, 3, 4, 5, 6, 7].includes(entry.field))
+				failure(403, "permission_denied");
+			seen.add(entry.field);
+			if (
+				entry.field === 1 &&
+				utf8.decode(entry.value) !== session.expectedUser
+			)
+				failure(403, "permission_denied");
+			if (entry.field === 3 && utf8.decode(entry.value) !== session.username)
+				failure(403, "permission_denied");
+		}
+		if (!seen.has(1)) failure(403, "permission_denied");
+		const mask = protobufFields(request[1].value);
+		if (!mask.length || mask.length > profileFields.size)
+			failure(403, "permission_denied");
+		const paths = new Set<string>();
+		for (const entry of mask) {
+			if (entry.field !== 1) failure(403, "permission_denied");
+			const path = utf8.decode(entry.value);
+			if (!profileFields.has(path) || paths.has(path))
+				failure(403, "permission_denied");
+			paths.add(path);
+		}
+	} catch (error) {
+		if (error instanceof BridgeError) throw error;
+		failure(400, "invalid_argument");
+	}
+}
 class BridgeError extends Error {
 	constructor(
 		public status: number,
@@ -227,7 +301,8 @@ function permitted(pathname: string, method: string): boolean {
 			pathname,
 		);
 		if (!match) return false;
-		if (match[1] === "User") return safeUserMethods.has(match[2]);
+		if (match[1] === "User")
+			return safeUserMethods.has(match[2]) || pathname === updateUserPath;
 		if (match[1] === "Instance")
 			return [
 				"GetInstanceProfile",
@@ -596,7 +671,22 @@ export class MemosBridge {
 				return failure(403, "permission_denied");
 			const body = ["GET", "HEAD"].includes(method)
 				? undefined
-				: await requestBytes(req, this.maxBody, this.timeout);
+				: await requestBytes(
+						req,
+						url.pathname === updateUserPath
+							? Math.min(this.maxBody, 4 * 1024 * 1024)
+							: this.maxBody,
+						this.timeout,
+					);
+			if (url.pathname === updateUserPath) {
+				if (
+					method !== "POST" ||
+					req.headers["content-type"] !== "application/proto" ||
+					!body
+				)
+					return failure(403, "permission_denied");
+				profileUpdate(body, session);
+			}
 			if (refreshPaths.has(url.pathname) || signoutPaths.has(url.pathname)) {
 				if (method !== "POST" || !body || body.length > 4096)
 					return failure(400, "invalid_argument");

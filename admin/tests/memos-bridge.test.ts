@@ -191,6 +191,80 @@ async function fixture(
 function upstreamCalls(f: Fixture, suffix: string) {
 	return f.calls.filter((call) => call.url.endsWith(suffix));
 }
+function protoField(field: number, value: Uint8Array | string): Buffer {
+	const bytes = Buffer.from(value);
+	const length: number[] = [];
+	let remaining = bytes.length;
+	do {
+		length.push((remaining & 127) | (remaining > 127 ? 128 : 0));
+		remaining = Math.floor(remaining / 128);
+	} while (remaining);
+	return Buffer.concat([Buffer.from([field * 8 + 2, ...length]), bytes]);
+}
+function updateUserBody(
+	name = credentials.expectedUser,
+	mask = ["display_name", "avatar_url"],
+	extraUser: Buffer[] = [],
+	extraRequest: Buffer[] = [],
+): Buffer {
+	const user = Buffer.concat([
+		protoField(1, name),
+		protoField(3, credentials.username),
+		protoField(5, "DcElysion"),
+		protoField(6, "data:image/png;base64,aGVsbG8="),
+		...extraUser,
+	]);
+	return Buffer.concat([
+		protoField(1, user),
+		protoField(2, Buffer.concat(mask.map((field) => protoField(1, field)))),
+		...extraRequest,
+	]);
+}
+
+test("Memos profile edits reach only the fixed author and approved fields", async (t) => {
+	const f = await fixture(t);
+	const cookie = await f.login();
+	const route = "/memos.api.v1.UserService/UpdateUser";
+	const send = (body: Buffer, contentType = "application/proto") =>
+		f.request(route, {
+			method: "POST",
+			headers: { cookie, origin: memosOrigin, "content-type": contentType },
+			body: Uint8Array.from(body),
+		});
+	const profile = updateUserBody();
+	assert.equal((await send(profile)).status, 200);
+	assert.equal(upstreamCalls(f, route).length, 1);
+	assert.deepEqual(
+		Buffer.from(upstreamCalls(f, route)[0].init.body as Uint8Array),
+		profile,
+	);
+	for (const body of [
+		updateUserBody("users/another"),
+		updateUserBody(credentials.expectedUser, ["username"]),
+		updateUserBody(credentials.expectedUser, ["password"]),
+		updateUserBody(
+			credentials.expectedUser,
+			["display_name"],
+			[protoField(8, "new-password")],
+		),
+		updateUserBody(
+			credentials.expectedUser,
+			["display_name"],
+			[protoField(2, "ADMIN")],
+		),
+		updateUserBody(
+			credentials.expectedUser,
+			["display_name"],
+			[],
+			[Buffer.from([24, 1])],
+		),
+		Buffer.from([10, 9, 10]),
+	]) {
+		assert.notEqual((await send(body)).status, 200);
+	}
+	assert.equal((await send(profile, "application/json")).status, 403);
+	assert.equal(upstreamCalls(f, route).length, 1);
+});
 
 async function frontendFixture(t: test.TestContext) {
 	const directory = await fs.mkdtemp(
@@ -511,14 +585,13 @@ test("concurrent business requests cannot pass a pending failed refresh identity
 	assert.equal((await f.request("/", { headers: { cookie } })).status, 401);
 });
 
-test("Memos SignOut revokes the bridge; local signin, PAT/user management and foreign-origin writes stay blocked", async (t) => {
+test("Memos SignOut revokes the bridge; local signin, PAT management and foreign-origin writes stay blocked", async (t) => {
 	const f = await fixture(t);
 	const cookie = await f.login();
 	for (const route of [
 		"/api/v1/auth/signin",
 		"/memos.api.v1.AuthService/SignIn",
 		"/memos.api.v1.UserService/CreatePersonalAccessToken",
-		"/memos.api.v1.UserService/UpdateUser",
 		"/api/v1/users/writer/personalAccessTokens",
 		"/api/v1/users/writer/%70ersonalAccessTokens",
 	]) {

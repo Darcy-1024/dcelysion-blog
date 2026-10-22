@@ -15,8 +15,10 @@
 3. 独立回环网关再次验证后台会话，服务端用独立作者密码调用官方REST SignIn。严格核对Memos `user.name`、username及角色`USER`，错误作者或ADMIN拒绝并清理会话。
 4. Memos refresh cookie仅保留服务端。浏览器得到host-only、HttpOnly、Secure、SameSite=Strict的随机桥cookie；它关联原后台会话，不是后台cookie或固定Memos token。
 5. 原版前端启动所需的Connect RefreshToken按v0.31.0字段返回真实短期accessToken（protobuf unary或JSON），服务器轮换refresh并复核作者。浏览器可能看到**当前会话原生短期accessToken**，原版[auth-state](https://github.com/usememos/memos/blob/v0.31.0/web/src/auth-state.ts)会将其写入localStorage；不能称令牌只在浏览器内存。浏览器不会得到同步PAT、作者密码或固定管理员token。每个后台入口会话使用独立Memos会话。
-6. HTML、静态、REST、`/memos.api.v1.*` Connect、附件、分享和新窗口全部经过网关逐请求 `verify()`。浏览器提交的Bearer/PAT及Memos refresh cookie被剥离，代理使用该后台会话对应的服务器令牌。本地Memos登录、用户/PAT/身份管理等不在写作所需范围的接口被拒绝，不能从UI切换到其他作者或管理员。
+6. HTML、静态、REST、`/memos.api.v1.*` Connect、附件、分享和新窗口全部经过网关逐请求 `verify()`。浏览器提交的Bearer/PAT及Memos refresh cookie被剥离，代理使用该后台会话对应的服务器令牌。除下述固定作者展示资料外，本地Memos登录、用户/PAT/身份管理等不在写作所需范围的接口被拒绝，不能从UI切换到其他作者或管理员。
 7. 后台成功退出/撤销/过期后，新请求即拒绝；Memos自身SignOut也注销桥会话。上游refresh撤销是额外清理，即使清理失败，网关仍拒绝。进程重启不恢复桥内存会话，需要从后台重新进入，原作者数据不删除。
+
+2026-10-23 网关修复：原版 Memos 的“更新个人信息”通过 Connect protobuf `UpdateUser` 提交。网关只接受固定作者的请求，且更新掩码仅允许昵称、邮箱、头像与说明；用户名必须保持桥接配置中的原值，密码、角色、状态及其他账号字段仍拒绝。部署回执需分别核对新 bundle、匿名门禁与本人浏览器保存结果。
 
 原版UI使用 [Connect](https://github.com/usememos/memos/blob/v0.31.0/web/src/connect.ts) 与 [AuthContext](https://github.com/usememos/memos/blob/v0.31.0/web/src/contexts/AuthContext.tsx)，所以实现覆盖Connect而不只代理REST。Memos的[分享ACL](https://github.com/usememos/memos/blob/v0.31.0/server/api/v1/acl_config.go)和[附件分享令牌](https://github.com/usememos/memos/blob/v0.31.0/server/fileserver/fileserver.go)也必须经过外层会话门禁，不能仅依赖实例PRIVATE设置。
 
