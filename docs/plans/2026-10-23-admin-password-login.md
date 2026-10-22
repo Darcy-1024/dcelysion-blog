@@ -20,4 +20,12 @@ Nginx 配置检查通过；源站首页 200、未登录后台及旧管理接口 
 
 先删除上述新增 Bypass 策略以恢复邮箱关卡，再将后台 Tunnel ingress 的 `access.required` 恢复 `true`（保留当前其他 ingress）。如需恢复 Nginx，原文件备份为 `/etc/nginx/sites-available/dcelysion-admin-access.before-password-login-20261022`，恢复后执行 `nginx -t` 并 reload。无需变更账号、密码、数据库或二步验证绑定。
 
-本次未获 Git 提交或推送授权，源码改动保留本地。
+## 2026-10-23 发布回执
+
+用户随后授权推送部署。登录入口配置记录与本轮后台界面更新一起提交为 `c5f5a66864aecf8229e4c83daa0613db87d1a0e6`，已推送到 GitHub `master`。原本地记录中的“未提交、未推送”仅描述此前阶段。
+
+腾讯后台已切换到 `/opt/dcelysion-admin-stage2/releases/20261023-admin-ui`，旧容器 `dc-admin-formal-before-admin-ui-20261023` 停止保留。新服务 bundle SHA-256 为 `2735c3deca8d46ef871d666b1b308986136c6399e8f62b6f50fbc07067d467ca`；运行环境变量和受保护 `runtime.env` 未改。服务器回执确认运行中、旧 Memos 网关与后台匿名接口仍为 401。
+
+公网 `https://admin.dcelysion.cn/` 返回 200，页面引用的新 JS 经缓存绕过请求与发布文件 SHA-256 一致；未登录 `/api/me`、当前配置 API、`/ui/` 和 `/waline-api/user` 均返回 401。Cloudflare 会在公网 HTML 注入统计脚本，因此 HTML 全字节与源站不同；校验使用页面内新 JS 引用和该资源摘要。真实账号登录和登录后界面仍待用户自行验收。
+
+GitHub 的 Build shared public blog、Build and Check、Code quality、Deploy to GitHub Pages 以及 Cloudflare Workers 构建检查均成功；`blog.dcelysion.cn` 与 `blog-eo.dcelysion.cn` 的版本接口在此次提交上返回相同 `sourceRevision` 和 `publicTreeSha256`。OpenAI Sites 未发布。
