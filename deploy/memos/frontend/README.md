@@ -22,6 +22,8 @@ node /path/to/deploy/memos/frontend/build.mjs /absolute/upstream.tar.gz /absolut
 
 新静态资源也先验证原后台会话、等待进行中的凭据刷新；HTML 只在原上游成功返回页面时替换。API、附件和未命中的旧哈希资源仍走原代理。响应保持私有、不可缓存与精确 iframe 来源策略。没有配置该目录时继续提供官方原前端。
 
+清单内非 HTML 静态资源使用独立的 32 个并发名额，其他请求仍限 8 个，避免接口或附件请求占满时连带拒绝样式和脚本。JS/CSS 在启动时预压缩，仅保留比原文更小的 gzip 副本（额外内存不超过原资源总量）；按浏览器编码协商发送，不改变逐请求鉴权与禁止缓存策略。
+
 [update-memos-frontend.py](../update-memos-frontend.py) 分 prepare/activate：先构建后台并核验整份前端清单，再切换到不可变 release。保留旧容器和旧 release，回退只切换后台程序，不还原 Memos/评论数据库。该脚本是本次固定版本的运维入口，不要反复对已完成的目录运行初始化步骤。
 
 实际部署、构建摘要及验收限制见[生产验收记录](../../../docs/plans/2026-10-21-memos-production-acceptance.md)。浏览器实际点击、焦点和保存回读不能由静态构建冒充为已验收。

@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import * as fs from "node:fs/promises";
 import path from "node:path";
+import { gzipSync } from "node:zlib";
 
 const upstreamCommit = "2b2192d4e153bd04f1d325b60fd880cf00d68b01";
 const types: Record<string, string> = {
@@ -23,7 +24,7 @@ const types: Record<string, string> = {
 	".ttf": "font/ttf",
 	".wasm": "application/wasm",
 };
-type Asset = { bytes: Buffer; type: string };
+type Asset = { bytes: Buffer; type: string; gzip?: Buffer };
 
 async function noLinks(filename: string) {
 	let current = path.parse(filename).root;
@@ -98,7 +99,18 @@ export class MemosFrontend {
 				createHash("sha256").update(bytes).digest("hex") !== entry.sha256
 			)
 				throw new Error("Frontend digest mismatch");
-			assets.set(`/${name}`, { bytes, type });
+			// Compress the sealed code once at startup, never on the request path.
+			const compressed = /\.(?:js|css)$/u.test(name)
+				? gzipSync(bytes)
+				: undefined;
+			assets.set(`/${name}`, {
+				bytes,
+				type,
+				gzip:
+					compressed && compressed.length < bytes.length
+						? compressed
+						: undefined,
+			});
 		}
 		if (!assets.has("/index.html")) throw new Error("Frontend index missing");
 		return new MemosFrontend(assets);

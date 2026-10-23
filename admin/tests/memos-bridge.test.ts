@@ -6,6 +6,7 @@ import type { AddressInfo } from "node:net";
 import os from "node:os";
 import path from "node:path";
 import test from "node:test";
+import { gunzipSync } from "node:zlib";
 import { encodeMemosRefresh, MemosBridge } from "../server/memos-bridge.js";
 import { MemosFrontend } from "../server/memos-frontend.js";
 
@@ -38,6 +39,7 @@ async function fixture(
 		redirect: false,
 		responseSize: 0,
 		identityCheck: null as (() => Promise<void>) | null,
+		businessRequest: null as (() => Promise<void>) | null,
 		calls: [] as { url: string; init: RequestInit }[],
 		advance: (ms: number) => {
 			now += ms;
@@ -99,6 +101,7 @@ async function fixture(
 			});
 		}
 		if (url.endsWith("/api/v1/auth/signout")) return Response.json({});
+		await f.businessRequest?.();
 		return new Response(
 			f.responseSize ? "a".repeat(f.responseSize) : "original-memos-response",
 			{
@@ -276,6 +279,7 @@ async function frontendFixture(t: test.TestContext) {
 	for (const [name, body] of [
 		["index.html", "<html>patched-memos</html>"],
 		["assets/emoji.js", "// trusted-emoji-build"],
+		["assets/app.css", ".avatar { width: 32px; height: 32px; }\n".repeat(200)],
 	]) {
 		await fs.writeFile(path.join(directory, name), body);
 		entries.push({
@@ -363,6 +367,72 @@ test("frontend HTML and new assets retain gateway auth, revocation, HEAD and ups
 		401,
 	);
 	assert.equal((await f.request("/", { headers: { cookie } })).status, 401);
+});
+
+test("sealed CSS survives upstream saturation with compressed GET/HEAD and revocation", async (t) => {
+	const source = await frontendFixture(t);
+	const frontend = await MemosFrontend.load(source.directory);
+	const f = await fixture(t, { frontend });
+	const cookie = await f.login();
+	let release!: () => void;
+	let saturated!: () => void;
+	const blocked = new Promise<void>((resolve) => {
+		release = resolve;
+	});
+	const ready = new Promise<void>((resolve) => {
+		saturated = resolve;
+	});
+	let count = 0;
+	f.businessRequest = async () => {
+		if (++count === 8) saturated();
+		await blocked;
+	};
+	const pending = Array.from({ length: 8 }, () =>
+		f.request("/api/v1/memos", { headers: { cookie } }),
+	);
+	try {
+		await ready;
+		assert.equal(
+			(await f.request("/api/v1/memos", { headers: { cookie } })).status,
+			503,
+		);
+		const headers = { cookie, "accept-encoding": "gzip" };
+		const css = await f.request("/assets/app.css", { headers });
+		assert.equal(css.status, 200);
+		assert.equal(css.headers.get("content-encoding"), "gzip");
+		assert.equal(css.headers.get("vary"), "Accept-Encoding");
+		assert.match(css.headers.get("cache-control") || "", /no-store/u);
+		const compressed = Buffer.from(await css.arrayBuffer());
+		assert.deepEqual(
+			gunzipSync(compressed),
+			frontend.asset("/assets/app.css")?.bytes,
+		);
+		assert.equal(Number(css.headers.get("content-length")), compressed.length);
+		const head = await f.request("/assets/app.css", {
+			method: "HEAD",
+			headers,
+		});
+		assert.equal(head.status, 200);
+		assert.equal(head.headers.get("content-encoding"), "gzip");
+		assert.equal(
+			head.headers.get("content-length"),
+			css.headers.get("content-length"),
+		);
+		assert.equal(await head.text(), "");
+		const plain = await f.request("/assets/app.css", {
+			headers: { cookie, "accept-encoding": "gzip;q=0" },
+		});
+		assert.equal(plain.headers.get("content-encoding"), null);
+		assert.equal(
+			await plain.text(),
+			frontend.asset("/assets/app.css")?.bytes.toString(),
+		);
+		f.valid = false;
+		assert.equal((await f.request("/assets/app.css", { headers })).status, 401);
+	} finally {
+		release();
+		await Promise.all(pending);
+	}
 });
 
 test("Memos bridge refuses unauthenticated HTML, Connect, REST, attachment and share requests despite supplied tokens", async (t) => {

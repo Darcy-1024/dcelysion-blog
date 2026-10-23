@@ -349,6 +349,7 @@ export class MemosBridge {
 	private upstream: string;
 	private memosHost: string;
 	private active = 0;
+	private activeFrontend = 0;
 	private closed = false;
 	private maxBody: number;
 	private maxResponse: number;
@@ -590,12 +591,8 @@ export class MemosBridge {
 	}
 	async handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
 		this.headers(res);
-		if (this.closed || this.active >= 8) {
-			res.writeHead(503, { "content-type": "application/json" });
-			res.end('{"code":"unavailable"}');
-			return;
-		}
-		this.active++;
+		let frontendRequest = false;
+		let admitted = false;
 		try {
 			if (
 				req.headers.host !== this.memosHost ||
@@ -613,6 +610,21 @@ export class MemosBridge {
 			const pathname = decodeURIComponent(url.pathname);
 			if (pathname.includes("%")) return failure(400, "invalid_argument");
 			const method = req.method || "GET";
+			// Only exact sealed assets get their own capacity. Attachments and
+			// unknown paths retain the bounded upstream pool and all auth checks.
+			const localAsset = ["GET", "HEAD"].includes(method)
+				? this.options.frontend?.asset(pathname)
+				: undefined;
+			frontendRequest =
+				!!localAsset && !localAsset.type.startsWith("text/html");
+			if (
+				this.closed ||
+				(frontendRequest ? this.activeFrontend >= 32 : this.active >= 8)
+			)
+				return failure(503, "unavailable");
+			if (frontendRequest) this.activeFrontend++;
+			else this.active++;
+			admitted = true;
 			if (url.pathname === "/_bridge/entry") {
 				if (
 					method !== "POST" ||
@@ -731,8 +743,25 @@ export class MemosBridge {
 				: undefined;
 			if (frontendAsset) {
 				res.setHeader("content-type", frontendAsset.type);
+				let bytes = frontendAsset.bytes;
+				if (frontendAsset.gzip) {
+					res.setHeader("vary", "Accept-Encoding");
+					const acceptsGzip = (req.headers["accept-encoding"] || "")
+						.split(",")
+						.some(
+							(part) =>
+								/^gzip(?:\s*;\s*q=(?:1(?:\.0{0,3})?|0\.\d{1,3}))?$/iu.test(
+									part.trim(),
+								) && !/;\s*q=0(?:\.0*)?$/iu.test(part.trim()),
+						);
+					if (acceptsGzip) {
+						bytes = frontendAsset.gzip;
+						res.setHeader("content-encoding", "gzip");
+					}
+				}
+				res.setHeader("content-length", bytes.length);
 				res.writeHead(200);
-				res.end(method === "HEAD" ? undefined : frontendAsset.bytes);
+				res.end(method === "HEAD" ? undefined : bytes);
 				return;
 			}
 			const headers = new Headers();
@@ -803,7 +832,10 @@ export class MemosBridge {
 				);
 			} else res.destroy();
 		} finally {
-			this.active--;
+			if (admitted) {
+				if (frontendRequest) this.activeFrontend--;
+				else this.active--;
+			}
 		}
 	}
 	async close(): Promise<void> {
