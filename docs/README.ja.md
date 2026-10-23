@@ -281,7 +281,7 @@ Astro がデフォルトで対応している[GitHub Flavored Markdown](https://
 
 デフォルトのフォント設定には、Xiaomi の [MiSans](https://hyperos.mi.com/font/faq) を使用しています。
 
-記事詳細ページのタイトル、本文内の見出し、「About」ページの見出しには、SIL OFL 1.1 の [霞鶩文楷](https://github.com/lxgw/LxgwWenKai/releases/tag/v1.522) Regular（400）を使用し、ビルド時に WOFF2 サブセットを生成します。`fontConfig.articleTitleFont` と `articleTitleWeight` で変更できます。 記事ページと「About」ページのバナーは Medium（500）を使用し、`articleBannerTitleWeight` で個別に設定します。
+記事詳細ページのタイトル、本文内の見出し、「About」ページの見出しには、SIL OFL 1.1 の [霞鶩文楷](https://github.com/lxgw/LxgwWenKai/releases/tag/v1.530) Regular（400）を使用し、ビルド時に WOFF2 サブセットを生成します。`fontConfig.articleTitleFont` と `articleTitleWeight` で変更できます。 記事ページと「About」ページのバナーは Medium（500）を使用し、`articleBannerTitleWeight` で個別に設定します。
 
 ### 技術スタック
 

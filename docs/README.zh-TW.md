@@ -283,7 +283,7 @@ location: China # 位置
 
 預設字型配置使用小米推出的 [MiSans](https://hyperos.mi.com/font/faq) 字型
 
-文章詳情頁的大標題、正文各級標題及關於頁標題使用 [霞鶩文楷](https://github.com/lxgw/LxgwWenKai/releases/tag/v1.522) Regular（400），以 SIL OFL 1.1 授權；本機建置產生 WOFF2 子集。可透過 `fontConfig.articleTitleFont` 和 `articleTitleWeight` 調整。 文章和關於頁橫幅共同使用 Medium（500），由 `articleBannerTitleWeight` 控制。
+文章詳情頁的大標題、正文各級標題及關於頁標題使用 [霞鶩文楷](https://github.com/lxgw/LxgwWenKai/releases/tag/v1.530) Regular（400），以 SIL OFL 1.1 授權；本機建置產生 WOFF2 子集。可透過 `fontConfig.articleTitleFont` 和 `articleTitleWeight` 調整。 文章和關於頁橫幅共同使用 Medium（500），由 `articleBannerTitleWeight` 控制。
 
 ### 技術棧
 

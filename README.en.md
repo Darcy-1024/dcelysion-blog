@@ -283,7 +283,7 @@ The copyright of Firefly-related image assets belongs to [miHoYo](https://www.mi
 
 The default font configuration uses Xiaomi's [MiSans](https://hyperos.mi.com/font/faq) typeface.
 
-Article detail titles, in-article headings, and About page headings use [LXGW WenKai](https://github.com/lxgw/LxgwWenKai/releases/tag/v1.522) Regular (400), licensed under SIL OFL 1.1 and subset to WOFF2 during the build. Configure them with `fontConfig.articleTitleFont` and `articleTitleWeight`. The reading-page and About banners use Medium (500), controlled separately by `articleBannerTitleWeight`.
+Article detail titles, in-article headings, and About page headings use [LXGW WenKai](https://github.com/lxgw/LxgwWenKai/releases/tag/v1.530) Regular (400), licensed under SIL OFL 1.1 and subset to WOFF2 during the build. Configure them with `fontConfig.articleTitleFont` and `articleTitleWeight`. The reading-page and About banners use Medium (500), controlled separately by `articleBannerTitleWeight`.
 
 ### Tech Stack
 
