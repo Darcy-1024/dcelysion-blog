@@ -278,7 +278,7 @@ function createItem(entry: DynamicEntry) {
 			if (
 				!(target instanceof Element) ||
 				target.closest(
-					'a, button, input, textarea, select, label, summary, [role="button"], [role="link"], [contenteditable]:not([contenteditable="false"]), audio, video, iframe, dynamic-gallery, dynamic-inline-comments, content-like',
+					'a, button, input, textarea, select, label, summary, [role="button"], [role="link"], [contenteditable]:not([contenteditable="false"]), audio, video, iframe, [data-gallery-viewer], dynamic-inline-comments, content-like',
 				)
 			)
 				return;
