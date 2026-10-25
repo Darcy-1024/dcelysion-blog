@@ -551,4 +551,13 @@ export const zh_TW: Translation = {
 	[Key.exitImmersiveReading]: "退出沉浸閱讀",
 	[Key.tocExpand]: "展開目錄",
 	[Key.tocCollapse]: "摺疊目錄",
+	[Key.dynamicScanToRead]: "扫码查看动态",
+	[Key.shareDynamic]: "分享",
+	[Key.shareSystem]: "系统分享",
+	[Key.shareClose]: "关闭",
+	[Key.shareRetry]: "重新生成海报",
+	[Key.shareCopyFailed]: "复制失败，请手动复制上方链接。",
+	[Key.shareSystemFailed]: "系统分享失败，可复制链接或保存海报。",
+	[Key.sharePosterFailed]: "海报生成失败，请重试；仍可复制链接。",
+	[Key.dynamicLinkMissing]: "这条动态不存在或已不再公开。",
 };

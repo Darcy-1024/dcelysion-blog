@@ -1,8 +1,12 @@
 <script lang="ts">
 import { onMount, tick } from "svelte";
 import ClientPagination from "@/components/common/ClientPagination.svelte";
+import { profileConfig, siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
 import type { DynamicEntry, DynamicImage } from "@/types/dynamic";
 import { formatTimezoneOffset } from "@/utils/date-utils";
+import { dynamicPermalink, findDynamicTarget } from "@/utils/dynamic-share";
 import { assignMedia, backupMedia, mediaRouter } from "@/utils/media-client";
 import { fetchMemos } from "@/utils/memos-adapter";
 import { registerDynamicGallery } from "./dynamic-gallery";
@@ -49,6 +53,86 @@ let template: HTMLTemplateElement | null = null;
 let searchInput: HTMLInputElement | null = null;
 let yearSelect: HTMLSelectElement | null = null;
 let restoreAnchorAfterRender = false;
+let targetMissing = $state(false);
+let selected = $state<{
+	entry: DynamicEntry;
+	description: string;
+	image: string | null;
+	avatar: string | null;
+} | null>(null);
+let SharePoster = $state<
+	typeof import("@/components/misc/SharePoster.svelte").default | null
+>(null);
+let alive = true;
+let shareRequest = 0;
+let shareError = $state("");
+
+async function shareEntry(entry: DynamicEntry, root: HTMLElement) {
+	const request = ++shareRequest;
+	const content = root.querySelector<HTMLElement>("[data-dynamic-content]");
+	const text = document.createElement("div");
+	text.innerHTML = entry.html;
+	text.querySelectorAll("script,style").forEach((node) => {
+		node.remove();
+	});
+	text.querySelectorAll("br,p,div,li,blockquote").forEach((node) => {
+		node.append("\n");
+	});
+	const description = (text.textContent || "").trim().slice(0, 2000);
+	const firstImage =
+		root.querySelector<HTMLImageElement>(
+			"dynamic-gallery img[data-original-src], dynamic-gallery img",
+		) || content?.querySelector<HTMLImageElement>("img");
+	const image =
+		firstImage?.dataset.originalSrc ||
+		firstImage?.currentSrc ||
+		firstImage?.src ||
+		entry.images[0]?.src ||
+		null;
+	const avatar = root.querySelector<HTMLImageElement>(".page-avatar img");
+	try {
+		const module = await import("@/components/misc/SharePoster.svelte");
+		if (!alive || request !== shareRequest) return;
+		selected = null;
+		await tick();
+		if (!alive || request !== shareRequest) return;
+		SharePoster = module.default;
+		selected = {
+			entry,
+			description,
+			image,
+			avatar: avatar?.currentSrc || avatar?.src || null,
+		};
+		shareError = "";
+	} catch (error) {
+		console.error("Failed to load sharing", error);
+		shareError = i18n(I18nKey.sharePosterFailed);
+	}
+}
+
+function locateSharedEntry() {
+	const target = findDynamicTarget(entries, new URL(window.location.href));
+	targetMissing = target === -1;
+	if (target === null || target < 0) return;
+	const entry = entries[target];
+	if (entry.detailUrl) {
+		const destination = dynamicPermalink(
+			window.location.href,
+			entry.id,
+			entry.detailUrl,
+		);
+		if (new URL(destination).pathname !== window.location.pathname) {
+			window.location.replace(destination);
+			return;
+		}
+	}
+	if (searchInput) searchInput.value = "";
+	if (yearSelect) yearSelect.value = "all";
+	filtered = [...entries];
+	currentPage = Math.floor(target / itemsPerPage) + 1;
+	restoreAnchorAfterRender = true;
+	updateUrl();
+}
 
 const pageEntries = $derived(
 	filtered.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage),
@@ -65,7 +149,11 @@ function updateUrl(clearHash = false) {
 	const current = new URL(window.location.href);
 	if (currentPage > 1) current.searchParams.set("page", String(currentPage));
 	else current.searchParams.delete("page");
-	if (clearHash) current.hash = "";
+	if (clearHash) {
+		current.hash = "";
+		current.searchParams.delete("entry");
+		targetMissing = false;
+	}
 	history.replaceState(history.state, "", current);
 }
 
@@ -165,11 +253,46 @@ function createItem(entry: DynamicEntry) {
 	const fragment = template.content.cloneNode(true) as DocumentFragment;
 	const root = fragment.querySelector<HTMLElement>("[data-dynamic-entry]");
 	if (!root) return null;
-	const anchorId = `dynamic-${entry.id.replace(/[^a-zA-Z0-9_-]/g, "-")}`;
-	const permalinkUrl = new URL(window.location.href);
-	permalinkUrl.hash = anchorId;
-	const permalink = `${permalinkUrl.pathname}${permalinkUrl.search}${permalinkUrl.hash}`;
+	const anchorId = `dynamic-${encodeURIComponent(entry.id)}`;
+	const permalink = dynamicPermalink(
+		window.location.href,
+		entry.id,
+		entry.detailUrl,
+	);
 	root.id = anchorId;
+	root.dataset.entryId = entry.id;
+	if (entry.detailUrl) {
+		root.dataset.clickable = "true";
+		root.addEventListener("click", (event) => {
+			if (
+				event.defaultPrevented ||
+				event.button !== 0 ||
+				event.metaKey ||
+				event.ctrlKey ||
+				event.shiftKey ||
+				event.altKey ||
+				window.getSelection()?.toString().trim()
+			)
+				return;
+			const target = event.target;
+			if (
+				!(target instanceof Element) ||
+				target.closest(
+					'a, button, input, textarea, select, label, summary, [role="button"], [role="link"], [contenteditable]:not([contenteditable="false"]), audio, video, iframe, dynamic-gallery, dynamic-inline-comments, content-like',
+				)
+			)
+				return;
+			// Follow the existing link so Swup keeps handling page navigation.
+			root
+				.querySelector<HTMLAnchorElement>("[data-dynamic-permalink]")
+				?.click();
+		});
+	}
+	root
+		.querySelector<HTMLButtonElement>("[data-dynamic-share]")
+		?.addEventListener("click", () => {
+			void shareEntry(entry, root);
+		});
 	root.dataset.year = String(new Date(entry.published).getUTCFullYear());
 
 	const author = root.querySelector<HTMLElement>("[data-dynamic-author]");
@@ -181,6 +304,7 @@ function createItem(entry: DynamicEntry) {
 		.querySelectorAll<HTMLAnchorElement>("[data-dynamic-permalink]")
 		.forEach((link) => {
 			link.href = permalink;
+			if (entry.detailUrl) return;
 			link.dataset.noSwup = "";
 			link.addEventListener("click", (event) => {
 				if (
@@ -293,9 +417,11 @@ async function renderItems(items: DynamicEntry[]) {
 	);
 	if (restoreAnchorAfterRender) {
 		restoreAnchorAfterRender = false;
-		const target = document.getElementById(
-			decodeURIComponent(window.location.hash.slice(1)),
-		);
+		const index = findDynamicTarget(entries, new URL(window.location.href));
+		const id = index !== null && index >= 0 ? entries[index].id : null;
+		const target = Array.from(
+			list.querySelectorAll<HTMLElement>("[data-entry-id]"),
+		).find((node) => node.dataset.entryId === id);
 		target?.scrollIntoView({ behavior: "auto", block: "start" });
 	}
 }
@@ -329,6 +455,11 @@ onMount(() => {
 	searchInput?.addEventListener("input", filter);
 	yearSelect?.addEventListener("change", filter);
 
+	const locationChange = () => {
+		if (!loading) locateSharedEntry();
+	};
+	window.addEventListener("popstate", locationChange);
+	window.addEventListener("hashchange", locationChange);
 	const load = async () => {
 		try {
 			if (memos?.enable) {
@@ -338,24 +469,14 @@ onMount(() => {
 				if (!response.ok) throw new Error(`HTTP ${response.status}`);
 				entries = (await response.json()) as DynamicEntry[];
 			}
+			if (!alive) return;
 			// 更新页面计数
 			const countEl = document.querySelector("[data-dynamic-page-count]");
 			if (countEl) countEl.textContent = String(entries.length);
 			populateYears();
 			currentPage = pageFromUrl();
 			applyFilters(false);
-			const anchorId = decodeURIComponent(window.location.hash.slice(1));
-			if (anchorId) {
-				const anchorIndex = filtered.findIndex(
-					(entry) =>
-						`dynamic-${entry.id.replace(/[^a-zA-Z0-9_-]/g, "-")}` === anchorId,
-				);
-				if (anchorIndex >= 0) {
-					currentPage = Math.floor(anchorIndex / itemsPerPage) + 1;
-					updateUrl();
-					restoreAnchorAfterRender = true;
-				}
-			}
+			if (alive) locateSharedEntry();
 		} catch (error) {
 			console.error("Failed to load dynamics", error);
 			failed = true;
@@ -366,6 +487,10 @@ onMount(() => {
 	void load();
 
 	return () => {
+		alive = false;
+		shareRequest++;
+		window.removeEventListener("popstate", locationChange);
+		window.removeEventListener("hashchange", locationChange);
 		searchInput?.removeEventListener("input", filter);
 		yearSelect?.removeEventListener("change", filter);
 	};
@@ -387,6 +512,13 @@ onMount(() => {
 	</div>
 {/if}
 
+{#if targetMissing}<p class="page-no-results card-base" role="status">{i18n(I18nKey.dynamicLinkMissing)}</p>{/if}
+{#if shareError}<p role="status">{shareError}</p>{/if}
+{#if SharePoster && selected}
+ {#key selected}
+  <SharePoster title="" author={profileConfig.name} description={selected.description} pubDate={new Date(selected.entry.published).toISOString()} coverImage={selected.image} avatar={selected.avatar} url={dynamicPermalink(window.location.href, selected.entry.id, selected.entry.detailUrl)} siteTitle={siteConfig.title} autoOpen hideTrigger dynamicMode dateUTC={!source.startsWith("http") && !memos?.enable} onclose={() => { selected = null; }} />
+ {/key}
+{/if}
 <div class="page-feed" bind:this={list}></div>
 
 {#if !loading && !failed}

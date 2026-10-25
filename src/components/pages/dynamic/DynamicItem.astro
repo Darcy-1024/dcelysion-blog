@@ -2,19 +2,21 @@
 import { type CollectionEntry, render } from "astro:content";
 import { Icon } from "astro-icon/components";
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
+import LikeButton from "@/components/common/LikeButton.astro";
 import DynamicGallery from "@/components/pages/dynamic/DynamicGallery.astro";
 import DynamicInlineComments from "@/components/pages/dynamic/DynamicInlineComments.astro";
 import { dynamicConfig, profileConfig, siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import { formatDynamicDate, formatTimezoneOffset } from "@/utils/date-utils";
-import { dynamicAnchor } from "@/utils/dynamic-utils";
 import { url } from "@/utils/url-utils";
+import DynamicShareButton from "./DynamicShareButton.svelte";
 
 interface Props {
 	entry: CollectionEntry<"dynamic">;
 	detailUrl?: string;
 	showInlineComments?: boolean;
+	defaultOpenComments?: boolean;
 	commentPath?: string;
 }
 
@@ -22,10 +24,11 @@ const {
 	entry,
 	detailUrl,
 	showInlineComments = false,
+	defaultOpenComments = false,
 	commentPath,
 } = Astro.props;
 const { Content } = await render(entry);
-const anchorId = dynamicAnchor(entry.id);
+const anchorId = `dynamic-${encodeURIComponent(entry.id)}`;
 const published = formatDynamicDate(entry.data.published);
 const timezone = formatTimezoneOffset(
 	siteConfig.timezone || "UTC",
@@ -89,14 +92,25 @@ const profileUrl = url(dynamicConfig.profileUrl || "/about/");
 			</a>
 		</header>
 
-		<div id={`${anchorId}-content`} class="page-content custom-md">
+		<div id={`${anchorId}-content`} class="page-content custom-md" data-dynamic-content>
 			<Content />
 		</div>
 		<DynamicGallery sourceId={`${anchorId}-content`} />
+		<div class="dynamic-actions">
+			<LikeButton path={(commentPath || `/dynamic/${entry.id}/`).replace(/\/$/, "")} />
+			<DynamicShareButton client:load author={profileConfig.name} pubDate={entry.data.published.toISOString()} url={new URL(permalink, Astro.url).href} siteTitle={siteConfig.title} entryId={anchorId} />
+		</div>
 		{showInlineComments && commentPath && (
 			<DynamicInlineComments
+				defaultOpen={defaultOpenComments}
 				src={`/dynamic/comments/?path=${encodeURIComponent(commentPath)}`}
 			/>
 		)}
 	</article>
 </dynamic-entry>
+<script>
+	import { registerDynamicGallery } from "./dynamic-gallery";
+	import { registerDynamicInlineComments } from "./dynamic-inline-comments";
+	registerDynamicGallery();
+	registerDynamicInlineComments();
+</script>

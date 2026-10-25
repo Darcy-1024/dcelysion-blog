@@ -565,4 +565,14 @@ export const ru: Translation = {
 	[Key.exitImmersiveReading]: "Выйти из режима чтения",
 	[Key.tocExpand]: "Развернуть оглавление",
 	[Key.tocCollapse]: "Свернуть оглавление",
+	[Key.dynamicScanToRead]: "Scan to view update",
+	[Key.shareDynamic]: "Share",
+	[Key.shareSystem]: "Share via device",
+	[Key.shareClose]: "Close",
+	[Key.shareRetry]: "Retry poster",
+	[Key.shareCopyFailed]: "Copy failed. Please copy the link above manually.",
+	[Key.shareSystemFailed]:
+		"Sharing failed. Copy the link or save the poster instead.",
+	[Key.sharePosterFailed]: "Poster generation failed. Retry or copy the link.",
+	[Key.dynamicLinkMissing]: "This update is unavailable or no longer public.",
 };

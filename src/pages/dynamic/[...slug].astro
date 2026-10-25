@@ -1,0 +1,65 @@
+---
+import { type CollectionEntry, getCollection } from "astro:content";
+import type { ImageMetadata } from "astro";
+import DynamicItem from "@/components/pages/dynamic/DynamicItem.astro";
+import { commentConfig, dynamicConfig, siteConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { dynamicDetailPath } from "@/utils/dynamic-share";
+import { dynamicPlainText, dynamicSlug } from "@/utils/dynamic-utils";
+import { url } from "@/utils/url-utils";
+import "@/styles/pages/common.css";
+import "@/styles/pages/dynamic.css";
+
+export async function getStaticPaths() {
+	if (!siteConfig.pages.dynamic) return [];
+	// Detail pages are public artifacts, including during local development.
+	const entries = await getCollection("dynamic", ({ data }) => !data.draft);
+	return entries.map((entry) => {
+		const slug = dynamicSlug(entry.id);
+		if (slug === "comments")
+			throw new Error("The dynamic ID 'comments' is reserved.");
+		return { params: { slug }, props: { entry } };
+	});
+}
+
+interface Props {
+	entry: CollectionEntry<"dynamic">;
+}
+const { entry } = Astro.props;
+const id = dynamicSlug(entry.id);
+const detailUrl = url(dynamicDetailPath(id));
+const summary = dynamicPlainText(entry);
+const description = summary.slice(0, 180) || i18n(I18nKey.dynamicDescription);
+const date = entry.data.published.toISOString().slice(0, 10);
+const title = summary.slice(0, 48) || `${i18n(I18nKey.dynamic)} · ${date}`;
+const images = import.meta.glob<ImageMetadata>(
+	"/src/content/dynamic/images/**/*.{png,jpg,jpeg,webp,avif,gif,svg}",
+	{ eager: true, import: "default" },
+);
+const firstImage =
+	/!\[[^\]]*\]\((\S+?)(?:\s+["'][^"']*["'])?\)/.exec(entry.body || "")?.[1] ||
+	/<img\b[^>]*\bsrc=["']([^"']+)["']/i.exec(entry.body || "")?.[1];
+const imageMetadata = firstImage?.startsWith("./images/")
+	? images[`/src/content/dynamic/${firstImage.slice(2)}`]
+	: undefined;
+const imageSrc =
+	imageMetadata?.src ||
+	(firstImage && !firstImage.startsWith("./") ? firstImage : undefined);
+const coverImage = imageSrc
+	? new URL(imageSrc, siteConfig.site_url).href
+	: undefined;
+const showInlineComments = Boolean(
+	dynamicConfig.showComment !== false &&
+		commentConfig.type &&
+		commentConfig.type !== "none",
+);
+---
+
+<MainGridLayout {title} {description} postCoverImage={coverImage} ogImageWidth={imageMetadata?.width} ogImageHeight={imageMetadata?.height} ogImageAlt={description}>
+	<section class="page-shell" aria-label={i18n(I18nKey.dynamic)}>
+		<a href={url("/dynamic/")} class="btn-regular rounded-lg px-4 py-3 inline-flex mb-4">{i18n(I18nKey.dynamicBackToList)}</a>
+		<DynamicItem {entry} {showInlineComments} defaultOpenComments detailUrl={detailUrl} commentPath={`/dynamic/${id}/`} />
+	</section>
+</MainGridLayout>

@@ -57,7 +57,13 @@ const profileUrl = url(dynamicConfig.profileUrl || "/about/");
 
 			<div class="page-content custom-md" data-dynamic-content></div>
 			<DynamicGallery sourceId="dynamic-template-content" />
-			<LikeButton path="" />
+			<div class="dynamic-actions">
+				<LikeButton path="" />
+				<button type="button" class="dynamic-share-button" data-dynamic-share>
+					<Icon name="material-symbols:share" />
+					<span>{i18n(I18nKey.shareDynamic)}</span>
+				</button>
+			</div>
 			<DynamicInlineComments src="" />
 		</article>
 	</dynamic-entry>

@@ -8,7 +8,12 @@ import { url as withBase } from "@/utils/url-utils";
 import I18nKey from "../../i18n/i18nKey";
 import { i18n } from "../../i18n/translation";
 
-export let title: string;
+export let title = "";
+export let autoOpen = false;
+export let hideTrigger = false;
+export let dynamicMode = false;
+export let dateUTC = false;
+export let onclose: (() => void) | undefined = undefined;
 export let author: string;
 export let description = "";
 export let pubDate: string;
@@ -22,10 +27,20 @@ export let avatarSelector: string | null = null;
 let showModal = false;
 let posterImage: string | null = null;
 let generating = false;
+let feedback = "";
+let canShare = false;
+let disposed = false;
+let copyTimer: ReturnType<typeof setTimeout> | undefined;
 let themeColor = "#558e88"; // Default blue
 const headerTextColor = "#1f2937"; // 站点名称与 Logo 颜色
 
 onMount(() => {
+	canShare = typeof navigator.share === "function";
+	if (autoOpen) void generatePoster();
+	const handleEscape = (event: KeyboardEvent) => {
+		if (event.key === "Escape" && showModal) closeModal();
+	};
+	window.addEventListener("keydown", handleEscape);
 	// Get theme color from CSS variable
 	const temp = document.createElement("div");
 	temp.style.color = "var(--primary)";
@@ -37,29 +52,39 @@ onMount(() => {
 	if (computedColor) {
 		themeColor = computedColor;
 	}
+	return () => {
+		disposed = true;
+		clearTimeout(copyTimer);
+		window.removeEventListener("keydown", handleEscape);
+	};
 });
 
 function loadImage(src: string): Promise<HTMLImageElement | null> {
 	return new Promise((resolve) => {
+		const timeout = setTimeout(() => resolve(null), 15000);
+		const finish = (image: HTMLImageElement | null) => {
+			clearTimeout(timeout);
+			resolve(image);
+		};
 		const img = new Image();
 		img.crossOrigin = "anonymous";
-		img.onload = () => resolve(img);
+		img.onload = () => finish(img);
 		img.onerror = () => {
 			if (managedMedia(img)) {
-				resolve(null);
+				finish(null);
 				return;
 			}
 			if (!src.includes("images.weserv.nl")) {
 				const proxyUrl = `https://images.weserv.nl/?url=${encodeURIComponent(src)}&output=png`;
 				const proxyImg = new Image();
 				proxyImg.crossOrigin = "anonymous";
-				proxyImg.onload = () => resolve(proxyImg);
+				proxyImg.onload = () => finish(proxyImg);
 				proxyImg.onerror = () => {
-					resolve(null);
+					finish(null);
 				};
 				proxyImg.src = proxyUrl;
 			} else {
-				resolve(null);
+				finish(null);
 			}
 		};
 		assignMedia(img, src);
@@ -149,12 +174,17 @@ function getLines(
 	text: string,
 	maxWidth: number,
 ): string[] {
-	const chars = text.split("");
+	const chars = Array.from(text);
 	const lines: string[] = [];
 	let currentLine = "";
 
 	for (let i = 0; i < chars.length; i++) {
 		const char = chars[i];
+		if (char === "\n") {
+			lines.push(currentLine);
+			currentLine = "";
+			continue;
+		}
 		const width = ctx.measureText(currentLine + char).width;
 		if (width < maxWidth) {
 			currentLine += char;
@@ -213,7 +243,8 @@ function drawRoundedRect(
 
 async function generatePoster() {
 	showModal = true;
-	if (posterImage) return;
+	if (posterImage || generating) return;
+	feedback = "";
 
 	generating = true;
 	try {
@@ -269,17 +300,21 @@ async function generatePoster() {
 
 		// Title
 		ctx.font = posterFont(24, 700);
-		const titleLines = getLines(ctx, title, contentWidth);
+		const titleLines = dynamicMode ? [] : getLines(ctx, title, contentWidth);
 		const titleLineHeight = 30 * scale;
 		const titleHeight = titleLines.length * titleLineHeight;
 		currentY += titleHeight;
-		currentY += 16 * scale; // Gap
+		currentY += (dynamicMode ? 0 : 16) * scale; // Gap
 
 		// Description
 		let descHeight = 0;
 		if (description) {
 			ctx.font = posterFont(14);
-			const descLines = getLines(ctx, description, contentWidth - 16 * scale); // minus border width and gap
+			const descLines = getLines(
+				ctx,
+				description.slice(0, 2000),
+				contentWidth - 16 * scale,
+			); // minus border width and gap
 			// Limit to 6 lines
 			const maxDescLines = 6;
 			const displayDescLines = descLines.slice(0, maxDescLines);
@@ -333,9 +368,13 @@ async function generatePoster() {
 			const d = new Date(pubDate);
 			if (!Number.isNaN(d.getTime())) {
 				dateObj = {
-					day: d.getDate().toString().padStart(2, "0"),
-					month: (d.getMonth() + 1).toString().padStart(2, "0"),
-					year: d.getFullYear().toString(),
+					day: (dateUTC ? d.getUTCDate() : d.getDate())
+						.toString()
+						.padStart(2, "0"),
+					month: ((dateUTC ? d.getUTCMonth() : d.getMonth()) + 1)
+						.toString()
+						.padStart(2, "0"),
+					year: (dateUTC ? d.getUTCFullYear() : d.getFullYear()).toString(),
 				};
 			}
 		} catch (e) {}
@@ -449,7 +488,7 @@ async function generatePoster() {
 			ctx.fillText(line, padding, drawY);
 			drawY += titleLineHeight;
 		});
-		drawY += 16 * scale - (titleLineHeight - 24 * scale); // Adjust for line-height diff
+		drawY += dynamicMode ? 0 : 16 * scale - (titleLineHeight - 24 * scale); // Adjust for line-height diff
 
 		// Draw Description
 		if (description) {
@@ -469,11 +508,19 @@ async function generatePoster() {
 
 			ctx.font = posterFont(14);
 			ctx.fillStyle = "#4b5563";
-			const descLines = getLines(ctx, description, contentWidth - 16 * scale);
+			const descLines = getLines(
+				ctx,
+				description.slice(0, 2000),
+				contentWidth - 16 * scale,
+			);
 			const maxDescLines = 6;
 
-			descLines.slice(0, maxDescLines).forEach((line) => {
-				ctx.fillText(line, padding + 16 * scale, drawY);
+			descLines.slice(0, maxDescLines).forEach((line, index) => {
+				const displayLine =
+					index === maxDescLines - 1 && descLines.length > maxDescLines
+						? fitText(ctx, `${line}…`, contentWidth - 16 * scale)
+						: line;
+				ctx.fillText(displayLine, padding + 16 * scale, drawY);
 				drawY += 25 * scale; // line height
 			});
 			// drawY += 24 * scale; // Removed to reduce whitespace
@@ -581,16 +628,22 @@ async function generatePoster() {
 		ctx.fillStyle = "#9ca3af";
 		ctx.font = posterFont(10);
 		ctx.fillText(
-			fitText(ctx, i18n(I18nKey.scanToRead), qrSize),
+			fitText(
+				ctx,
+				i18n(dynamicMode ? I18nKey.dynamicScanToRead : I18nKey.scanToRead),
+				qrSize,
+			),
 			qrX + qrSize / 2,
 			footerY + qrSize + 6 * scale,
 		);
 
 		// Finalize
+		if (disposed) return;
 		posterImage = canvas.toDataURL("image/png");
 		generating = false;
 	} catch (error) {
 		console.error("Failed to generate poster:", error);
+		feedback = i18n(I18nKey.sharePosterFailed);
 		generating = false;
 	}
 }
@@ -599,28 +652,76 @@ function downloadPoster() {
 	if (posterImage) {
 		const a = document.createElement("a");
 		a.href = posterImage;
-		a.download = `poster-${title.replace(/\s+/g, "-")}.png`;
+		a.download = `poster-${(title || "dynamic").replace(/[^\p{L}\p{N}_-]+/gu, "-").slice(0, 80)}.png`;
 		a.click();
 	}
 }
 
 function closeModal() {
 	showModal = false;
+	onclose?.();
 }
 
 let copied = false;
-function copyLink() {
-	navigator.clipboard.writeText(url);
-	copied = true;
-	setTimeout(() => {
-		copied = false;
-	}, 2000);
+async function copyLink() {
+	try {
+		await navigator.clipboard.writeText(url);
+		copied = true;
+		feedback = "";
+		clearTimeout(copyTimer);
+		copyTimer = setTimeout(() => {
+			copied = false;
+		}, 2000);
+	} catch {
+		feedback = i18n(I18nKey.shareCopyFailed);
+	}
+}
+async function systemShare() {
+	if (!canShare) return;
+	try {
+		await navigator.share({
+			title: title || siteTitle,
+			text: description.slice(0, 280),
+			url,
+		});
+	} catch (error) {
+		if (!(error instanceof Error && error.name === "AbortError"))
+			feedback = i18n(I18nKey.shareSystemFailed);
+	}
 }
 
 function portal(node: HTMLElement) {
+	const previous =
+		document.activeElement instanceof HTMLElement
+			? document.activeElement
+			: null;
 	document.body.appendChild(node);
+	const trapFocus = (event: KeyboardEvent) => {
+		if (event.key !== "Tab") return;
+		const controls = Array.from(
+			node.querySelectorAll<HTMLElement>(
+				'button:not(:disabled), input, [tabindex="0"]',
+			),
+		);
+		const first = controls[0];
+		const last = controls.at(-1);
+		if (!first || !last) return;
+		if (event.shiftKey && document.activeElement === first) {
+			event.preventDefault();
+			last.focus();
+		} else if (!event.shiftKey && document.activeElement === last) {
+			event.preventDefault();
+			first.focus();
+		}
+	};
+	node.addEventListener("keydown", trapFocus);
+	queueMicrotask(() => {
+		if (node.isConnected) node.querySelector<HTMLElement>("button")?.focus();
+	});
 	return {
 		destroy() {
+			node.removeEventListener("keydown", trapFocus);
+			if (previous?.isConnected) previous.focus();
 			if (node.parentNode) {
 				node.parentNode.removeChild(node);
 			}
@@ -630,10 +731,11 @@ function portal(node: HTMLElement) {
 </script>
 
 <!-- Trigger Button -->
+{#if !hideTrigger}
 <button 
   class="btn-regular rounded-lg h-12 px-6 gap-2 hover:scale-105 active:scale-95 whitespace-nowrap"
   on:click={generatePoster}
-  aria-label="Generate Share Poster"
+  aria-label={i18n(dynamicMode ? I18nKey.shareDynamic : I18nKey.shareArticle)}
 >
   <Icon icon="material-symbols:share" />
   <span>{i18n(I18nKey.shareArticle)}</span>
@@ -641,17 +743,18 @@ function portal(node: HTMLElement) {
 
 
 
+{/if}
 <!-- Modal -->
 {#if showModal}
   <!-- svelte-ignore a11y-click-events-have-key-events -->
   <!-- svelte-ignore a11y-no-static-element-interactions -->
   <div use:portal class="fixed inset-0 z-9999 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4 transition-opacity" on:click={closeModal}>
-    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-[440px] w-full max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl transform transition-all" on:click={(e) => e.stopPropagation()}>
+    <div role="dialog" aria-modal="true" aria-label={i18n(dynamicMode ? I18nKey.shareDynamic : I18nKey.shareArticle)} tabindex="-1" class="bg-white dark:bg-gray-800 rounded-2xl max-w-[440px] w-full max-h-[90vh] overflow-y-auto flex flex-col shadow-2xl transform transition-all" on:click={(e) => e.stopPropagation()}>
       
       <div class="p-6 flex justify-center bg-gray-50 dark:bg-gray-900 min-h-[200px] items-center">
         {#if posterImage}
-          <img src={posterImage} alt="Poster" class="max-w-full h-auto shadow-lg rounded-lg" />
-        {:else}
+          <img src={posterImage} alt={i18n(I18nKey.savePoster)} class="max-w-full h-auto shadow-lg rounded-lg" />
+        {:else if generating}
            <div class="flex flex-col items-center gap-3">
              <div class="w-8 h-8 border-2 border-gray-200 rounded-full animate-spin" style="border-top-color: {themeColor}"></div>
              <span class="text-sm text-gray-500">{i18n(I18nKey.generatingPoster)}</span>
@@ -659,6 +762,13 @@ function portal(node: HTMLElement) {
         {/if}
       </div>
       
+      <div class="px-4 pt-3 flex flex-col gap-2">
+        <button class="btn-regular rounded-lg px-4 py-2 self-end" on:click={closeModal}>{i18n(I18nKey.shareClose)}</button>
+        <input class="w-full rounded-lg p-2 text-sm bg-gray-100 dark:bg-gray-700" readonly value={url} aria-label={i18n(I18nKey.copyLink)} on:focus={(event) => event.currentTarget.select()} />
+        {#if canShare}<button class="btn-regular rounded-lg p-2" on:click={systemShare}>{i18n(I18nKey.shareSystem)}</button>{/if}
+        {#if feedback}<p role="status" class="text-sm text-gray-600 dark:text-gray-300">{feedback}</p>{/if}
+        {#if !generating && !posterImage}<button class="btn-regular rounded-lg p-2" on:click={generatePoster}>{i18n(I18nKey.shareRetry)}</button>{/if}
+      </div>
       <div class="p-4 border-t border-gray-100 dark:border-gray-700 grid grid-cols-2 gap-3">
         <button 
           class="py-3 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-xl font-medium hover:bg-gray-200 dark:hover:bg-gray-600 active:scale-[0.98] transition-all flex items-center justify-center gap-2"

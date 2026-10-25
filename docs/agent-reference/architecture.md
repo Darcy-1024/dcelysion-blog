@@ -78,6 +78,7 @@ pnpm build
 | `series/index.astro` | 按文章 `series` 元数据生成系列聚合与有序篇章列表 |
 | `search.astro` | 挂载 Pagefind 驱动的 `AdvancedSearch.svelte` |
 | `dynamic/index.astro` | 动态流页面；数据来自本地 JSON API、外部 API 或 Memos |
+| `dynamic/[...slug].astro` | 公开本地动态详情页，按固定 ID 生成，草稿不生成；复用图库、点赞、评论和按需分享海报 |
 | `dynamic/comments.astro` | 动态内嵌评论 iframe 页面及跨窗口主题/高度通信 |
 | `gallery/index.astro`, `gallery/[album].astro` | 配置驱动的相册列表和相册详情 |
 | `bilibili.astro`, `bangumi.astro`, `myanimelist.astro` | 获取哔哩哔哩、Bangumi 或 MyAnimeList 收藏数据并挂载 Svelte 列表 |

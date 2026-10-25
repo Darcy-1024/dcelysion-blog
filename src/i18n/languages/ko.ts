@@ -561,4 +561,14 @@ export const ko: Translation = {
 	[Key.exitImmersiveReading]: "몰입형 읽기 종료",
 	[Key.tocExpand]: "목차 펼치기",
 	[Key.tocCollapse]: "목차 접기",
+	[Key.dynamicScanToRead]: "Scan to view update",
+	[Key.shareDynamic]: "Share",
+	[Key.shareSystem]: "Share via device",
+	[Key.shareClose]: "Close",
+	[Key.shareRetry]: "Retry poster",
+	[Key.shareCopyFailed]: "Copy failed. Please copy the link above manually.",
+	[Key.shareSystemFailed]:
+		"Sharing failed. Copy the link or save the poster instead.",
+	[Key.sharePosterFailed]: "Poster generation failed. Retry or copy the link.",
+	[Key.dynamicLinkMissing]: "This update is unavailable or no longer public.",
 };

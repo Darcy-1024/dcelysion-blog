@@ -3,11 +3,13 @@ import { getCollection } from "astro:content";
 import { createMarkdownProcessor } from "@astrojs/markdown-remark";
 import type { ImageMetadata } from "astro";
 import type { DynamicImage, DynamicImagePreview } from "@/types/dynamic";
+import { dynamicDetailPath } from "@/utils/dynamic-share";
 import {
 	dynamicSearchText,
 	dynamicSlug,
 	sortDynamics,
 } from "@/utils/dynamic-utils";
+import { url } from "@/utils/url-utils";
 
 const markdownImagePattern = /!\[([^\]]*)\]\((\S+?)(?:\s+["']([^"']*)["'])?\)/g;
 
@@ -106,6 +108,9 @@ export async function GET(): Promise<Response> {
 
 			return {
 				id: dynamicSlug(entry.id),
+				...(!entry.data.draft
+					? { detailUrl: url(dynamicDetailPath(dynamicSlug(entry.id))) }
+					: {}),
 				published: entry.data.published.getTime(),
 				html: rendered.code,
 				images,

@@ -541,6 +541,15 @@ enum I18nKey {
 	exitImmersiveReading = "exitImmersiveReading",
 	tocExpand = "tocExpand",
 	tocCollapse = "tocCollapse",
+	dynamicScanToRead = "dynamicScanToRead",
+	shareDynamic = "shareDynamic",
+	shareSystem = "shareSystem",
+	shareClose = "shareClose",
+	shareRetry = "shareRetry",
+	shareCopyFailed = "shareCopyFailed",
+	shareSystemFailed = "shareSystemFailed",
+	sharePosterFailed = "sharePosterFailed",
+	dynamicLinkMissing = "dynamicLinkMissing",
 }
 
 export default I18nKey;

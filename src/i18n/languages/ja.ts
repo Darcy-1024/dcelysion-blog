@@ -561,4 +561,14 @@ export const ja: Translation = {
 	[Key.exitImmersiveReading]: "没入型リーディングを終了する",
 	[Key.tocExpand]: "目錄を開く",
 	[Key.tocCollapse]: "目錄をたたむ",
+	[Key.dynamicScanToRead]: "Scan to view update",
+	[Key.shareDynamic]: "Share",
+	[Key.shareSystem]: "Share via device",
+	[Key.shareClose]: "Close",
+	[Key.shareRetry]: "Retry poster",
+	[Key.shareCopyFailed]: "Copy failed. Please copy the link above manually.",
+	[Key.shareSystemFailed]:
+		"Sharing failed. Copy the link or save the poster instead.",
+	[Key.sharePosterFailed]: "Poster generation failed. Retry or copy the link.",
+	[Key.dynamicLinkMissing]: "This update is unavailable or no longer public.",
 };

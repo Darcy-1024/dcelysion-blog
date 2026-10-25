@@ -18,6 +18,8 @@ export interface DynamicEntry {
 	html: string;
 	images: DynamicImage[];
 	searchText: string;
+	/** Present only when a public local detail page was generated. */
+	detailUrl?: string;
 	pinned?: boolean;
 	location?: string;
 }

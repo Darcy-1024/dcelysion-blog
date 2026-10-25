@@ -777,3 +777,11 @@ body.wallpaper-transparent .page-year-select select option {
 		flex-basis: 3.25rem;
 	}
 }
+
+.page-entry[data-clickable="true"] { cursor: pointer; }
+.dynamic-actions { position: relative; margin-block: 1rem; }
+.dynamic-actions content-like { margin-block: 0; padding-right: 6rem; }
+.dynamic-actions .dynamic-share-button { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: .5rem 1rem; border-radius: 999px; background: var(--btn-regular-bg); color: var(--btn-content); }
+.dynamic-actions:not(:has(content-like)) { min-height: 44px; }
+.dynamic-share-button:hover { background: var(--btn-regular-bg-hover); }
+.dynamic-share-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
