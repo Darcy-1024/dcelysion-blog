@@ -1,6 +1,6 @@
 # Memos → 博客本地同步器
 
-2026-10-21：真实 Memos v0.31.0 已安装，PRIVATE、注册关闭，指定作者为 `users/dcelysion`（USER）。本文件的独立 `index.mjs` 仍不执行 Git/部署，配置仍要求 `publish:false`；生产外层发布器已配置 `enabled:true`，定时器仍关闭。首次测试发布 `9c448b34bd797a157eb81f2a92ff317aa6adc696` 已验证双站版本/公开树、正文和两张合成图片；编辑、撤回和真实浏览器流程仍在联调，见 [生产验收报告](../../docs/plans/2026-10-21-memos-production-acceptance.md)。外层运维见 [PUBLISH.md](PUBLISH.md)，作者凭据桥见 [SSO.md](SSO.md)。
+2026-10-21：真实 Memos v0.31.0 已安装，PRIVATE、注册关闭，指定作者为 `users/dcelysion`（USER）。本文件的独立 `index.mjs` 仍不执行 Git/部署，配置仍要求 `publish:false`；生产外层发布器已配置 `enabled:true`，三轮发布验证完成后定时器已 enabled/active。首次测试发布 `9c448b34bd797a157eb81f2a92ff317aa6adc696` 已验证双站版本/公开树、正文和两张合成图片；公开、编辑、撤回及浏览器统一登录已通过，浏览器上传未测，退出人工验收按用户要求跳过，见 [生产验收报告](../../docs/plans/2026-10-21-memos-production-acceptance.md)。外层运维见 [PUBLISH.md](PUBLISH.md)，作者凭据桥见 [SSO.md](SSO.md)。
 
 2026-10-18 的本地实现与合成验证是历史证据；当前固定契约仍为 Memos **v0.31.0 /api/v1**。生产状态与 [部署说明](README.md) 分别记录，不能用本地 fixture 替代真实验收。
 
@@ -19,7 +19,7 @@ node scripts/memos-sync/index.mjs --config /private/sync.json --apply
 
 `timezone` 应与 `src/config/siteConfig.ts` 的 `siteConfig.timezone` 一致，当前为 Asia/Shanghai。绝对路径按运行系统填写；Windows 可以用 `F:/...`，但私有状态仍须在输出仓库外并限制 Windows ACL。Linux 状态目录要求 0700、PAT 文件要求 0600；文件原子写入使用 0600。不要将这些目录或备份挂到静态服务器。同步账号应独占输出目录及私有状态；其他编辑器、Git 更新与构建也必须在同步任务结束后串行运行。
 
-真实作者 PAT 已在服务器私有目录创建，运行时使用 UID1000、0600 的单文件副本，不输出其内容。独立 clone、运行镜像与 service 已安装，专用可写 Deploy Key 已授权注册；timer 仍 disabled/inactive。源码样例不含真实配置/凭据，不因生产授权改变默认开关。没有 webhook。
+真实作者 PAT 已在服务器私有目录创建，运行时使用 UID1000、0600 的单文件副本，不输出其内容。独立 clone、运行镜像与 service 已安装，专用可写 Deploy Key 已授权注册；按生产验收记录，timer 已 enabled/active，每轮完整结束60秒后检查新变化。源码样例不含真实配置/凭据，不因生产授权改变默认开关。没有 webhook。
 
 ## 导出规则
 
@@ -35,7 +35,7 @@ node scripts/memos-sync/index.mjs --config /private/sync.json --apply
 
 凭据只送到配置的 HTTPS origin 或显式 HTTP 回环 origin。不跟随任何重定向，不读取任意外链；所有请求均 GET。单响应按流式实际字节限额，连接有超时和最多 3 次短暂重试（429、指定 5xx、网络/超时）。一次运行默认最多 5 分钟、每个列表 100 页/10000 条、单图 20 MiB、累计下载附件 128 MiB。达到限制失败，不生成截断结果；首次大批导出需审阅后调整上限。
 
-校验附件 size、声明 MIME 与实际解码格式、尺寸、动画帧数、透明度。静态 JPEG/PNG/WebP/AVIF 经 Sharp 验证、校正 EXIF 朝向并转高质量 AVIF（80）；不裁切缩放。GIF/WebP 动画完整解码验证后保留源字节，不能安全处理的动画拒绝。单图最多 4000 万解码像素、100 帧；编码内存峰值尚未在 384 MiB 服务器限制下测量，阶段一资源额度不能当作已通过的运行容量。
+校验附件 size、声明 MIME 与实际解码格式、尺寸、动画帧数、透明度。静态 JPEG/PNG/WebP/AVIF 经 Sharp 验证、校正 EXIF 朝向并转高质量 AVIF（quality 80、effort 4）；不裁切缩放。Sharp 并发限制为 1，避免按宿主机核数超配线程。静态图由最终编码完整解码，不额外申请整张 raw 缓冲；GIF/WebP 动画仍完整解码验证后保留源字节，不能安全处理的动画拒绝。每轮仍下载原件、核对大小与 SHA256；仅原件字节相同且托管输出哈希正确时复用已验证的转换结果，不重复编码。单图最多 4000 万解码像素、100 帧；真实批次的资源与发布结果见 [发布运维](PUBLISH.md#2026-10-25-大图转码超时修复)。
 
 Memos 下载原件按 SHA 放私有 `originals/<sha256>`，输出按转码结果 SHA 放 `src/content/dynamic/images/memos-image-<sha256>.<ext>`，相同内容复用。保留的是 **Memos 下载文件**，不保证等于用户上传前字节；Memos 可能处理 EXIF。真实照片朝向、色彩、移动端体验仍需联调。
 

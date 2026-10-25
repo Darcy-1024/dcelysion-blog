@@ -7,7 +7,58 @@ import test from "node:test";
 import sharp from "sharp";
 import { parse as parseYaml } from "yaml";
 import { digest } from "./content.mjs";
+import { errorReason } from "./errors.mjs";
 import { Store } from "./store.mjs";
+
+test("unchanged source bytes reuse verified AVIF while same-size changed bytes are encoded", async (t) => {
+	const f = await fixture(t);
+	const photo = (background) =>
+		sharp({ create: { width: 20, height: 20, channels: 3, background } })
+			.png({ compressionLevel: 0 })
+			.toBuffer();
+	const first = await photo("red");
+	const changed = await photo("blue");
+	assert.equal(first.length, changed.length);
+	await f.image(f.records[0], "pic", first);
+	await f.run();
+	const before = (await f.state()).entries["memos/one"];
+	const encoder = sharp.prototype.avif;
+	let encodes = 0;
+	sharp.prototype.avif = function (...args) {
+		encodes++;
+		return encoder.apply(this, args);
+	};
+	try {
+		f.requests.length = 0;
+		assert.deepEqual((await f.run()).files, []);
+		assert.equal(encodes, 0);
+		assert(f.requests.some((r) => r.path === "/file/attachments/pic"));
+		assert.deepEqual(
+			(await f.state()).entries["memos/one"].attachments,
+			before.attachments,
+		);
+		f.binary.set("pic", changed);
+		await f.run();
+		assert.equal(encodes, 1);
+		const after = (await f.state()).entries["memos/one"];
+		assert.notEqual(
+			after.attachments.pic.sha256,
+			before.attachments.pic.sha256,
+		);
+		assert.equal(after.slug, before.slug);
+		assert.equal(after.firstPublished, before.firstPublished);
+	} finally {
+		sharp.prototype.avif = encoder;
+	}
+});
+
+test("safe failure categories do not expose arbitrary error content", () => {
+	assert.equal(errorReason(new Error("Run deadline exceeded")), "run-deadline");
+	assert.equal(
+		errorReason(new Error("secret-token=https://private.example/body")),
+		"unknown",
+	);
+});
 
 test("output root lock also excludes a different private state directory", async (t) => {
 	const f = await fixture(t);

@@ -183,6 +183,17 @@ export async function synchronize(
 			desired.set(name, data);
 		}
 		const occupied = await identities(store.root);
+		// Re-download originals each round; only identical source bytes may reuse
+		// an exported image whose managed bytes were verified above.
+		const reusableImages = new Map();
+		for (const entry of Object.values(state.entries)) {
+			for (const image of Object.values(entry.attachments ?? {})) {
+				const bytes = desired.get(image.path);
+				if (!bytes || digest(bytes) !== image.sha256)
+					throw new Error("Managed image conflict");
+				reusableImages.set(image.originalSha256, { ...image, bytes });
+			}
+		}
 		const changes = [];
 		for (const [name, memo] of Object.entries(first)) {
 			const old = state.entries[name];
@@ -214,7 +225,10 @@ export async function synchronize(
 			const filename = `${slug}.md`;
 			if (occupied.has(slug) && occupied.get(slug) !== old?.path)
 				throw new Error("Dynamic slug collision");
-			const converted = await convertMemo(memo, client, config);
+			const converted = await convertMemo(memo, client, {
+				...config,
+				reusableImages,
+			});
 			if (memo.pinned !== undefined && typeof memo.pinned !== "boolean")
 				throw new Error("Invalid pinned field");
 			if (
@@ -301,8 +315,11 @@ export async function synchronize(
 			sourceConsistency: "bounded-double-read-not-transactional",
 		};
 		if (!dryRun) {
-			for (const [sha, data] of originals)
-				await atomicWrite(path.join(store.stateDir, "originals", sha), data);
+			for (const [sha, data] of originals) {
+				const originalPath = path.join(store.stateDir, "originals", sha);
+				if (hashOrNull(await bytesOrNull(originalPath)) !== sha)
+					await atomicWrite(originalPath, data);
+			}
 			await store.commit(next, desired, { inject });
 			await atomicWrite(
 				path.join(store.stateDir, "receipt.json"),

@@ -2,6 +2,9 @@ import { createHash } from "node:crypto";
 import { Marked } from "marked";
 import sharp from "sharp";
 
+// The publisher has a fractional CPU quota; host core count is not its budget.
+sharp.concurrency(1);
+
 export const digest = (value) =>
 	createHash("sha256").update(value).digest("hex");
 const canonical = (value) =>
@@ -83,6 +86,7 @@ export async function convertMemo(
 	{
 		maxAttachmentBytes = 20 * 1024 * 1024,
 		maxTotalAttachmentBytes = 128 * 1024 * 1024,
+		reusableImages = new Map(),
 	} = {},
 ) {
 	const attachments = memo.attachments ?? [];
@@ -141,6 +145,7 @@ export async function convertMemo(
 			throw new Error("Run attachment byte limit exceeded");
 		if (BigInt(original.length) !== BigInt(attachment.size))
 			throw new Error("Attachment length mismatch");
+		const originalSha256 = digest(original);
 		const image = sharp(original, {
 			animated: true,
 			limitInputPixels: 40_000_000,
@@ -163,11 +168,27 @@ export async function convertMemo(
 			(metadata.pages ?? 1) > 100
 		)
 			throw new Error("Unsupported image data");
+		const cached = reusableImages.get(originalSha256);
+		if (cached) {
+			if (
+				digest(cached.bytes) !== cached.sha256 ||
+				!new RegExp(
+					`^images/memos-image-${cached.sha256}\\.(avif|webp|gif)$`,
+					"u",
+				).test(cached.path)
+			)
+				throw new Error("Managed image conflict");
+			files.set(cached.path, cached.bytes);
+			originals.set(originalSha256, original);
+			const item = { path: cached.path, originalSha256, sha256: cached.sha256 };
+			imported.set(uid, item);
+			return item;
+		}
 		// Force decoding every frame before accepting an animation; never flatten it.
-		await image.clone().raw().toBuffer();
 		const animated = (metadata.pages ?? 1) > 1;
 		if (animated && !["gif", "webp"].includes(metadata.format))
 			throw new Error("Unsupported animation");
+		if (animated) await image.clone().raw().toBuffer();
 		const exported = animated
 			? original
 			: await sharp(original, {
@@ -175,7 +196,7 @@ export async function convertMemo(
 					failOn: "warning",
 				})
 					.rotate()
-					.avif({ quality: 80, effort: 6 })
+					.avif({ quality: 80, effort: 4 })
 					.toBuffer();
 		const outputMeta = await sharp(exported, { animated: true }).metadata();
 		if (metadata.hasAlpha && !outputMeta.hasAlpha)

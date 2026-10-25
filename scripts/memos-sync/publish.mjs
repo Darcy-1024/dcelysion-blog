@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { MemosClient } from "./client.mjs";
 import { fingerprint, publicMemo, semanticMemo } from "./content.mjs";
+import { errorReason } from "./errors.mjs";
 import { snapshot, synchronize, validateConfig } from "./index.mjs";
 import {
 	atomicWrite,
@@ -384,7 +385,11 @@ export async function publish(
 				retryFreshSource = true;
 				return;
 			}
-			await write(haltFile, { status: "halted", at: new Date().toISOString() });
+			await write(haltFile, {
+				status: "halted",
+				reason: errorReason(error),
+				at: new Date().toISOString(),
+			});
 		},
 	}).catch((error) => {
 		if (!retryFreshSource) throw error;

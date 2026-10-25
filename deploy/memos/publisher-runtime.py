@@ -26,6 +26,7 @@ import path from 'node:path';
 import { publish, validatePublication } from './scripts/memos-sync/publish.mjs';
 import { observe } from './scripts/memos-sync/observe.mjs';
 import { atomicWrite } from './scripts/memos-sync/store.mjs';
+import { errorReason } from './scripts/memos-sync/errors.mjs';
 
 const args = process.argv.slice(2);
 const pause = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -86,13 +87,13 @@ async function main() {
       await pause(15000);
     }
     throw new Error('Deployment evidence timeout');
-  } catch {
+  } catch (error) {
     await write(halted, { status: 'halted', commit: receipt?.commit ?? null,
-      observedAt: new Date().toISOString() });
-    throw new Error('Publisher halted');
+      reason: errorReason(error), observedAt: new Date().toISOString() });
+    throw new Error('Publisher halted', { cause: error });
   }
 }
-main().catch(() => { console.error(JSON.stringify({ status: 'halted', action: 'inspect-private-state' })); process.exitCode = 1; });
+main().catch(error => { console.error(JSON.stringify({ status: 'halted', reason: errorReason(error.cause ?? error), action: 'inspect-private-state' })); process.exitCode = 1; });
 '''
 
 
@@ -107,7 +108,7 @@ def save(target, data, mode=0o600, owner=1000):
 
 
 def container(*args, entrypoint=None):
-    cmd = ['docker', 'run', '--rm', '--network', 'host', '--user', '1000:1000',
+    cmd = ['docker', 'run', '--rm', '--init', '--network', 'host', '--user', '1000:1000',
            '--read-only', '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges',
            '--memory', '384m', '--memory-swap', '512m', '--cpus', '0.5', '--pids-limit', '96',
            '--tmpfs', '/tmp:rw,noexec,nosuid,size=32m', '-e', 'HOME=/private',
@@ -175,7 +176,8 @@ def main():
                           settleMs=10000, withdrawalPolicy='eventual-current-site-operator-accepted',
                           sync=dict(instanceId='memos-production-20261020', baseUrl='http://127.0.0.1:5231',
                                     creator='users/dcelysion', timezone='Asia/Shanghai', outputRoot='/checkout',
-                                    stateDir='/private', tokenFile='/private/pat', publish=False))
+                                    stateDir='/private', tokenFile='/private/pat', publish=False,
+                                    maxRunMs=1200000))
             save(PRIVATE/'config.json', json.dumps(config, indent=2))
         for file in TOOLS.rglob('*'):
             if file.is_file() and file.name != 'run-publisher.sh':
@@ -194,7 +196,7 @@ Type=oneshot
 ExecStartPre=+/usr/bin/python3 /opt/dcelysion-memos/production-setup.py refresh-origin
 ExecStart=/opt/dcelysion-memos-publisher-tools/run-publisher.sh
 ExecStopPost=/opt/dcelysion-memos-publisher-tools/run-publisher.sh --service-stop
-TimeoutStartSec=32min
+TimeoutStartSec=57min
 UMask=0077
 '''
         save(Path('/etc/systemd/system/dc-memos-publish.service'), unit, 0o644, 0)

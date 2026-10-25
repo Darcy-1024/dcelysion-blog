@@ -20,10 +20,15 @@ if [ "${1:-}" = --service-stop ]; then
   fi
   exit 0
 fi
+case "${1:-}" in
+  "") set -- ;;
+  --resume) set -- --resume ;;
+  *) exit 2 ;;
+esac
 # Host flock stays held until both public deployments have been observed.
 exec 9>/var/lib/dcelysion-memos-publisher/cycle.lock
 flock -n 9 || exit 0
-if ! /usr/bin/timeout --foreground --kill-after=30s 30m /usr/bin/docker run --rm --name dcelysion-memos-publisher \
+if ! /usr/bin/timeout --foreground --kill-after=30s 55m /usr/bin/docker run --rm --init --name dcelysion-memos-publisher \
   --network host --user 1000:1000 --read-only --cap-drop ALL \
   --security-opt no-new-privileges --memory 384m --memory-swap 512m --cpus 0.5 \
   --pids-limit 96 --tmpfs /tmp:rw,noexec,nosuid,size=32m \
@@ -31,7 +36,7 @@ if ! /usr/bin/timeout --foreground --kill-after=30s 30m /usr/bin/docker run --rm
   -v /opt/dcelysion-memos-publisher-tools:/tools:ro \
   -v /srv/dcelysion-memos-publisher/checkout:/checkout:rw \
   -v /var/lib/dcelysion-memos-publisher:/private:rw \
-  dcelysion/memos-publisher:20261020 --config /private/config.json --execute; then
+  dcelysion/memos-publisher:20261020 --config /private/config.json --execute "$@"; then
   /usr/bin/docker rm -f dcelysion-memos-publisher >/dev/null 2>&1 || true
   halt
   exit 1
