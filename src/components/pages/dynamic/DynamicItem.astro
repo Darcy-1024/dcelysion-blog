@@ -82,14 +82,16 @@ const profileUrl = url(dynamicConfig.profileUrl || "/about/");
 					)}
 				</div>
 			</div>
-			<a
-				class="page-permalink btn-plain"
-				href={permalink}
-				aria-label={i18n(I18nKey.dynamicPermalink)}
-				title={i18n(I18nKey.dynamicPermalink)}
-			>
-				<Icon name="material-symbols:link-rounded" />
-			</a>
+			{!detailUrl && (
+				<a
+					class="page-permalink btn-plain"
+					href={permalink}
+					aria-label={i18n(I18nKey.dynamicPermalink)}
+					title={i18n(I18nKey.dynamicPermalink)}
+				>
+					<Icon name="material-symbols:link-rounded" />
+				</a>
+			)}
 		</header>
 
 		<div id={`${anchorId}-content`} class="page-content custom-md" data-dynamic-content>
