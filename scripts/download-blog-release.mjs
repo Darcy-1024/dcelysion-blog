@@ -22,7 +22,7 @@ import { sha256 } from "./blog-route-contract.mjs";
 import { classifyPublicFile } from "./package-public-blog.mjs";
 
 const execute = promisify(execFile);
-const maximumBytes = 150 * 1024 * 1024;
+const maximumBytes = 256 * 1024 * 1024;
 const tarOptions = {
 	timeout: 120_000,
 	maxBuffer: 12 * 1024 * 1024,
