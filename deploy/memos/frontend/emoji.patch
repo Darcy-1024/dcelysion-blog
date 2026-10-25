@@ -1,5 +1,5 @@
 diff --git a/web/src/components/MemoEditor/Editor/controller.ts b/web/src/components/MemoEditor/Editor/controller.ts
-index c50ec05f..422dd55c 100644
+index c50ec05..422dd55 100644
 --- a/web/src/components/MemoEditor/Editor/controller.ts
 +++ b/web/src/components/MemoEditor/Editor/controller.ts
 @@ -42,0 +43,11 @@ export function createController(view: EditorView, formatting: FormattingControl
@@ -15,7 +15,7 @@ index c50ec05f..422dd55c 100644
 +      view.focus();
 +    },
 diff --git a/web/src/components/MemoEditor/Toolbar/EditorToolbar.tsx b/web/src/components/MemoEditor/Toolbar/EditorToolbar.tsx
-index d91af936..d7236f0d 100644
+index d91af93..d7236f0 100644
 --- a/web/src/components/MemoEditor/Toolbar/EditorToolbar.tsx
 +++ b/web/src/components/MemoEditor/Toolbar/EditorToolbar.tsx
 @@ -41,0 +42 @@ export const EditorToolbar: FC<EditorToolbarProps> = ({
@@ -24,65 +24,17 @@ index d91af936..d7236f0d 100644
 +          onInsertEmoji={onInsertEmoji}
 diff --git a/web/src/components/MemoEditor/Toolbar/EmojiPickerDialog.tsx b/web/src/components/MemoEditor/Toolbar/EmojiPickerDialog.tsx
 new file mode 100644
-index 00000000..c5fd8914
+index 0000000..1d325ae
 --- /dev/null
 +++ b/web/src/components/MemoEditor/Toolbar/EmojiPickerDialog.tsx
-@@ -0,0 +1,117 @@
+@@ -0,0 +1,102 @@
 +import { useRef, useState } from "react";
 +import { flushSync } from "react-dom";
 +import { Button } from "@/components/ui/button";
 +import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 +import { Input } from "@/components/ui/input";
-+import { SPACE_EMOJI } from "@/lib/space-emoji";
++import { EDITOR_EMOJI, type EmojiCategory } from "@/lib/editor-emoji";
 +import { useTranslate } from "@/utils/i18n";
-+
-+const commonEmoji = [
-+  ["😀", "开心 笑 smile happy"],
-+  ["😄", "高兴 大笑 laugh happy"],
-+  ["😂", "笑哭 laugh tears"],
-+  ["🤣", "大笑 laugh rofl"],
-+  ["😊", "微笑 smile blush"],
-+  ["🥰", "喜欢 爱 love hearts"],
-+  ["😍", "爱 心 love heart eyes"],
-+  ["😘", "亲亲 kiss love"],
-+  ["😎", "酷 cool sunglasses"],
-+  ["🤔", "思考 think"],
-+  ["🤗", "拥抱 hug"],
-+  ["🤭", "偷笑 giggle"],
-+  ["😅", "汗 尴尬 sweat"],
-+  ["🥲", "含泪 tear"],
-+  ["🥹", "感动 tear moved"],
-+  ["😢", "伤心 哭 sad cry"],
-+  ["😭", "大哭 cry"],
-+  ["😤", "生气 angry"],
-+  ["😡", "愤怒 angry"],
-+  ["😴", "睡觉 sleep"],
-+  ["🥱", "困 yawn"],
-+  ["🤯", "震惊 shock"],
-+  ["😱", "惊讶 scream"],
-+  ["🙃", "倒脸 upside down"],
-+  ["🫠", "融化 melting"],
-+  ["👍", "赞 好 thumbs up"],
-+  ["👎", "踩 thumbs down"],
-+  ["👏", "鼓掌 clap"],
-+  ["🙌", "庆祝 hooray"],
-+  ["🙏", "感谢 祈祷 thanks pray"],
-+  ["💪", "加油 力量 strong"],
-+  ["👌", "好的 okay"],
-+  ["✌️", "胜利 victory"],
-+  ["👋", "你好 再见 wave hello"],
-+  ["🤝", "握手 handshake"],
-+  ["❤️", "红心 爱 heart love"],
-+  ["💔", "心碎 broken heart"],
-+  ["💕", "爱心 hearts"],
-+  ["✨", "闪光 sparkle"],
-+  ["🎉", "庆祝 celebration party"],
-+  ["🔥", "火 热 fire"],
-+  ["✅", "完成 对勾 done check"],
-+  ["❌", "错误 cross"],
-+  ["💯", "满分 hundred"],
-+] as const;
-+const emojis = [...new Map([...SPACE_EMOJI, ...commonEmoji].map(([emoji, label]) => [emoji, { emoji, label }])).values()];
 +
 +interface Props {
 +  open: boolean;
@@ -94,14 +46,32 @@ index 00000000..c5fd8914
 +export default function EmojiPickerDialog({ open, onOpenChange, onSelect, disabled }: Props) {
 +  const t = useTranslate();
 +  const [query, setQuery] = useState("");
++  const [category, setCategory] = useState<EmojiCategory | "all">("all");
++  const categories = [
++    ["all", t("editor.insert-menu.emoji-all")],
++    ["faces", t("editor.insert-menu.emoji-faces")],
++    ["people", t("editor.insert-menu.emoji-people")],
++    ["nature", t("editor.insert-menu.emoji-nature")],
++    ["food", t("editor.insert-menu.emoji-food")],
++    ["travel", t("editor.insert-menu.emoji-travel")],
++    ["activities", t("editor.insert-menu.emoji-activities")],
++    ["symbols", t("editor.insert-menu.emoji-symbols")],
++  ] as const;
 +  const searchRef = useRef<HTMLInputElement>(null);
 +  const search = query.trim().toLocaleLowerCase();
-+  const options = emojis.filter(({ emoji, label }) => emoji.includes(search) || label.toLocaleLowerCase().includes(search));
++  const options = EDITOR_EMOJI.filter(
++    (item) =>
++      (category === "all" || item.category === category) &&
++      (item.emoji.includes(search) || item.label.toLocaleLowerCase().includes(search)),
++  );
 +  return (
 +    <Dialog
 +      open={open}
 +      onOpenChange={(next) => {
-+        if (!next) setQuery("");
++        if (!next) {
++          setQuery("");
++          setCategory("all");
++        }
 +        onOpenChange(next);
 +      }}
 +    >
@@ -110,6 +80,20 @@ index 00000000..c5fd8914
 +          <DialogTitle>{t("editor.insert-menu.insert-emoji")}</DialogTitle>
 +          <DialogDescription>{t("editor.insert-menu.emoji-description")}</DialogDescription>
 +        </DialogHeader>
++        <div role="group" aria-label={t("editor.insert-menu.emoji-category")} className="flex flex-wrap gap-1">
++          {categories.map(([value, label]) => (
++            <Button
++              key={value}
++              type="button"
++              variant={category === value ? "secondary" : "ghost"}
++              size="sm"
++              aria-pressed={category === value}
++              onClick={() => setCategory(value)}
++            >
++              {label}
++            </Button>
++          ))}
++        </div>
 +        <Input
 +          ref={searchRef}
 +          value={query}
@@ -132,6 +116,7 @@ index 00000000..c5fd8914
 +                flushSync(() => {
 +                  onOpenChange(false);
 +                  setQuery("");
++                  setCategory("all");
 +                });
 +                onSelect(emoji);
 +              }}
@@ -146,7 +131,7 @@ index 00000000..c5fd8914
 +  );
 +}
 diff --git a/web/src/components/MemoEditor/Toolbar/InsertMenu.tsx b/web/src/components/MemoEditor/Toolbar/InsertMenu.tsx
-index 93c84c54..f8e11a60 100644
+index 93c84c5..f8e11a6 100644
 --- a/web/src/components/MemoEditor/Toolbar/InsertMenu.tsx
 +++ b/web/src/components/MemoEditor/Toolbar/InsertMenu.tsx
 @@ -11,0 +12 @@ import {
@@ -166,7 +151,7 @@ index 93c84c54..f8e11a60 100644
 +      />
 +
 diff --git a/web/src/components/MemoEditor/index.tsx b/web/src/components/MemoEditor/index.tsx
-index 0fd3b4d0..138304a9 100644
+index 0fd3b4d..138304a 100644
 --- a/web/src/components/MemoEditor/index.tsx
 +++ b/web/src/components/MemoEditor/index.tsx
 @@ -273,0 +274,7 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
@@ -180,7 +165,7 @@ index 0fd3b4d0..138304a9 100644
 @@ -399,0 +407 @@ const MemoEditorImpl: React.FC<MemoEditorProps> = ({
 +            onInsertEmoji={handleInsertEmoji}
 diff --git a/web/src/components/MemoEditor/types/components.ts b/web/src/components/MemoEditor/types/components.ts
-index 8dba2eda..4ef98d65 100644
+index 8dba2ed..4ef98d6 100644
 --- a/web/src/components/MemoEditor/types/components.ts
 +++ b/web/src/components/MemoEditor/types/components.ts
 @@ -76,0 +77 @@ export interface EditorToolbarProps {
@@ -188,14 +173,451 @@ index 8dba2eda..4ef98d65 100644
 @@ -116,0 +118 @@ export interface InsertMenuProps {
 +  onInsertEmoji: (emoji: string) => void;
 diff --git a/web/src/components/MemoEditor/types/editorController.ts b/web/src/components/MemoEditor/types/editorController.ts
-index 00f9f413..78a6f080 100644
+index 00f9f41..78a6f08 100644
 --- a/web/src/components/MemoEditor/types/editorController.ts
 +++ b/web/src/components/MemoEditor/types/editorController.ts
 @@ -19,0 +20,2 @@ export interface EditorController {
 +  /** Insert plain text inline, replacing the selection and preserving undo. */
 +  insertText(text: string): void;
+diff --git a/web/src/lib/editor-emoji.ts b/web/src/lib/editor-emoji.ts
+new file mode 100644
+index 0000000..62674cc
+--- /dev/null
++++ b/web/src/lib/editor-emoji.ts
+@@ -0,0 +1,431 @@
++// Static Unicode catalog with Chinese and English search keywords.
++export type EmojiCategory = "faces" | "people" | "nature" | "food" | "travel" | "activities" | "symbols";
++
++export const EDITOR_EMOJI: { emoji: string; label: string; category: EmojiCategory }[] = [
++  { emoji: "😀", label: "开心 笑 smile happy", category: "faces" },
++  { emoji: "😄", label: "高兴 大笑 laugh happy", category: "faces" },
++  { emoji: "😂", label: "笑哭 laugh tears", category: "faces" },
++  { emoji: "🤣", label: "大笑 laugh rofl", category: "faces" },
++  { emoji: "😊", label: "微笑 smile blush", category: "faces" },
++  { emoji: "🥰", label: "喜欢 爱 love hearts", category: "faces" },
++  { emoji: "😍", label: "爱 心 love heart eyes", category: "faces" },
++  { emoji: "😘", label: "亲亲 kiss love", category: "faces" },
++  { emoji: "😎", label: "酷 cool sunglasses", category: "faces" },
++  { emoji: "🤔", label: "思考 think", category: "faces" },
++  { emoji: "🤗", label: "拥抱 hug", category: "faces" },
++  { emoji: "🤭", label: "偷笑 giggle", category: "faces" },
++  { emoji: "😅", label: "汗 尴尬 sweat", category: "faces" },
++  { emoji: "🥲", label: "含泪 tear", category: "faces" },
++  { emoji: "🥹", label: "感动 tear moved", category: "faces" },
++  { emoji: "😢", label: "伤心 哭 sad cry", category: "faces" },
++  { emoji: "😭", label: "大哭 cry", category: "faces" },
++  { emoji: "😤", label: "生气 angry", category: "faces" },
++  { emoji: "😡", label: "愤怒 angry", category: "faces" },
++  { emoji: "😴", label: "睡觉 sleep", category: "faces" },
++  { emoji: "🥱", label: "困 yawn", category: "faces" },
++  { emoji: "🤯", label: "震惊 shock", category: "faces" },
++  { emoji: "😱", label: "惊讶 scream", category: "faces" },
++  { emoji: "🙃", label: "倒脸 upside down", category: "faces" },
++  { emoji: "🫠", label: "融化 melting", category: "faces" },
++  { emoji: "😃", label: "开心 grinning happy", category: "faces" },
++  { emoji: "😁", label: "露齿 beaming grin", category: "faces" },
++  { emoji: "😆", label: "眯眼大笑 squint laugh", category: "faces" },
++  { emoji: "😉", label: "眨眼 wink", category: "faces" },
++  { emoji: "😇", label: "天使 angel halo", category: "faces" },
++  { emoji: "🙂", label: "微笑 smiling", category: "faces" },
++  { emoji: "😋", label: "美味 yummy", category: "faces" },
++  { emoji: "😛", label: "吐舌 tongue", category: "faces" },
++  { emoji: "😜", label: "眨眼吐舌 wink tongue", category: "faces" },
++  { emoji: "🤪", label: "搞怪 zany crazy", category: "faces" },
++  { emoji: "😝", label: "眯眼吐舌 squint tongue", category: "faces" },
++  { emoji: "🤑", label: "发财 money rich", category: "faces" },
++  { emoji: "🤫", label: "安静 shushing quiet", category: "faces" },
++  { emoji: "🤐", label: "保密 zipper mouth secret", category: "faces" },
++  { emoji: "🤨", label: "怀疑 raised eyebrow", category: "faces" },
++  { emoji: "😐", label: "面无表情 neutral", category: "faces" },
++  { emoji: "😑", label: "无语 expressionless", category: "faces" },
++  { emoji: "😶", label: "沉默 speechless", category: "faces" },
++  { emoji: "🫥", label: "隐身 invisible dotted", category: "faces" },
++  { emoji: "😏", label: "得意 smirk", category: "faces" },
++  { emoji: "😒", label: "嫌弃 unamused", category: "faces" },
++  { emoji: "🙄", label: "白眼 eye roll", category: "faces" },
++  { emoji: "😬", label: "尴尬 grimacing", category: "faces" },
++  { emoji: "🤥", label: "说谎 lying", category: "faces" },
++  { emoji: "😌", label: "放松 relieved", category: "faces" },
++  { emoji: "😔", label: "低落 pensive sad", category: "faces" },
++  { emoji: "😪", label: "困倦 sleepy", category: "faces" },
++  { emoji: "🤤", label: "流口水 drooling", category: "faces" },
++  { emoji: "😷", label: "口罩 mask sick", category: "faces" },
++  { emoji: "🤒", label: "发烧 thermometer fever", category: "faces" },
++  { emoji: "🤕", label: "受伤 bandage hurt", category: "faces" },
++  { emoji: "🤢", label: "恶心 nauseated", category: "faces" },
++  { emoji: "🤮", label: "呕吐 vomiting", category: "faces" },
++  { emoji: "🤧", label: "喷嚏 sneezing", category: "faces" },
++  { emoji: "🥵", label: "炎热 hot", category: "faces" },
++  { emoji: "🥶", label: "寒冷 cold freezing", category: "faces" },
++  { emoji: "🥴", label: "微醺 woozy", category: "faces" },
++  { emoji: "😵", label: "眩晕 dizzy", category: "faces" },
++  { emoji: "🤠", label: "牛仔 cowboy", category: "faces" },
++  { emoji: "🥳", label: "派对 party celebrating", category: "faces" },
++  { emoji: "🥸", label: "伪装 disguised", category: "faces" },
++  { emoji: "😕", label: "困惑 confused", category: "faces" },
++  { emoji: "😟", label: "担忧 worried", category: "faces" },
++  { emoji: "🙁", label: "不开心 frowning", category: "faces" },
++  { emoji: "😮", label: "吃惊 surprised", category: "faces" },
++  { emoji: "😲", label: "惊愕 astonished", category: "faces" },
++  { emoji: "😳", label: "脸红 flushed", category: "faces" },
++  { emoji: "🥺", label: "恳求 pleading", category: "faces" },
++  { emoji: "😨", label: "害怕 fearful", category: "faces" },
++  { emoji: "😰", label: "焦虑 anxious", category: "faces" },
++  { emoji: "👍", label: "赞 好 thumbs up", category: "people" },
++  { emoji: "👎", label: "踩 thumbs down", category: "people" },
++  { emoji: "👏", label: "鼓掌 clap", category: "people" },
++  { emoji: "🙌", label: "庆祝 hooray", category: "people" },
++  { emoji: "🙏", label: "感谢 祈祷 thanks pray", category: "people" },
++  { emoji: "💪", label: "加油 力量 strong", category: "people" },
++  { emoji: "👌", label: "好的 okay", category: "people" },
++  { emoji: "✌️", label: "胜利 victory", category: "people" },
++  { emoji: "👋", label: "你好 再见 wave hello", category: "people" },
++  { emoji: "🤝", label: "握手 handshake", category: "people" },
++  { emoji: "✍️", label: "写字 writing hand journal", category: "people" },
++  { emoji: "🤚", label: "举手 raised hand", category: "people" },
++  { emoji: "🖐️", label: "手掌 hand fingers splayed", category: "people" },
++  { emoji: "✋", label: "停止 raised hand stop", category: "people" },
++  { emoji: "🖖", label: "瓦肯举手 vulcan salute", category: "people" },
++  { emoji: "🫶", label: "比心 heart hands", category: "people" },
++  { emoji: "🤞", label: "好运 crossed fingers luck", category: "people" },
++  { emoji: "🤟", label: "我爱你 love you", category: "people" },
++  { emoji: "🤘", label: "摇滚 rock horns", category: "people" },
++  { emoji: "🤙", label: "打电话 call me", category: "people" },
++  { emoji: "👈", label: "向左 point left", category: "people" },
++  { emoji: "👉", label: "向右 point right", category: "people" },
++  { emoji: "👆", label: "向上 point up", category: "people" },
++  { emoji: "👇", label: "向下 point down", category: "people" },
++  { emoji: "☝️", label: "食指向上 index up", category: "people" },
++  { emoji: "🫵", label: "指向你 pointing you", category: "people" },
++  { emoji: "👊", label: "拳头 fist bump", category: "people" },
++  { emoji: "✊", label: "握拳 raised fist", category: "people" },
++  { emoji: "🤲", label: "双手捧起 palms together", category: "people" },
++  { emoji: "👐", label: "张开双手 open hands", category: "people" },
++  { emoji: "🤌", label: "捏手指 pinched fingers", category: "people" },
++  { emoji: "🤏", label: "一点点 pinching small", category: "people" },
++  { emoji: "🦶", label: "脚 foot", category: "people" },
++  { emoji: "🦵", label: "腿 leg", category: "people" },
++  { emoji: "👂", label: "耳朵 ear listen", category: "people" },
++  { emoji: "👃", label: "鼻子 nose", category: "people" },
++  { emoji: "👀", label: "眼睛 eyes look", category: "people" },
++  { emoji: "👅", label: "舌头 tongue", category: "people" },
++  { emoji: "👄", label: "嘴唇 mouth lips", category: "people" },
++  { emoji: "🧠", label: "大脑 学习 brain learning knowledge", category: "people" },
++  { emoji: "🦷", label: "牙齿 tooth", category: "people" },
++  { emoji: "👶", label: "婴儿 baby", category: "people" },
++  { emoji: "🧒", label: "儿童 child", category: "people" },
++  { emoji: "🧑", label: "成人 person adult", category: "people" },
++  { emoji: "👩", label: "女人 woman", category: "people" },
++  { emoji: "👨", label: "男人 man", category: "people" },
++  { emoji: "🧓", label: "老人 older person", category: "people" },
++  { emoji: "🙋", label: "举手发言 raising hand", category: "people" },
++  { emoji: "🙆", label: "同意 gesturing okay", category: "people" },
++  { emoji: "🙅", label: "拒绝 gesturing no", category: "people" },
++  { emoji: "🌱", label: "幼苗 植物 seedling plant growth", category: "nature" },
++  { emoji: "🌿", label: "绿叶 herb leaves", category: "nature" },
++  { emoji: "☘️", label: "三叶草 shamrock", category: "nature" },
++  { emoji: "🍀", label: "四叶草 幸运 clover luck", category: "nature" },
++  { emoji: "🌸", label: "樱花 cherry blossom", category: "nature" },
++  { emoji: "🌻", label: "向日葵 sunflower", category: "nature" },
++  { emoji: "🌹", label: "玫瑰 rose", category: "nature" },
++  { emoji: "🌷", label: "郁金香 tulip", category: "nature" },
++  { emoji: "🌺", label: "扶桑花 hibiscus", category: "nature" },
++  { emoji: "🌼", label: "花朵 blossom", category: "nature" },
++  { emoji: "🪷", label: "莲花 lotus", category: "nature" },
++  { emoji: "💐", label: "花束 bouquet", category: "nature" },
++  { emoji: "🥀", label: "枯萎的花 wilted flower", category: "nature" },
++  { emoji: "🌳", label: "树 森林 tree forest nature", category: "nature" },
++  { emoji: "🌲", label: "松树 evergreen tree", category: "nature" },
++  { emoji: "🌴", label: "棕榈树 palm tree", category: "nature" },
++  { emoji: "🌵", label: "仙人掌 cactus", category: "nature" },
++  { emoji: "🍂", label: "落叶 fallen leaf", category: "nature" },
++  { emoji: "🍁", label: "枫叶 maple leaf", category: "nature" },
++  { emoji: "🍃", label: "风中叶子 leaf wind", category: "nature" },
++  { emoji: "🍄", label: "蘑菇 mushroom", category: "nature" },
++  { emoji: "🪴", label: "盆栽 potted plant", category: "nature" },
++  { emoji: "🐈", label: "猫 宠物 cat pet", category: "nature" },
++  { emoji: "🐕", label: "狗 宠物 dog pet", category: "nature" },
++  { emoji: "🐱", label: "猫脸 cat face", category: "nature" },
++  { emoji: "🐶", label: "狗脸 dog face", category: "nature" },
++  { emoji: "🦊", label: "狐狸 fox", category: "nature" },
++  { emoji: "🐼", label: "熊猫 panda", category: "nature" },
++  { emoji: "🐻", label: "熊 bear", category: "nature" },
++  { emoji: "🐨", label: "考拉 koala", category: "nature" },
++  { emoji: "🐯", label: "老虎 tiger", category: "nature" },
++  { emoji: "🦁", label: "狮子 lion", category: "nature" },
++  { emoji: "🐮", label: "牛 cow", category: "nature" },
++  { emoji: "🐷", label: "猪 pig", category: "nature" },
++  { emoji: "🐸", label: "青蛙 frog", category: "nature" },
++  { emoji: "🐰", label: "兔子 rabbit", category: "nature" },
++  { emoji: "🐹", label: "仓鼠 hamster", category: "nature" },
++  { emoji: "🐭", label: "老鼠 mouse", category: "nature" },
++  { emoji: "🐵", label: "猴子 monkey", category: "nature" },
++  { emoji: "🙈", label: "非礼勿视 see no evil monkey", category: "nature" },
++  { emoji: "🙉", label: "非礼勿听 hear no evil monkey", category: "nature" },
++  { emoji: "🙊", label: "非礼勿言 speak no evil monkey", category: "nature" },
++  { emoji: "🦄", label: "独角兽 unicorn", category: "nature" },
++  { emoji: "🐴", label: "马 horse", category: "nature" },
++  { emoji: "🦓", label: "斑马 zebra", category: "nature" },
++  { emoji: "🦒", label: "长颈鹿 giraffe", category: "nature" },
++  { emoji: "🐘", label: "大象 elephant", category: "nature" },
++  { emoji: "🦏", label: "犀牛 rhinoceros", category: "nature" },
++  { emoji: "🐪", label: "骆驼 camel", category: "nature" },
++  { emoji: "🦙", label: "羊驼 llama", category: "nature" },
++  { emoji: "🐑", label: "绵羊 sheep", category: "nature" },
++  { emoji: "🐐", label: "山羊 goat", category: "nature" },
++  { emoji: "🦌", label: "鹿 deer", category: "nature" },
++  { emoji: "🦔", label: "刺猬 hedgehog", category: "nature" },
++  { emoji: "🐿️", label: "松鼠 squirrel", category: "nature" },
++  { emoji: "🦦", label: "水獭 otter", category: "nature" },
++  { emoji: "🐧", label: "企鹅 penguin", category: "nature" },
++  { emoji: "🐦", label: "鸟 bird", category: "nature" },
++  { emoji: "🐤", label: "小鸡 chick", category: "nature" },
++  { emoji: "🦆", label: "鸭子 duck", category: "nature" },
++  { emoji: "🦉", label: "猫头鹰 owl", category: "nature" },
++  { emoji: "🦅", label: "鹰 eagle", category: "nature" },
++  { emoji: "🦜", label: "鹦鹉 parrot", category: "nature" },
++  { emoji: "🦋", label: "蝴蝶 butterfly", category: "nature" },
++  { emoji: "🐝", label: "蜜蜂 bee honey", category: "nature" },
++  { emoji: "🐞", label: "瓢虫 ladybug", category: "nature" },
++  { emoji: "🐌", label: "蜗牛 snail", category: "nature" },
++  { emoji: "🐛", label: "毛毛虫 caterpillar", category: "nature" },
++  { emoji: "🐜", label: "蚂蚁 ant", category: "nature" },
++  { emoji: "🕷️", label: "蜘蛛 spider", category: "nature" },
++  { emoji: "🐢", label: "乌龟 turtle", category: "nature" },
++  { emoji: "🐍", label: "蛇 snake", category: "nature" },
++  { emoji: "🐙", label: "章鱼 octopus", category: "nature" },
++  { emoji: "🐳", label: "鲸鱼 whale", category: "nature" },
++  { emoji: "🐬", label: "海豚 dolphin", category: "nature" },
++  { emoji: "🦈", label: "鲨鱼 shark", category: "nature" },
++  { emoji: "🐟", label: "鱼 fish", category: "nature" },
++  { emoji: "🐠", label: "热带鱼 tropical fish", category: "nature" },
++  { emoji: "🦀", label: "螃蟹 crab", category: "nature" },
++  { emoji: "🦐", label: "虾 shrimp", category: "nature" },
++  { emoji: "🐚", label: "贝壳 shell", category: "nature" },
++  { emoji: "🔥", label: "火 热 fire", category: "nature" },
++  { emoji: "⚡", label: "闪电 lightning bolt power", category: "nature" },
++  { emoji: "☀️", label: "太阳 阳光 sun sunshine", category: "nature" },
++  { emoji: "🌙", label: "月亮 夜晚 moon night", category: "nature" },
++  { emoji: "🌈", label: "彩虹 rainbow colors", category: "nature" },
++  { emoji: "🌊", label: "海浪 wave ocean water", category: "nature" },
++  { emoji: "☁️", label: "云 cloud", category: "nature" },
++  { emoji: "🌧️", label: "下雨 rain cloud", category: "nature" },
++  { emoji: "⛈️", label: "雷雨 thunderstorm", category: "nature" },
++  { emoji: "☕", label: "咖啡 coffee drink cafe", category: "food" },
++  { emoji: "🍵", label: "茶 tea cup", category: "food" },
++  { emoji: "🍎", label: "苹果 apple fruit food", category: "food" },
++  { emoji: "🍏", label: "青苹果 green apple", category: "food" },
++  { emoji: "🍋", label: "柠檬 lemon fruit", category: "food" },
++  { emoji: "🍊", label: "橘子 tangerine orange", category: "food" },
++  { emoji: "🍌", label: "香蕉 banana", category: "food" },
++  { emoji: "🍉", label: "西瓜 watermelon", category: "food" },
++  { emoji: "🍇", label: "葡萄 grapes", category: "food" },
++  { emoji: "🍓", label: "草莓 strawberry", category: "food" },
++  { emoji: "🫐", label: "蓝莓 blueberries", category: "food" },
++  { emoji: "🍈", label: "甜瓜 melon", category: "food" },
++  { emoji: "🍒", label: "樱桃 cherries", category: "food" },
++  { emoji: "🍑", label: "桃子 peach", category: "food" },
++  { emoji: "🥭", label: "芒果 mango", category: "food" },
++  { emoji: "🍍", label: "菠萝 pineapple", category: "food" },
++  { emoji: "🥥", label: "椰子 coconut", category: "food" },
++  { emoji: "🥝", label: "猕猴桃 kiwi", category: "food" },
++  { emoji: "🥑", label: "牛油果 avocado", category: "food" },
++  { emoji: "🍅", label: "番茄 tomato", category: "food" },
++  { emoji: "🍆", label: "茄子 eggplant", category: "food" },
++  { emoji: "🥕", label: "胡萝卜 carrot", category: "food" },
++  { emoji: "🌽", label: "玉米 corn", category: "food" },
++  { emoji: "🌶️", label: "辣椒 hot pepper", category: "food" },
++  { emoji: "🥒", label: "黄瓜 cucumber", category: "food" },
++  { emoji: "🥦", label: "西兰花 broccoli", category: "food" },
++  { emoji: "🧄", label: "大蒜 garlic", category: "food" },
++  { emoji: "🧅", label: "洋葱 onion", category: "food" },
++  { emoji: "🥔", label: "土豆 potato", category: "food" },
++  { emoji: "🍞", label: "面包 bread", category: "food" },
++  { emoji: "🥐", label: "羊角面包 croissant", category: "food" },
++  { emoji: "🥖", label: "法棍 baguette", category: "food" },
++  { emoji: "🧀", label: "奶酪 cheese", category: "food" },
++  { emoji: "🥚", label: "鸡蛋 egg", category: "food" },
++  { emoji: "🍳", label: "煎蛋 cooking fried egg", category: "food" },
++  { emoji: "🥓", label: "培根 bacon", category: "food" },
++  { emoji: "🥩", label: "牛排 steak meat", category: "food" },
++  { emoji: "🍗", label: "鸡腿 poultry leg", category: "food" },
++  { emoji: "🍔", label: "汉堡 hamburger", category: "food" },
++  { emoji: "🍟", label: "薯条 fries", category: "food" },
++  { emoji: "🍕", label: "披萨 pizza cooking food", category: "food" },
++  { emoji: "🌭", label: "热狗 hot dog", category: "food" },
++  { emoji: "🥪", label: "三明治 sandwich", category: "food" },
++  { emoji: "🌮", label: "墨西哥卷饼 taco", category: "food" },
++  { emoji: "🥗", label: "沙拉 salad", category: "food" },
++  { emoji: "🍲", label: "炖菜 pot stew", category: "food" },
++  { emoji: "🍜", label: "拉面 ramen noodles", category: "food" },
++  { emoji: "🍝", label: "意大利面 spaghetti", category: "food" },
++  { emoji: "🍣", label: "寿司 sushi", category: "food" },
++  { emoji: "🍱", label: "便当 bento", category: "food" },
++  { emoji: "🥟", label: "饺子 dumpling", category: "food" },
++  { emoji: "🍙", label: "饭团 rice ball", category: "food" },
++  { emoji: "🍚", label: "米饭 cooked rice", category: "food" },
++  { emoji: "🍛", label: "咖喱饭 curry rice", category: "food" },
++  { emoji: "🍡", label: "团子 dango", category: "food" },
++  { emoji: "🍰", label: "蛋糕 cake dessert baking", category: "food" },
++  { emoji: "🎂", label: "生日蛋糕 birthday cake", category: "food" },
++  { emoji: "🧁", label: "纸杯蛋糕 cupcake", category: "food" },
++  { emoji: "🍮", label: "布丁 custard pudding", category: "food" },
++  { emoji: "🍭", label: "棒棒糖 lollipop", category: "food" },
++  { emoji: "🍷", label: "红酒 wine glass", category: "food" },
++  { emoji: "🏠", label: "房子 家 house home family", category: "travel" },
++  { emoji: "🚀", label: "火箭 rocket launch project", category: "travel" },
++  { emoji: "🚲", label: "自行车 bicycle cycling", category: "travel" },
++  { emoji: "✈️", label: "飞机 airplane travel", category: "travel" },
++  { emoji: "🏕️", label: "露营 camping tent outdoors", category: "travel" },
++  { emoji: "🏔️", label: "雪山 mountain hiking", category: "travel" },
++  { emoji: "🏖️", label: "海滩 beach holiday", category: "travel" },
++  { emoji: "🌍", label: "地球 earth world globe", category: "travel" },
++  { emoji: "🧭", label: "指南针 compass exploration", category: "travel" },
++  { emoji: "🚗", label: "汽车 car", category: "travel" },
++  { emoji: "🚕", label: "出租车 taxi", category: "travel" },
++  { emoji: "🚌", label: "公交车 bus", category: "travel" },
++  { emoji: "🚓", label: "警车 police car", category: "travel" },
++  { emoji: "🚑", label: "救护车 ambulance", category: "travel" },
++  { emoji: "🚒", label: "消防车 fire engine", category: "travel" },
++  { emoji: "🚚", label: "货车 delivery truck", category: "travel" },
++  { emoji: "🚜", label: "拖拉机 tractor", category: "travel" },
++  { emoji: "🏍️", label: "摩托车 motorcycle", category: "travel" },
++  { emoji: "🛵", label: "踏板车 motor scooter", category: "travel" },
++  { emoji: "🛴", label: "滑板车 kick scooter", category: "travel" },
++  { emoji: "🚆", label: "火车 train", category: "travel" },
++  { emoji: "🚄", label: "高铁 high speed train", category: "travel" },
++  { emoji: "🚇", label: "地铁 metro subway", category: "travel" },
++  { emoji: "🚋", label: "有轨电车 tram", category: "travel" },
++  { emoji: "🚉", label: "车站 station", category: "travel" },
++  { emoji: "🚁", label: "直升机 helicopter", category: "travel" },
++  { emoji: "⛵", label: "帆船 sailboat", category: "travel" },
++  { emoji: "🚢", label: "轮船 ship", category: "travel" },
++  { emoji: "🛶", label: "独木舟 canoe", category: "travel" },
++  { emoji: "⚓", label: "船锚 anchor", category: "travel" },
++  { emoji: "⛽", label: "加油站 fuel pump", category: "travel" },
++  { emoji: "🚦", label: "交通灯 traffic light", category: "travel" },
++  { emoji: "🗺️", label: "世界地图 world map", category: "travel" },
++  { emoji: "🗽", label: "自由女神像 statue liberty", category: "travel" },
++  { emoji: "🗼", label: "东京塔 tower", category: "travel" },
++  { emoji: "🏰", label: "城堡 castle", category: "travel" },
++  { emoji: "🏯", label: "日式城堡 japanese castle", category: "travel" },
++  { emoji: "🏛️", label: "古典建筑 classical building", category: "travel" },
++  { emoji: "⛪", label: "教堂 church", category: "travel" },
++  { emoji: "🏨", label: "酒店 hotel", category: "travel" },
++  { emoji: "🏥", label: "医院 hospital", category: "travel" },
++  { emoji: "🏫", label: "学校 school", category: "travel" },
++  { emoji: "🏢", label: "办公楼 office building", category: "travel" },
++  { emoji: "🏭", label: "工厂 factory", category: "travel" },
++  { emoji: "🏡", label: "花园住宅 house garden", category: "travel" },
++  { emoji: "💼", label: "公文包 工作 briefcase work business", category: "activities" },
++  { emoji: "💡", label: "灯泡 灵感 light bulb ideas", category: "activities" },
++  { emoji: "🎨", label: "调色板 艺术 artist palette design art", category: "activities" },
++  { emoji: "📝", label: "备忘录 笔记 memo notes writing", category: "activities" },
++  { emoji: "🎯", label: "靶心 目标 target goals", category: "activities" },
++  { emoji: "🎵", label: "音符 music note", category: "activities" },
++  { emoji: "🎸", label: "吉他 guitar music", category: "activities" },
++  { emoji: "🎬", label: "场记板 电影 clapper board movies film", category: "activities" },
++  { emoji: "📷", label: "相机 camera photography", category: "activities" },
++  { emoji: "🎮", label: "手柄 game controller gaming", category: "activities" },
++  { emoji: "🎲", label: "骰子 dice games", category: "activities" },
++  { emoji: "⚽", label: "足球 soccer football sport", category: "activities" },
++  { emoji: "🏀", label: "篮球 basketball sport", category: "activities" },
++  { emoji: "🏆", label: "奖杯 trophy achievement", category: "activities" },
++  { emoji: "🔬", label: "显微镜 microscope research science", category: "activities" },
++  { emoji: "🧪", label: "试管 test tube experiment", category: "activities" },
++  { emoji: "💻", label: "笔记本电脑 laptop code technology", category: "activities" },
++  { emoji: "🛠️", label: "工具 tools building", category: "activities" },
++  { emoji: "🧩", label: "拼图 puzzle piece", category: "activities" },
++  { emoji: "🎓", label: "毕业帽 graduation education study", category: "activities" },
++  { emoji: "🎉", label: "庆祝 celebration party", category: "activities" },
++  { emoji: "📚", label: "书籍 books reading library", category: "activities" },
++  { emoji: "⚾", label: "棒球 baseball", category: "activities" },
++  { emoji: "🏐", label: "排球 volleyball", category: "activities" },
++  { emoji: "🏈", label: "橄榄球 american football", category: "activities" },
++  { emoji: "🎾", label: "网球 tennis", category: "activities" },
++  { emoji: "🏓", label: "乒乓球 ping pong", category: "activities" },
++  { emoji: "🏸", label: "羽毛球 badminton", category: "activities" },
++  { emoji: "🏒", label: "冰球 ice hockey", category: "activities" },
++  { emoji: "🥊", label: "拳击手套 boxing glove", category: "activities" },
++  { emoji: "🥋", label: "武术服 martial arts", category: "activities" },
++  { emoji: "⛳", label: "高尔夫 golf", category: "activities" },
++  { emoji: "🏹", label: "弓箭 archery", category: "activities" },
++  { emoji: "🎣", label: "钓鱼 fishing", category: "activities" },
++  { emoji: "🤿", label: "潜水 diving mask", category: "activities" },
++  { emoji: "🛹", label: "滑板 skateboard", category: "activities" },
++  { emoji: "🛼", label: "轮滑 roller skate", category: "activities" },
++  { emoji: "⛸️", label: "滑冰 ice skate", category: "activities" },
++  { emoji: "🎿", label: "滑雪 skis", category: "activities" },
++  { emoji: "🛷", label: "雪橇 sled", category: "activities" },
++  { emoji: "🎳", label: "保龄球 bowling", category: "activities" },
++  { emoji: "🎱", label: "台球 billiards", category: "activities" },
++  { emoji: "♟️", label: "国际象棋 chess pawn", category: "activities" },
++  { emoji: "🪁", label: "风筝 kite", category: "activities" },
++  { emoji: "🎹", label: "钢琴 piano keyboard", category: "activities" },
++  { emoji: "🥁", label: "鼓 drum", category: "activities" },
++  { emoji: "🎻", label: "小提琴 violin", category: "activities" },
++  { emoji: "🎺", label: "小号 trumpet", category: "activities" },
++  { emoji: "🎷", label: "萨克斯 saxophone", category: "activities" },
++  { emoji: "🎤", label: "麦克风 microphone singing", category: "activities" },
++  { emoji: "🎧", label: "耳机 headphones", category: "activities" },
++  { emoji: "🎼", label: "乐谱 musical score", category: "activities" },
++  { emoji: "🎭", label: "戏剧 performing arts", category: "activities" },
++  { emoji: "🎟️", label: "入场券 admission tickets", category: "activities" },
++  { emoji: "🎁", label: "礼物 gift", category: "activities" },
++  { emoji: "🎈", label: "气球 balloon", category: "activities" },
++  { emoji: "🎀", label: "蝴蝶结 ribbon", category: "activities" },
++  { emoji: "🏅", label: "奖牌 medal", category: "activities" },
++  { emoji: "🥇", label: "金牌 first place medal", category: "activities" },
++  { emoji: "🖼️", label: "画框 framed picture", category: "activities" },
++  { emoji: "❤️", label: "红心 爱 heart love", category: "symbols" },
++  { emoji: "💔", label: "心碎 broken heart", category: "symbols" },
++  { emoji: "💕", label: "爱心 hearts", category: "symbols" },
++  { emoji: "✨", label: "闪光 sparkle", category: "symbols" },
++  { emoji: "✅", label: "完成 对勾 done check", category: "symbols" },
++  { emoji: "❌", label: "错误 cross", category: "symbols" },
++  { emoji: "💯", label: "满分 hundred", category: "symbols" },
++  { emoji: "⭐", label: "星星 star favorites", category: "symbols" },
++  { emoji: "💎", label: "宝石 gem diamond", category: "symbols" },
++  { emoji: "🧡", label: "橙心 orange heart", category: "symbols" },
++  { emoji: "💛", label: "黄心 yellow heart", category: "symbols" },
++  { emoji: "💚", label: "绿心 green heart", category: "symbols" },
++  { emoji: "💙", label: "蓝心 blue heart", category: "symbols" },
++  { emoji: "💜", label: "紫心 purple heart", category: "symbols" },
++  { emoji: "🤎", label: "棕心 brown heart", category: "symbols" },
++  { emoji: "🖤", label: "黑心 black heart", category: "symbols" },
++  { emoji: "🤍", label: "白心 white heart", category: "symbols" },
++  { emoji: "🩷", label: "粉心 pink heart", category: "symbols" },
++  { emoji: "🩵", label: "浅蓝心 light blue heart", category: "symbols" },
++  { emoji: "🩶", label: "灰心 grey heart", category: "symbols" },
++  { emoji: "💖", label: "闪亮的心 sparkling heart", category: "symbols" },
++  { emoji: "💗", label: "成长的心 growing heart", category: "symbols" },
++  { emoji: "💓", label: "跳动的心 beating heart", category: "symbols" },
++  { emoji: "💞", label: "旋转的心 revolving hearts", category: "symbols" },
++  { emoji: "💘", label: "爱心箭 heart arrow", category: "symbols" },
++  { emoji: "💝", label: "丝带爱心 heart ribbon", category: "symbols" },
++  { emoji: "❣️", label: "心形感叹号 heart exclamation", category: "symbols" },
++  { emoji: "☮️", label: "和平 peace", category: "symbols" },
++  { emoji: "☯️", label: "阴阳 yin yang", category: "symbols" },
++  { emoji: "♾️", label: "无限 infinity", category: "symbols" },
++  { emoji: "⚠️", label: "警告 warning", category: "symbols" },
++  { emoji: "🚫", label: "禁止 prohibited", category: "symbols" },
++  { emoji: "⛔", label: "禁止进入 no entry", category: "symbols" },
++  { emoji: "♻️", label: "回收 recycling", category: "symbols" },
++  { emoji: "💤", label: "睡眠 sleep zzz", category: "symbols" },
++  { emoji: "💢", label: "怒气 anger symbol", category: "symbols" },
++  { emoji: "💥", label: "爆炸 collision boom", category: "symbols" },
++  { emoji: "💬", label: "对话 speech bubble", category: "symbols" },
++  { emoji: "💭", label: "思考 thought bubble", category: "symbols" },
++  { emoji: "❓", label: "问号 question", category: "symbols" },
++  { emoji: "❗", label: "感叹号 exclamation", category: "symbols" },
++  { emoji: "‼️", label: "双感叹号 double exclamation", category: "symbols" },
++  { emoji: "⁉️", label: "惊叹问号 exclamation question", category: "symbols" },
++  { emoji: "➕", label: "加号 plus", category: "symbols" },
++  { emoji: "➖", label: "减号 minus", category: "symbols" },
++];
 diff --git a/web/src/locales/ar.json b/web/src/locales/ar.json
-index 9d656439..c087b960 100644
+index 9d65643..fb65dde 100644
 --- a/web/src/locales/ar.json
 +++ b/web/src/locales/ar.json
 @@ -150,0 +151,4 @@
@@ -203,8 +625,20 @@ index 9d656439..c087b960 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -160 +164,10 @@
+-      "image-upload-failed": "تعذر رفع بعض الصور. أعد المحاولة أو احتفظ بالملفات المرفوعة كمرفقات."
++      "image-upload-failed": "تعذر رفع بعض الصور. أعد المحاولة أو احتفظ بالملفات المرفوعة كمرفقات.",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/az.json b/web/src/locales/az.json
-index a0780ff7..a2df58fd 100644
+index a0780ff..5d4382b 100644
 --- a/web/src/locales/az.json
 +++ b/web/src/locales/az.json
 @@ -262,0 +263,4 @@
@@ -212,8 +646,20 @@ index a0780ff7..a2df58fd 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -272 +276,10 @@
+-      "uploading-images": "Şəkillər yüklənir {{completed}}/{{total}}"
++      "uploading-images": "Şəkillər yüklənir {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/bg.json b/web/src/locales/bg.json
-index d731784e..302f187d 100644
+index d731784..b5bb763 100644
 --- a/web/src/locales/bg.json
 +++ b/web/src/locales/bg.json
 @@ -186,0 +187,4 @@
@@ -221,8 +667,20 @@ index d731784e..302f187d 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -196 +200,10 @@
+-      "uploading-images": "Качване на изображения {{completed}}/{{total}}"
++      "uploading-images": "Качване на изображения {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/ca.json b/web/src/locales/ca.json
-index 72a325ce..d0460f03 100644
+index 72a325c..ed5af99 100644
 --- a/web/src/locales/ca.json
 +++ b/web/src/locales/ca.json
 @@ -148,0 +149,4 @@
@@ -230,8 +688,20 @@ index 72a325ce..d0460f03 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "S'estan pujant imatges {{completed}}/{{total}}"
++      "uploading-images": "S'estan pujant imatges {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/cs.json b/web/src/locales/cs.json
-index d747efa0..2638d106 100644
+index d747efa..4227ca2 100644
 --- a/web/src/locales/cs.json
 +++ b/web/src/locales/cs.json
 @@ -148,0 +149,4 @@
@@ -239,8 +709,20 @@ index d747efa0..2638d106 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Nahrávání obrázků {{completed}}/{{total}}"
++      "uploading-images": "Nahrávání obrázků {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/da.json b/web/src/locales/da.json
-index c9495c68..118caa57 100644
+index c9495c6..30288e1 100644
 --- a/web/src/locales/da.json
 +++ b/web/src/locales/da.json
 @@ -186,0 +187,4 @@
@@ -248,8 +730,20 @@ index c9495c68..118caa57 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -196 +200,10 @@
+-      "uploading-images": "Uploader billeder {{completed}}/{{total}}"
++      "uploading-images": "Uploader billeder {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/de.json b/web/src/locales/de.json
-index b92a46bf..e16a3edf 100644
+index b92a46b..e159fac 100644
 --- a/web/src/locales/de.json
 +++ b/web/src/locales/de.json
 @@ -148,0 +149,4 @@
@@ -257,8 +751,20 @@ index b92a46bf..e16a3edf 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Bilder werden hochgeladen {{completed}}/{{total}}"
++      "uploading-images": "Bilder werden hochgeladen {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/el.json b/web/src/locales/el.json
-index 2ac84728..9494c7fd 100644
+index 2ac8472..9392260 100644
 --- a/web/src/locales/el.json
 +++ b/web/src/locales/el.json
 @@ -186,0 +187,4 @@
@@ -266,8 +772,20 @@ index 2ac84728..9494c7fd 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -196 +200,10 @@
+-      "uploading-images": "Μεταφόρτωση εικόνων {{completed}}/{{total}}"
++      "uploading-images": "Μεταφόρτωση εικόνων {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/en-GB.json b/web/src/locales/en-GB.json
-index 84c14e29..723b8dcd 100644
+index 84c14e2..b29b41e 100644
 --- a/web/src/locales/en-GB.json
 +++ b/web/src/locales/en-GB.json
 @@ -148,0 +149,4 @@
@@ -275,8 +793,20 @@ index 84c14e29..723b8dcd 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Uploading images {{completed}}/{{total}}"
++      "uploading-images": "Uploading images {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/en.json b/web/src/locales/en.json
-index 44925732..22d995dd 100644
+index 4492573..a81f53c 100644
 --- a/web/src/locales/en.json
 +++ b/web/src/locales/en.json
 @@ -262,0 +263,4 @@
@@ -284,8 +814,20 @@ index 44925732..22d995dd 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -272 +276,10 @@
+-      "uploading-images": "Uploading images {{completed}}/{{total}}"
++      "uploading-images": "Uploading images {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/es.json b/web/src/locales/es.json
-index b1b35c18..1ef22b74 100644
+index b1b35c1..8fbaf76 100644
 --- a/web/src/locales/es.json
 +++ b/web/src/locales/es.json
 @@ -148,0 +149,4 @@
@@ -293,8 +835,20 @@ index b1b35c18..1ef22b74 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Cargando imágenes {{completed}}/{{total}}"
++      "uploading-images": "Cargando imágenes {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/et.json b/web/src/locales/et.json
-index 12fadc6b..94b23fb1 100644
+index 12fadc6..0cfe107 100644
 --- a/web/src/locales/et.json
 +++ b/web/src/locales/et.json
 @@ -186,0 +187,4 @@
@@ -302,8 +856,20 @@ index 12fadc6b..94b23fb1 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -196 +200,10 @@
+-      "uploading-images": "Piltide üleslaadimine {{completed}}/{{total}}"
++      "uploading-images": "Piltide üleslaadimine {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/fa.json b/web/src/locales/fa.json
-index 01659f45..33fabc73 100644
+index 01659f4..6e1be3e 100644
 --- a/web/src/locales/fa.json
 +++ b/web/src/locales/fa.json
 @@ -150,0 +151,4 @@
@@ -311,8 +877,20 @@ index 01659f45..33fabc73 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -160 +164,10 @@
+-      "image-upload-failed": "برخی تصاویر بارگذاری نشدند. دوباره تلاش کنید یا فایل‌های بارگذاری‌شده را به‌عنوان پیوست نگه دارید."
++      "image-upload-failed": "برخی تصاویر بارگذاری نشدند. دوباره تلاش کنید یا فایل‌های بارگذاری‌شده را به‌عنوان پیوست نگه دارید.",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/fi.json b/web/src/locales/fi.json
-index a1efe4a4..7bfab18e 100644
+index a1efe4a..2508d1b 100644
 --- a/web/src/locales/fi.json
 +++ b/web/src/locales/fi.json
 @@ -186,0 +187,4 @@
@@ -320,8 +898,20 @@ index a1efe4a4..7bfab18e 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -196 +200,10 @@
+-      "uploading-images": "Kuvien lataus {{completed}}/{{total}}"
++      "uploading-images": "Kuvien lataus {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/fr.json b/web/src/locales/fr.json
-index 1e7b356e..66c2ba7b 100644
+index 1e7b356..59a998d 100644
 --- a/web/src/locales/fr.json
 +++ b/web/src/locales/fr.json
 @@ -148,0 +149,4 @@
@@ -329,8 +919,20 @@ index 1e7b356e..66c2ba7b 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Chargement des images {{completed}}/{{total}}"
++      "uploading-images": "Chargement des images {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/gl.json b/web/src/locales/gl.json
-index 3b6cc8d5..39bfb604 100644
+index 3b6cc8d..3e24d1b 100644
 --- a/web/src/locales/gl.json
 +++ b/web/src/locales/gl.json
 @@ -148,0 +149,4 @@
@@ -338,8 +940,20 @@ index 3b6cc8d5..39bfb604 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Subindo imaxes {{completed}}/{{total}}"
++      "uploading-images": "Subindo imaxes {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/he.json b/web/src/locales/he.json
-index 4e0624ca..a5867574 100644
+index 4e0624c..a2e94cf 100644
 --- a/web/src/locales/he.json
 +++ b/web/src/locales/he.json
 @@ -236,0 +237,4 @@
@@ -347,8 +961,20 @@ index 4e0624ca..a5867574 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -246 +250,10 @@
+-      "uploading-images": "מעלה תמונות {{completed}}/{{total}}"
++      "uploading-images": "מעלה תמונות {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/hi.json b/web/src/locales/hi.json
-index 2366c60a..462d9ffa 100644
+index 2366c60..e247464 100644
 --- a/web/src/locales/hi.json
 +++ b/web/src/locales/hi.json
 @@ -150,0 +151,4 @@
@@ -356,8 +982,20 @@ index 2366c60a..462d9ffa 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -160 +164,10 @@
+-      "uploading-images": "इमेज अपलोड हो रही हैं {{completed}}/{{total}}"
++      "uploading-images": "इमेज अपलोड हो रही हैं {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/hr.json b/web/src/locales/hr.json
-index 973d7bb3..c38d09b3 100644
+index 973d7bb..63ccf40 100644
 --- a/web/src/locales/hr.json
 +++ b/web/src/locales/hr.json
 @@ -148,0 +149,4 @@
@@ -365,8 +1003,20 @@ index 973d7bb3..c38d09b3 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Prijenos slika {{completed}}/{{total}}"
++      "uploading-images": "Prijenos slika {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/hu.json b/web/src/locales/hu.json
-index 2e69cc93..5ca980f9 100644
+index 2e69cc9..f192a24 100644
 --- a/web/src/locales/hu.json
 +++ b/web/src/locales/hu.json
 @@ -148,0 +149,4 @@
@@ -374,8 +1024,20 @@ index 2e69cc93..5ca980f9 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Képek feltöltése {{completed}}/{{total}}"
++      "uploading-images": "Képek feltöltése {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/id.json b/web/src/locales/id.json
-index c48c5f5e..743aa806 100644
+index c48c5f5..70000fe 100644
 --- a/web/src/locales/id.json
 +++ b/web/src/locales/id.json
 @@ -150,0 +151,4 @@
@@ -383,8 +1045,20 @@ index c48c5f5e..743aa806 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -160 +164,10 @@
+-      "uploading-images": "Mengunggah gambar {{completed}}/{{total}}"
++      "uploading-images": "Mengunggah gambar {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/it.json b/web/src/locales/it.json
-index 66747877..33f602bf 100644
+index 6674787..4517983 100644
 --- a/web/src/locales/it.json
 +++ b/web/src/locales/it.json
 @@ -148,0 +149,4 @@
@@ -392,8 +1066,20 @@ index 66747877..33f602bf 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "image-upload-failed": "Impossibile caricare alcune immagini. Riprova o mantieni i file caricati come allegati."
++      "image-upload-failed": "Impossibile caricare alcune immagini. Riprova o mantieni i file caricati come allegati.",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/ja.json b/web/src/locales/ja.json
-index bd1d8243..dd2beb49 100644
+index bd1d824..951651d 100644
 --- a/web/src/locales/ja.json
 +++ b/web/src/locales/ja.json
 @@ -151,0 +152,4 @@
@@ -401,8 +1087,20 @@ index bd1d8243..dd2beb49 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -161 +165,10 @@
+-      "uploading-images": "画像 {{completed}}/{{total}} をアップロード中"
++      "uploading-images": "画像 {{completed}}/{{total}} をアップロード中",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/ka-GE.json b/web/src/locales/ka-GE.json
-index f4411c87..857e68c9 100644
+index f4411c8..1b93093 100644
 --- a/web/src/locales/ka-GE.json
 +++ b/web/src/locales/ka-GE.json
 @@ -148,0 +149,4 @@
@@ -410,8 +1108,20 @@ index f4411c87..857e68c9 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "სურათების ატვირთვა {{completed}}/{{total}}"
++      "uploading-images": "სურათების ატვირთვა {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/ko.json b/web/src/locales/ko.json
-index 391cb34e..299e154b 100644
+index 391cb34..e36646a 100644
 --- a/web/src/locales/ko.json
 +++ b/web/src/locales/ko.json
 @@ -150,0 +151,4 @@
@@ -419,8 +1129,20 @@ index 391cb34e..299e154b 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -160 +164,10 @@
+-      "uploading-images": "이미지 업로드 중 {{completed}}/{{total}}"
++      "uploading-images": "이미지 업로드 중 {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/lt.json b/web/src/locales/lt.json
-index aad84b23..958a13db 100644
+index aad84b2..74cc67b 100644
 --- a/web/src/locales/lt.json
 +++ b/web/src/locales/lt.json
 @@ -186,0 +187,4 @@
@@ -428,8 +1150,20 @@ index aad84b23..958a13db 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -196 +200,10 @@
+-      "uploading-images": "Įkeliami vaizdai {{completed}}/{{total}}"
++      "uploading-images": "Įkeliami vaizdai {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/lv.json b/web/src/locales/lv.json
-index ce808841..9d916b66 100644
+index ce80884..9ddd18d 100644
 --- a/web/src/locales/lv.json
 +++ b/web/src/locales/lv.json
 @@ -186,0 +187,4 @@
@@ -437,8 +1171,20 @@ index ce808841..9d916b66 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -196 +200,10 @@
+-      "uploading-images": "Attēlu augšupielāde {{completed}}/{{total}}"
++      "uploading-images": "Attēlu augšupielāde {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/mr.json b/web/src/locales/mr.json
-index 9eb3083e..dfeb751b 100644
+index 9eb3083..e42df79 100644
 --- a/web/src/locales/mr.json
 +++ b/web/src/locales/mr.json
 @@ -150,0 +151,4 @@
@@ -446,8 +1192,20 @@ index 9eb3083e..dfeb751b 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -160 +164,10 @@
+-      "image-upload-failed": "काही प्रतिमा अपलोड होऊ शकल्या नाहीत. पुन्हा प्रयत्न करा किंवा अपलोड केलेल्या फाइल्स जोडपत्रे म्हणून ठेवा."
++      "image-upload-failed": "काही प्रतिमा अपलोड होऊ शकल्या नाहीत. पुन्हा प्रयत्न करा किंवा अपलोड केलेल्या फाइल्स जोडपत्रे म्हणून ठेवा.",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/nb.json b/web/src/locales/nb.json
-index 6e35ba43..9ddda5bd 100644
+index 6e35ba4..ae3ef32 100644
 --- a/web/src/locales/nb.json
 +++ b/web/src/locales/nb.json
 @@ -148,0 +149,4 @@
@@ -455,8 +1213,20 @@ index 6e35ba43..9ddda5bd 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Laster opp bilder {{completed}}/{{total}}"
++      "uploading-images": "Laster opp bilder {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/nl.json b/web/src/locales/nl.json
-index d3efa614..de7a61fc 100644
+index d3efa61..f4a4dc1 100644
 --- a/web/src/locales/nl.json
 +++ b/web/src/locales/nl.json
 @@ -148,0 +149,4 @@
@@ -464,8 +1234,20 @@ index d3efa614..de7a61fc 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Afbeeldingen uploaden {{completed}}/{{total}}"
++      "uploading-images": "Afbeeldingen uploaden {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/pl.json b/web/src/locales/pl.json
-index 63e03157..8fa7642f 100644
+index 63e0315..2b1fb3b 100644
 --- a/web/src/locales/pl.json
 +++ b/web/src/locales/pl.json
 @@ -164,0 +165,4 @@
@@ -473,8 +1255,20 @@ index 63e03157..8fa7642f 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -174 +178,10 @@
+-      "uploading-images": "Przesyłanie obrazów {{completed}}/{{total}}"
++      "uploading-images": "Przesyłanie obrazów {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/pt-BR.json b/web/src/locales/pt-BR.json
-index 35eed2c3..5ad78ea9 100644
+index 35eed2c..066a15b 100644
 --- a/web/src/locales/pt-BR.json
 +++ b/web/src/locales/pt-BR.json
 @@ -150,0 +151,4 @@
@@ -482,8 +1276,20 @@ index 35eed2c3..5ad78ea9 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -160 +164,10 @@
+-      "uploading-images": "Carregando imagens {{completed}}/{{total}}"
++      "uploading-images": "Carregando imagens {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/pt-PT.json b/web/src/locales/pt-PT.json
-index 8fc7bb93..3ed4c7fe 100644
+index 8fc7bb9..d7250bc 100644
 --- a/web/src/locales/pt-PT.json
 +++ b/web/src/locales/pt-PT.json
 @@ -148,0 +149,4 @@
@@ -491,8 +1297,20 @@ index 8fc7bb93..3ed4c7fe 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "A carregar imagens {{completed}}/{{total}}"
++      "uploading-images": "A carregar imagens {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/ro.json b/web/src/locales/ro.json
-index 94c94f0f..481a64d6 100644
+index 94c94f0..3561573 100644
 --- a/web/src/locales/ro.json
 +++ b/web/src/locales/ro.json
 @@ -186,0 +187,4 @@
@@ -500,8 +1318,20 @@ index 94c94f0f..481a64d6 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -196 +200,10 @@
+-      "uploading-images": "Se încarcă imagini {{completed}}/{{total}}"
++      "uploading-images": "Se încarcă imagini {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/ru.json b/web/src/locales/ru.json
-index 59d305b9..ea6a3553 100644
+index 59d305b..8ee8425 100644
 --- a/web/src/locales/ru.json
 +++ b/web/src/locales/ru.json
 @@ -148,0 +149,4 @@
@@ -509,8 +1339,20 @@ index 59d305b9..ea6a3553 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Загрузка изображений: {{completed}}/{{total}}"
++      "uploading-images": "Загрузка изображений: {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/sk.json b/web/src/locales/sk.json
-index 5c492207..c5390fd6 100644
+index 5c49220..b293e58 100644
 --- a/web/src/locales/sk.json
 +++ b/web/src/locales/sk.json
 @@ -186,0 +187,4 @@
@@ -518,8 +1360,20 @@ index 5c492207..c5390fd6 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -196 +200,10 @@
+-      "uploading-images": "Nahrávanie obrázkov {{completed}}/{{total}}"
++      "uploading-images": "Nahrávanie obrázkov {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/sl.json b/web/src/locales/sl.json
-index 71694b18..7f84989f 100644
+index 71694b1..e29aef9 100644
 --- a/web/src/locales/sl.json
 +++ b/web/src/locales/sl.json
 @@ -148,0 +149,4 @@
@@ -527,8 +1381,20 @@ index 71694b18..7f84989f 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Nalaganje slik {{completed}}/{{total}}"
++      "uploading-images": "Nalaganje slik {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/sr.json b/web/src/locales/sr.json
-index 32f6488b..78897bbd 100644
+index 32f6488..2076bb0 100644
 --- a/web/src/locales/sr.json
 +++ b/web/src/locales/sr.json
 @@ -186,0 +187,4 @@
@@ -536,8 +1402,20 @@ index 32f6488b..78897bbd 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -196 +200,10 @@
+-      "uploading-images": "Отпремање слика {{completed}}/{{total}}"
++      "uploading-images": "Отпремање слика {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/sv.json b/web/src/locales/sv.json
-index fde20e4b..c407281c 100644
+index fde20e4..7514669 100644
 --- a/web/src/locales/sv.json
 +++ b/web/src/locales/sv.json
 @@ -148,0 +149,4 @@
@@ -545,8 +1423,20 @@ index fde20e4b..c407281c 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Uppladdning av bilder {{completed}}/{{total}}"
++      "uploading-images": "Uppladdning av bilder {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/th.json b/web/src/locales/th.json
-index 0ab77d0f..30e86c4f 100644
+index 0ab77d0..4e75142 100644
 --- a/web/src/locales/th.json
 +++ b/web/src/locales/th.json
 @@ -150,0 +151,4 @@
@@ -554,8 +1444,20 @@ index 0ab77d0f..30e86c4f 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -160 +164,10 @@
+-      "uploading-images": "กำลังอัปโหลดรูปภาพ {{completed}}/{{total}}"
++      "uploading-images": "กำลังอัปโหลดรูปภาพ {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/tr.json b/web/src/locales/tr.json
-index 17ed687e..ac56d824 100644
+index 17ed687..00da13e 100644
 --- a/web/src/locales/tr.json
 +++ b/web/src/locales/tr.json
 @@ -191,0 +192,4 @@
@@ -563,8 +1465,20 @@ index 17ed687e..ac56d824 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -201 +205,10 @@
+-      "uploading-images": "Görseller yükleniyor {{completed}}/{{total}}"
++      "uploading-images": "Görseller yükleniyor {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/uk.json b/web/src/locales/uk.json
-index 211d3c99..9e6cbcad 100644
+index 211d3c9..2386813 100644
 --- a/web/src/locales/uk.json
 +++ b/web/src/locales/uk.json
 @@ -148,0 +149,4 @@
@@ -572,8 +1486,20 @@ index 211d3c99..9e6cbcad 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -158 +162,10 @@
+-      "uploading-images": "Завантаження зображень {{completed}}/{{total}}"
++      "uploading-images": "Завантаження зображень {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/vi.json b/web/src/locales/vi.json
-index 2e32aac3..157696a9 100644
+index 2e32aac..428af26 100644
 --- a/web/src/locales/vi.json
 +++ b/web/src/locales/vi.json
 @@ -150,0 +151,4 @@
@@ -581,8 +1507,20 @@ index 2e32aac3..157696a9 100644
 +      "emoji-search": "Search emoji",
 +      "emoji-empty": "No matching emoji",
 +      "emoji-description": "Choose an emoji to insert at the cursor. Press Escape to close.",
+@@ -160 +164,10 @@
+-      "uploading-images": "Đang tải ảnh {{completed}}/{{total}}"
++      "uploading-images": "Đang tải ảnh {{completed}}/{{total}}",
++      "emoji-category": "Emoji categories",
++      "emoji-all": "All",
++      "emoji-faces": "Faces",
++      "emoji-people": "People",
++      "emoji-nature": "Nature",
++      "emoji-food": "Food",
++      "emoji-travel": "Travel",
++      "emoji-activities": "Objects",
++      "emoji-symbols": "Symbols"
 diff --git a/web/src/locales/zh-Hans.json b/web/src/locales/zh-Hans.json
-index 3dfa3390..930845a4 100644
+index 3dfa339..ffc58b6 100644
 --- a/web/src/locales/zh-Hans.json
 +++ b/web/src/locales/zh-Hans.json
 @@ -208,0 +209,4 @@
@@ -590,8 +1528,20 @@ index 3dfa3390..930845a4 100644
 +      "emoji-search": "搜索表情",
 +      "emoji-empty": "没有匹配的表情",
 +      "emoji-description": "选择表情插入光标位置，按 Esc 关闭。",
+@@ -218 +222,10 @@
+-      "uploading-images": "正在上传图片 {{completed}}/{{total}}"
++      "uploading-images": "正在上传图片 {{completed}}/{{total}}",
++      "emoji-category": "表情分类",
++      "emoji-all": "全部",
++      "emoji-faces": "表情",
++      "emoji-people": "人物",
++      "emoji-nature": "自然",
++      "emoji-food": "饮食",
++      "emoji-travel": "出行",
++      "emoji-activities": "物品",
++      "emoji-symbols": "符号"
 diff --git a/web/src/locales/zh-Hant.json b/web/src/locales/zh-Hant.json
-index 450a2454..ac35fe16 100644
+index 450a245..0030e6c 100644
 --- a/web/src/locales/zh-Hant.json
 +++ b/web/src/locales/zh-Hant.json
 @@ -243,0 +244,4 @@
@@ -599,8 +1549,20 @@ index 450a2454..ac35fe16 100644
 +      "emoji-search": "搜尋表情",
 +      "emoji-empty": "沒有符合的表情",
 +      "emoji-description": "選擇表情插入游標位置，按 Esc 關閉。",
+@@ -253 +257,10 @@
+-      "uploading-images": "正在上傳圖片 {{completed}}/{{total}}"
++      "uploading-images": "正在上傳圖片 {{completed}}/{{total}}",
++      "emoji-category": "表情分類",
++      "emoji-all": "全部",
++      "emoji-faces": "表情",
++      "emoji-people": "人物",
++      "emoji-nature": "自然",
++      "emoji-food": "飲食",
++      "emoji-travel": "出行",
++      "emoji-activities": "物品",
++      "emoji-symbols": "符號"
 diff --git a/web/tests/editor-controller.test.ts b/web/tests/editor-controller.test.ts
-index da2db570..0a059965 100644
+index da2db57..0a05996 100644
 --- a/web/tests/editor-controller.test.ts
 +++ b/web/tests/editor-controller.test.ts
 @@ -0,0 +1 @@
@@ -623,20 +1585,20 @@ index da2db570..0a059965 100644
 +  });
 +
 diff --git a/web/tests/formatting-toolbar.test.tsx b/web/tests/formatting-toolbar.test.tsx
-index cdc164c3..e1fbd168 100644
+index cdc164c..e1fbd16 100644
 --- a/web/tests/formatting-toolbar.test.tsx
 +++ b/web/tests/formatting-toolbar.test.tsx
 @@ -29,0 +30 @@ function makeController(opts: { active?: Partial<ActiveFormatState> } = {}) {
 +    insertText: vi.fn(),
 diff --git a/web/tests/insert-menu.test.tsx b/web/tests/insert-menu.test.tsx
-index 1d4937b2..5ec08b98 100644
+index 1d4937b..b277fde 100644
 --- a/web/tests/insert-menu.test.tsx
 +++ b/web/tests/insert-menu.test.tsx
 @@ -4,0 +5 @@ import { EditorToolbar } from "@/components/MemoEditor/Toolbar/EditorToolbar";
 +import EmojiPickerDialog from "@/components/MemoEditor/Toolbar/EmojiPickerDialog";
 @@ -36,0 +38 @@ const renderMenu = (onInsertImages = vi.fn(), isSaving = false, hosted = false)
 +        onInsertEmoji={vi.fn()}
-@@ -43,0 +46,9 @@ describe("InsertMenu", () => {
+@@ -43,0 +46,48 @@ describe("InsertMenu", () => {
 +  test("searches emoji by Chinese label and inserts the chosen Unicode text", () => {
 +    const onSelect = vi.fn();
 +    const onOpenChange = vi.fn();
@@ -646,9 +1608,48 @@ index 1d4937b2..5ec08b98 100644
 +    expect(onSelect).toHaveBeenCalledWith("😂");
 +    expect(onOpenChange).toHaveBeenCalledWith(false);
 +  });
-@@ -56,0 +68 @@ describe("InsertMenu", () => {
++  test("combines category filtering with Chinese search and restores all results", () => {
++    render(<EmojiPickerDialog open onOpenChange={vi.fn()} onSelect={vi.fn()} />);
++    const search = screen.getByRole("textbox", { name: "editor.insert-menu.emoji-search" });
++    fireEvent.click(screen.getByRole("button", { name: "editor.insert-menu.emoji-food" }));
++    expect(screen.getByText("🍕")).toBeInTheDocument();
++    expect(screen.queryByText("🐈")).not.toBeInTheDocument();
++    fireEvent.change(search, { target: { value: "猫" } });
++    expect(screen.getByRole("status")).toHaveTextContent("editor.insert-menu.emoji-empty");
++    fireEvent.click(screen.getByRole("button", { name: "editor.insert-menu.emoji-nature" }));
++    expect(screen.getByText("🐈")).toBeInTheDocument();
++    expect(screen.queryByText("🍕")).not.toBeInTheDocument();
++    fireEvent.change(search, { target: { value: "" } });
++    fireEvent.click(screen.getByRole("button", { name: "editor.insert-menu.emoji-all" }));
++    expect(screen.getByText("🐈")).toBeInTheDocument();
++    expect(screen.getByText("🍕")).toBeInTheDocument();
++  });
++  test("inserts a categorized emoji and resets filters for the next selection", () => {
++    const onSelect = vi.fn();
++    const onOpenChange = vi.fn();
++    const { rerender } = render(<EmojiPickerDialog open onOpenChange={onOpenChange} onSelect={onSelect} />);
++    fireEvent.click(screen.getByRole("button", { name: "editor.insert-menu.emoji-food" }));
++    fireEvent.change(screen.getByRole("textbox", { name: "editor.insert-menu.emoji-search" }), { target: { value: "PIZZA" } });
++    fireEvent.click(screen.getByText("🍕"));
++    expect(onSelect).toHaveBeenCalledWith("🍕");
++    expect(onOpenChange).toHaveBeenCalledWith(false);
++    rerender(<EmojiPickerDialog open={false} onOpenChange={onOpenChange} onSelect={onSelect} />);
++    rerender(<EmojiPickerDialog open onOpenChange={onOpenChange} onSelect={onSelect} />);
++    expect(screen.getByRole("button", { name: "editor.insert-menu.emoji-all" })).toHaveAttribute("aria-pressed", "true");
++    expect(screen.getByRole("textbox", { name: "editor.insert-menu.emoji-search" })).toHaveValue("");
++    expect(screen.getByText("🐈")).toBeInTheDocument();
++  });
++  test("prevents emoji insertion while saving", () => {
++    const onSelect = vi.fn();
++    render(<EmojiPickerDialog open disabled onOpenChange={vi.fn()} onSelect={onSelect} />);
++    const emoji = screen.getByText("🍕").closest("button");
++    expect(emoji).toBeDisabled();
++    fireEvent.click(emoji!);
++    expect(onSelect).not.toHaveBeenCalled();
++  });
+@@ -56,0 +107 @@ describe("InsertMenu", () => {
 +      "editor.insert-menu.insert-emoji",
-@@ -106 +118,7 @@ describe("InsertMenu", () => {
+@@ -106 +157,7 @@ describe("InsertMenu", () => {
 -        <EditorToolbar onSave={vi.fn()} onAudioRecorderClick={vi.fn()} viewToggles={viewToggles} onInsertImages={vi.fn()} />
 +        <EditorToolbar
 +          onSave={vi.fn()}

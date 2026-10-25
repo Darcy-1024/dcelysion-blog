@@ -49,3 +49,12 @@
 - 本轮 Git 实现基线已推送 `698fbe3b`；后续运行时与真实协议修复独立具名提交，结果以 Git 回执为准。无 OpenAI Sites 发布。
 
 发布器私有状态与凭据同机备份：`/opt/dcelysion-memos-backups/publisher-private-20261020T192351Z.tar.gz`，SHA-256 `bac328e5d88b524975f191ee9ddd686c7c39e1cf8463847b8787672813a04321`，0600；归档可读。该备份不含整份 clone；干净且已推送的 checkout 可由远端重建。未来如有本地未推送候选，须按 PUBLISH.md 成对保留 clone。临时请求诊断现已关闭。
+
+## 2026-10-25 表情扩充独立发布
+
+- 426 表情及分类筛选已通过 `deploy/memos/update-memos-emoji-20261025.py` 部署，release 为 `/opt/dcelysion-admin-stage2/releases/20261025-memos-emoji`；本次只替换前端并更新 release 清单。
+- UI 补丁 SHA-256 为 `547325543da9fb609dfd0629c59e44d1f27b1af65cedfa5b8078feaa32e71957`，300 个文件、12,682,364 字节，清单 SHA-256 为 `589bc7be08820c173f9137c344e2d62034cef219fb2e616b6c08f7d4543b8c3b`。全部产物摘要、两份工作区的 56 个源码摘要和 Linux sealed loader 核验通过。
+- 编辑器、菜单、格式工具栏及语言资源定向测试 114/114 通过。Windows 沙箱临时文件 rename EPERM 阻断初次执行后，在沙箱外同样的定向测试通过，未把环境错误计为通过。
+- 后台 bundle 保持 `70f651b5b2aad47c30987317570cafb6f3499f6678ba3bbbd69796723dda2e2d`，保留 10-23 静态资源并发与 gzip 优化；环境、镜像、资源限制和非后台挂载与候选逐项等价检查通过。旧容器 `dc-admin-formal-before-memos-emoji-20261025` 与旧 release 保留。
+- 切换后容器内及公网后台登录入口 200；后台 Memos API、Memos 根页面、API、index 和新 JS 匿名访问均 401。生产 operator 回执为 `/opt/dcelysion-admin-stage2/operator/memos-emoji-20261025/result.json`。
+- 没有修改 Memos/评论数据库或触发内容发布；登录态分类点击、焦点与保存回读未在本次验收。Git 提交/推送与公开博客自动部署另行记录。
