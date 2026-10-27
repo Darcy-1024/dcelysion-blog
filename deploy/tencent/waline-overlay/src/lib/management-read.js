@@ -14,14 +14,23 @@ async function read(models, query, avatar = async () => '') {
     let user;
     if (!row.avatar && row.user_id) {
       const key = String(row.user_id);
-      if (!linkedUsers.has(key)) linkedUsers.set(key, users.select({ objectId: row.user_id }, { field: ['avatar', 'email', 'display_name', 'url'] }).then(rows => rows[0]));
+      if (!linkedUsers.has(key)) linkedUsers.set(key, Promise.resolve().then(() => users.select({ objectId: row.user_id }, { field: ['avatar', 'email', 'display_name', 'url'] })).then(rows => rows[0]).catch(() => undefined));
       user = await linkedUsers.get(key);
     }
-    const source = row.avatar || user?.avatar || await avatar({
-      mail: row.mail || user?.email,
-      nick: row.nick || user?.display_name,
-      link: row.link || user?.url,
-    });
+    let source = row.avatar || user?.avatar || '';
+    if (!source) {
+      try {
+        // Waline's default template calls trim on mail: missing values must be strings.
+        source = await avatar({
+          mail: row.mail || user?.email || '',
+          nick: row.nick || user?.display_name || '',
+          link: row.link || user?.url || '',
+        });
+      } catch {
+        // Optional avatar enrichment must never hide otherwise readable comments.
+        source = '';
+      }
+    }
     // Mail and other storage fields are inputs only, never part of the response.
     return { ...pick(row, commentFields), avatar: source };
   };

@@ -7,6 +7,69 @@ process.env.NODE_PATH = path.join(__dirname, '../password-reset/node_modules');
 require('node:module').Module._initPaths();
 const { read } = require('./src/lib/management-read.js');
 
+test('anonymous comments without mail satisfy the real Waline avatar template trim contract', async () => {
+  const nunjucks = require('nunjucks');
+  const env = new nunjucks.Environment();
+  // The fixed Waline avatar template uses mail | trim | lower before hashing.
+  assert.throws(() => env.renderString('{{ mail | trim | lower }}', {}), /replace/);
+  const rows = [
+    { objectId: 1, comment: 'empty mail', mail: '', nick: 'Guest', link: null },
+    { objectId: 2, comment: 'null mail', mail: null, nick: null },
+    { objectId: 3, comment: 'missing mail' },
+  ];
+  const comments = { count: async () => rows.length, select: async where => where.objectId ? rows.filter(row => row.objectId === where.objectId) : rows };
+  const inputs = [];
+  const avatar = async input => {
+    inputs.push(input);
+    assert.equal(typeof input.mail, 'string');
+    assert.equal(typeof input.nick, 'string');
+    assert.equal(typeof input.link, 'string');
+    env.renderString('{{ mail | trim | lower }}', input);
+    return 'https://example.invalid/default.png';
+  };
+  const result = await read(() => comments, { resource: 'comment' }, avatar);
+  assert.equal(result.items.length, 3);
+  assert.ok(result.items.every(row => row.avatar === 'https://example.invalid/default.png'));
+  assert.deepEqual(inputs[0], { mail: '', nick: 'Guest', link: '' });
+  assert.deepEqual(inputs[1], { mail: '', nick: '', link: '' });
+  const thread = await read(() => comments, { resource: 'comment', id: 2 }, avatar);
+  assert.equal(thread.item.comment, 'null mail');
+  assert.equal(thread.thread.length, 3);
+});
+
+test('avatar service failures keep list and thread comment bodies readable', async () => {
+  const rows = [
+    { objectId: 1, comment: '正文保留', nick: 'Guest', mail: '' },
+    { objectId: 2, comment: '已有头像保留', avatar: 'https://example.invalid/own.png' },
+  ];
+  const comments = { count: async () => rows.length, select: async where => where.objectId ? rows.filter(row => row.objectId === where.objectId) : rows };
+  const avatar = async () => { throw new Error('avatar rendering failed'); };
+  const result = await read(() => comments, { resource: 'comment' }, avatar);
+  assert.equal(result.items[0].comment, '正文保留');
+  assert.equal(result.items[0].avatar, '');
+  assert.equal(result.items[1].avatar, rows[1].avatar);
+  const thread = await read(() => comments, { resource: 'comment', id: 1 }, avatar);
+  assert.equal(thread.item.avatar, '');
+  assert.equal(thread.thread[0].comment, '正文保留');
+});
+
+test('optional linked-user avatar lookup failure falls back without hiding comments', async () => {
+  const rows = [1, 2].map(objectId => ({ objectId, user_id: 8, comment: `正文${objectId}`, mail: 'guest@example.invalid', nick: 'Guest' }));
+  const comments = { count: async () => rows.length, select: async () => rows };
+  for (const synchronous of [false, true]) {
+    let lookups = 0;
+    const users = { select() { lookups++; if (synchronous) throw new Error('lookup failed'); return Promise.reject(new Error('lookup failed')); } };
+    const result = await read(name => name === 'Users' ? users : comments, { resource: 'comment' }, async input => {
+      assert.equal(input.mail, 'guest@example.invalid');
+      return 'https://example.invalid/default.png';
+    });
+    assert.equal(lookups, 1);
+    assert.deepEqual(result.items.map(row => row.comment), ['正文1', '正文2']);
+    assert.ok(result.items.every(row => row.avatar === 'https://example.invalid/default.png'));
+  }
+  await assert.rejects(read(() => ({ count: async () => 1, select: async () => { throw new Error('comment read failed'); } }), { resource: 'comment' }), /comment read failed/);
+});
+
 test('comment avatars preserve own/linked uploads, generate guest defaults, and keep private inputs server-side', async () => {
   const rows = [
     { objectId: 1, avatar: 'https://example.invalid/own.png', user_id: 8, comment: 'own', mail: 'own@example.invalid' },
