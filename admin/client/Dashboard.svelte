@@ -225,4 +225,33 @@ onMount(() => {
 .range-controls{background:var(--surface);padding:6px;border:1px solid var(--border);border-radius:14px;justify-self:start}.range-controls>button{border:0;background:transparent}.range-controls>button.primary{background:var(--accent);color:var(--surface)}.range-controls form{padding:10px}.metric{position:relative;gap:10px;box-shadow:var(--shadow)}.metric b,.number{font-size:38px;letter-spacing:-.05em;color:var(--accent);font-variant-numeric:tabular-nums}.metric button{border:0;background:var(--surface-soft);width:100%;border-radius:10px;padding:10px 14px}.metric h2{color:var(--text-muted);font-weight:550}.metric>p:last-child{margin-top:auto;padding-top:12px}.report-meta summary,.host-details summary{font-weight:650;color:var(--text);margin:0;cursor:pointer}.report-meta[open] summary,.host-details[open] summary{margin-bottom:16px}.report-meta{border-left:1px solid var(--border)}.dashboard th{color:var(--text-muted);font-weight:550}.chart-axis{color:var(--text-muted)}
 .workspace-welcome{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:240px;padding:36px 40px;background:linear-gradient(120deg,var(--accent-soft),var(--surface));border-radius:24px;position:relative;overflow:hidden}.welcome-copy{position:relative;z-index:1}.welcome-copy .eyebrow{margin:0 0 12px}.welcome-copy h1{font-size:34px;line-height:1.3;margin-bottom:12px}.welcome-copy>p{color:var(--text-muted)}.welcome-actions{display:flex;gap:10px;margin-top:24px;flex-wrap:wrap}.welcome-actions button{display:flex;align-items:center;gap:8px;padding:11px 18px}.welcome-note{width:205px;height:170px;flex-shrink:0;background:var(--surface);border:1px solid var(--border);border-radius:16px;transform:rotate(8deg);padding:22px;box-shadow:var(--shadow);color:var(--accent)}.note-star{display:block;font-size:34px;line-height:1.3}.welcome-note>span:last-of-type{font-size:8px;letter-spacing:.12em}.note-lines{display:grid;gap:9px;margin-top:16px}.note-lines i{display:block;height:5px;border-radius:3px;background:var(--accent-soft)}.note-lines i:last-child{width:65%}.workspace-shortcuts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.workspace-shortcuts button{display:flex;align-items:center;gap:14px;text-align:left;padding:20px;border-radius:16px;min-width:0}.workspace-shortcuts button>span:nth-child(2){flex:1}.workspace-shortcuts strong,.workspace-shortcuts small{display:block}.workspace-shortcuts strong{font-size:14px}.workspace-shortcuts small{font-size:11px;color:var(--text-muted);margin-top:4px}.workspace-shortcuts :global(svg){font-size:24px;color:var(--accent);flex-shrink:0}.section-heading{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:16px}.section-heading .eyebrow{margin:0 0 4px;font-size:9px}.section-heading h2{margin:0;font-size:20px}.metric-grid:not(.analytics-metrics){grid-template-columns:repeat(4,minmax(0,1fr))}.metric button{display:flex;align-items:center;justify-content:space-between;gap:8px}.metric-grid:not(.analytics-metrics) .metric{padding:20px 16px}.metric-grid:not(.analytics-metrics) .metric p{font-size:11px}@media(max-width:1250px){.metric-grid:not(.analytics-metrics){grid-template-columns:repeat(2,minmax(0,1fr))}.workspace-shortcuts button{padding:16px;gap:10px}}@media(max-width:1000px){.welcome-note{display:none}.workspace-shortcuts{grid-template-columns:1fr}.workspace-shortcuts button{padding:14px 18px}.workspace-shortcuts small{display:inline;margin-left:10px}.workspace-welcome{padding:28px}}@media(max-width:650px){.workspace-welcome{min-height:0;padding:24px}.welcome-copy h1{font-size:27px}.workspace-shortcuts small{display:block;margin-left:0}.metric-grid:not(.analytics-metrics){grid-template-columns:minmax(0,1fr)}}
 .host-topline{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:20px 0}.host-eyebrow{font-size:11px;letter-spacing:.14em;color:var(--accent);font-weight:650}.resource-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.process-strip{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px;padding:24px 4px}.process-strip>div{display:grid;gap:8px}.process-strip span{font-size:12px;color:var(--text-muted)}.process-strip strong{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums}.process-strip small{font-size:12px;font-weight:400}.host-notes{border-top:1px solid var(--border);padding-top:16px}.host-notes summary{font-size:12px;color:var(--text-muted);font-weight:400}@media(max-width:1000px){.resource-grid{grid-template-columns:1fr}.process-strip{grid-template-columns:repeat(2,minmax(0,1fr))}}
+/* Keep narrow cards and date controls inside the available content column. */
+.dashboard > *, .welcome-copy, .workspace-shortcuts button > span, .range-controls label, .process-strip > div { min-width: 0; }
+.dashboard h1, .dashboard h2, .dashboard h3, .dashboard strong, .dashboard summary, .metric b, .metric button, .process-strip strong { overflow-wrap: anywhere; }
+.range-controls { max-width: 100%; box-sizing: border-box; }
+.range-controls form { min-width: 0; box-sizing: border-box; }
+.range-controls label { flex: 1 1 150px; }
+.range-controls input { min-width: 0; max-width: 100%; }
+.chart-axis { flex-wrap: wrap; }
+.chart-axis span { min-width: 0; overflow-wrap: anywhere; }
+@media (max-width: 900px) {
+ .analytics-metrics, .breakdown-grid { grid-template-columns: minmax(0, 1fr); }
+}
+@media (max-width: 760px) {
+ .dashboard button, .dashboard summary { min-height: 44px; }
+ .dashboard summary { align-content: center; }
+ .dashboard .heading, .section-heading { flex-wrap: wrap; gap: 12px; }
+ .welcome-actions button { flex: 1 1 auto; justify-content: center; }
+ .range-controls { justify-self: stretch; }
+ .range-controls > button { flex: 1 1 90px; }
+ .range-controls form { padding: 8px 4px; }
+ .range-controls label { flex: auto; width: 100%; }
+ .range-controls input { font-size: 16px; min-height: 44px; }
+ .workspace-welcome { padding: 22px 18px; }
+ .workspace-shortcuts button { padding: 14px; }
+ .process-strip { gap: 16px 12px; padding: 20px 0; }
+ .process-strip strong { font-size: 16px; }
+ .chart-axis span:nth-child(2) { order: 1; flex-basis: 100%; text-align: center; }
+ .chart-axis span:last-child { margin-left: auto; text-align: right; }
+}
 </style>

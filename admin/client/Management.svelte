@@ -311,4 +311,36 @@ async function reconcile() {
 
 <style>
 .comment-jump{display:inline-flex;align-items:center;padding:9px 13px;border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:13px;text-decoration:none;white-space:nowrap}.comment-jump:hover{background:var(--accent-soft)}
+.management, .management > *, .management .row, .management .toolbar, .management .pagination, .management-user-heading, .management-user-heading h2 { min-width: 0; }
+.management h2, .management strong, .management small, .management p, .management a { overflow-wrap: anywhere; }
+.management .toolbar select { min-width: 0; max-width: 100%; }
+.management .pagination > div { flex-wrap: wrap; }
+.management button { max-width: 100%; white-space: normal; overflow-wrap: anywhere; }
+.management-confirm > button { margin: 4px 4px 4px 0; }
+@media (max-width: 900px) {
+ .management .toolbar { gap: 12px; padding: 16px; }
+ .management .toolbar label { flex: 1 1 100%; }
+ .management .toolbar select { flex: 1 1 140px; }
+}
+@media (max-width: 760px) {
+ .management .row-main p:not(.comment-snippet) { white-space: normal; overflow-wrap: anywhere; }
+ .management button, .management .comment-jump, .management input, .management select { min-height: 44px; }
+ .management .comment-jump { justify-content: center; box-sizing: border-box; }
+ .management input, .management select, .management textarea { font-size: 16px; }
+ .management .heading { flex-wrap: wrap; gap: 12px; }
+ .management .management-source { padding: 14px; }
+ .management-detail, .management-confirm { padding: 16px; }
+ .management-detail .comment-text { padding: 12px; }
+ .management .row { padding: 16px 14px; align-items: flex-start; }
+ .management .row-main { flex: 1 1 calc(100% - 60px); }
+ .management .row > button, .management .row > .comment-jump { flex: 1 1 100%; }
+ .management .row > .muted { flex-basis: 100%; }
+ .management .editor-actions > button { flex: 1 1 100px; }
+ .management .pagination { padding: 14px 0; gap: 12px; }
+ .management .panel > .pagination { padding: 14px; }
+ .management .pagination > div { flex: 1 1 100%; }
+ .management .pagination button { flex: 1 1 0; }
+ .management-user-heading { align-items: flex-start; }
+ .management-user-heading h2 { margin-top: 0; }
+}
 </style>

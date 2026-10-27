@@ -263,7 +263,9 @@ function toggleTheme() {
  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
  try { localStorage.setItem('dc-admin-theme', dark ? 'dark' : 'light'); } catch {}
 }
-function openDrawer() {
+let drawerTrigger: HTMLElement | null = null;
+function openDrawer(event?: MouseEvent) {
+ drawerTrigger = event?.currentTarget instanceof HTMLElement ? event.currentTarget : menuButton;
  drawer = true;
  requestAnimationFrame(() => navigation?.querySelector<HTMLButtonElement>('button')?.focus());
 }
@@ -452,7 +454,7 @@ function changeKind(next: Kind, shouldLoad = true) {
 }
 function closeDrawer() {
 	drawer = false;
-	requestAnimationFrame(() => menuButton?.focus());
+	requestAnimationFrame(() => (drawerTrigger || menuButton)?.focus());
 }
 function changeFilter() {
 	page = 1;
@@ -505,7 +507,7 @@ function changePage(next: number) {
       </nav><div class="side-bottom"><UserAvatar src={ownerAvatar} name={owner.name}/><div class="account"><strong>{owner.name}</strong><small>站点管理员</small></div><button class="icon-button" title={words.logout} aria-label={words.logout} onclick={() => void logout()}><Icon icon="material-symbols:logout-rounded" /></button></div>
     </aside>
     <main class="content" inert={mobile && drawer}>
-      <header class="topbar"><button bind:this={menuButton} class="menu-button" aria-label={words.menu} aria-expanded={drawer} onclick={openDrawer}><Icon icon="material-symbols:menu-rounded" /></button><div class="breadcrumb">{sectionTitle} <span>/</span> <strong>{pageTitle}</strong></div><div class="top-tools"><button class="icon-button" onclick={toggleTheme} aria-label={dark ? '切换浅色模式' : '切换深色模式'} title={dark ? '切换浅色模式' : '切换深色模式'}><Icon icon={dark ? 'material-symbols:light-mode-outline-rounded' : 'material-symbols:dark-mode-outline-rounded'} /></button>{#if blogOrigin}<a class="blog-link" href={blogOrigin} target="_blank" rel="noopener noreferrer">查看博客 <Icon icon="material-symbols:open-in-new-rounded" /></a>{/if}</div></header>
+      <header class="topbar"><button bind:this={menuButton} class="menu-button" aria-label={words.menu} aria-expanded={drawer} onclick={openDrawer}><Icon icon="material-symbols:menu-rounded" /></button><div class="breadcrumb"><span class="breadcrumb-section">{sectionTitle} /</span> <strong>{pageTitle}</strong></div><div class="top-tools"><button class="icon-button" onclick={toggleTheme} aria-label={dark ? '切换浅色模式' : '切换深色模式'} title={dark ? '切换浅色模式' : '切换深色模式'}><Icon icon={dark ? 'material-symbols:light-mode-outline-rounded' : 'material-symbols:dark-mode-outline-rounded'} /></button>{#if blogOrigin}<a class="blog-link" href={blogOrigin} target="_blank" rel="noopener noreferrer">查看博客 <Icon icon="material-symbols:open-in-new-rounded" /></a>{/if}</div></header>
       <div class="page-body">
        {#if memosVisited}
         <div hidden={!memosMode} inert={!memosMode}><MemosEmbed bind:this={memosRef} onexpired={() => expired = true}/></div>
@@ -544,6 +546,12 @@ function changePage(next: number) {
        {/if}
       </div>
     </main>
+    <nav class="mobile-tabs" aria-label={words.menu} inert={mobile && drawer}>
+      <button class:active={dashboardMode === 'overview'} aria-current={dashboardMode === 'overview' ? 'page' : undefined} disabled={editorBusy} onclick={() => dashboardNavigate({view: 'overview'})}><Icon icon="material-symbols:space-dashboard-outline-rounded" /><span>{analyticsWords.overview}</span></button>
+      <button class:active={kind === 'posts' && !memosMode && !dashboardMode && !publishing && !mediaLibrary && !configurationKind && !managementMode} disabled={editorBusy} onclick={() => changeKind('posts')}><Icon icon="material-symbols:article-outline-rounded" /><span>{words.posts}</span></button>
+      <button class:active={memosMode} aria-current={memosMode ? 'page' : undefined} disabled={editorBusy} onclick={changeMemos}><Icon icon="material-symbols:edit-note-rounded" /><span>{memosWords.nav}</span></button>
+      <button class:active={managementMode === 'comments'} aria-current={managementMode === 'comments' ? 'page' : undefined} disabled={editorBusy} onclick={() => changeManagement('comments')}><Icon icon="material-symbols:forum-outline-rounded" /><span>{managementWords.comments}</span></button>
+    </nav>
   </div>
 {/if}
 

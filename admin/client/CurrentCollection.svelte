@@ -36,4 +36,23 @@ onMount(() => {
 {/if}</section>
 <style>
 .current{padding:24px}h2{margin:0;font-size:20px}.heading p{font-size:12px}.tracks article{display:flex;align-items:center;gap:16px;padding:18px 0;border-top:1px solid var(--border)}.tracks img{width:56px;height:56px;object-fit:cover;border-radius:10px}.tracks article>div{flex:1}.tracks p{font-size:12px;margin:6px 0}.tracks audio{max-width:100%;height:36px}small{color:var(--text-muted)}.albums{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:20px}.albums article{border:1px solid var(--border);border-radius:16px;overflow:hidden;background:var(--surface-soft)}.albums article>img{width:100%;height:180px;object-fit:cover}.albums article>div{padding:20px}h3{margin:0}.albums details{margin-top:16px}.photos{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:12px}.photos img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px}@media(max-width:700px){.tracks article{flex-wrap:wrap}.tracks audio{width:100%}}
+.current, .heading > div, .tracks article > div, .albums article, .albums article > div { min-width: 0; }
+.current { overflow-wrap: anywhere; }
+.tracks article > small, .tracks img { flex-shrink: 0; }
+.tracks audio { min-width: 0; }
+.albums { grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr)); }
+.photos { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 900px) {
+ .tracks article { flex-wrap: wrap; }
+ .tracks article > div { flex-basis: calc(100% - 110px); }
+ .tracks audio { width: 100%; flex-basis: 100%; }
+}
+@media (max-width: 760px) {
+ .current { padding: 18px; }
+ .heading { align-items: flex-start; }
+ .heading > div { flex-basis: 100%; }
+ .heading > button { max-width: 100%; white-space: normal; }
+ .tracks article { gap: 12px; padding: 16px 0; }
+ .albums article > div { padding: 16px; }
+}
 </style>
