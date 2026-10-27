@@ -5,6 +5,7 @@ import {
 } from "@waline/client";
 import "@waline/client/style";
 import { syncWalineAuth } from "./content-like-auth";
+import { bindWalineLogin } from "./waline-login";
 
 type WalineOptions = Omit<WalineInitOptions, "el">;
 
@@ -14,6 +15,7 @@ let listenersInstalled = false;
 let hookedSwup: Window["swup"] | null = null;
 let scheduleToken = 0;
 let currentOptionsKey: string | null = null;
+let unbindLogin: (() => void) | null = null;
 
 function normalizePath(path: string): string {
 	return path.endsWith("/") && path.length > 1 ? path.slice(0, -1) : path;
@@ -40,6 +42,8 @@ function getMountOptions(mountElement: HTMLElement): WalineOptions | null {
 
 function destroyWaline(): void {
 	scheduleToken += 1;
+	unbindLogin?.();
+	unbindLogin = null;
 	instance?.destroy();
 	instance = null;
 	instanceElement = null;
@@ -67,6 +71,12 @@ function mountWaline(): void {
 		if (instance && instanceElement === mountElement) {
 			if (currentOptionsKey !== optionsKey) {
 				instance.update(options);
+				unbindLogin?.();
+				unbindLogin = bindWalineLogin(
+					mountElement,
+					options.serverURL,
+					options.lang || document.documentElement.lang || "en",
+				);
 				currentOptionsKey = optionsKey;
 			}
 			return;
@@ -75,6 +85,11 @@ function mountWaline(): void {
 		destroyWaline();
 		instance = init({ ...options, el: mountElement });
 		if (instance) {
+			unbindLogin = bindWalineLogin(
+				mountElement,
+				options.serverURL,
+				options.lang || document.documentElement.lang || "en",
+			);
 			instanceElement = mountElement;
 			currentOptionsKey = optionsKey;
 			syncWalineAuth();

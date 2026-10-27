@@ -7,6 +7,41 @@ process.env.NODE_PATH = path.join(__dirname, '../password-reset/node_modules');
 require('node:module').Module._initPaths();
 const { read } = require('./src/lib/management-read.js');
 
+test('comment avatars preserve own/linked uploads, generate guest defaults, and keep private inputs server-side', async () => {
+  const rows = [
+    { objectId: 1, avatar: 'https://example.invalid/own.png', user_id: 8, comment: 'own', mail: 'own@example.invalid' },
+    { objectId: 2, user_id: 8, comment: 'linked' },
+    { objectId: 3, user_id: 8, comment: 'same linked user' },
+    { objectId: 4, comment: 'guest', mail: 'guest@example.invalid', nick: 'Guest', link: 'https://guest.invalid', ip: 'private-ip', ua: 'private-agent' },
+    { objectId: 5, user_id: 9, comment: 'linked default' },
+  ];
+  const inputs = [];
+  let userReads = 0;
+  const users = { select: async where => {
+    userReads++;
+    return [{ objectId: where.objectId, avatar: where.objectId === 8 ? 'https://example.invalid/linked.png' : '', email: 'linked@example.invalid', display_name: 'Linked', url: 'https://linked.invalid' }];
+  } };
+  const comments = { count: async () => rows.length, select: async (where, options) => {
+    assert.equal(options.field, undefined, 'do not assume optional avatar SQL column exists');
+    return where.objectId ? rows.filter(row => row.objectId === where.objectId) : rows;
+  } };
+  const models = name => name === 'Users' ? users : comments;
+  const avatar = async input => { inputs.push(input); return 'https://example.invalid/default.png'; };
+  const result = await read(models, { resource: 'comment' }, avatar);
+  assert.deepEqual(result.items.map(row => row.avatar), ['https://example.invalid/own.png', 'https://example.invalid/linked.png', 'https://example.invalid/linked.png', 'https://example.invalid/default.png', 'https://example.invalid/default.png']);
+  assert.equal(userReads, 2, 'one lookup per distinct linked user per request');
+  assert.deepEqual(inputs, [
+    { mail: 'guest@example.invalid', nick: 'Guest', link: 'https://guest.invalid' },
+    { mail: 'linked@example.invalid', nick: 'Linked', link: 'https://linked.invalid' },
+  ]);
+  assert.equal(/example\.invalid.*private|guest@example|linked@example|private-ip|private-agent/.test(JSON.stringify(result)), false);
+  for (const row of result.items) for (const key of ['mail', 'email', 'link', 'ip', 'ua']) assert.equal(key in row, false);
+  const thread = await read(models, { resource: 'comment', id: 2 }, avatar);
+  assert.equal(thread.item.avatar, 'https://example.invalid/linked.png');
+  assert.equal(thread.thread[0].avatar, 'https://example.invalid/own.png');
+  assert.equal(thread.thread[1].avatar, thread.item.avatar);
+});
+
 test('user avatars preserve uploads and generate defaults from each listed user', async () => {
   const rows = [
     { objectId: 8, type: 'guest', email: 'first@example.invalid', display_name: 'First', url: 'https://example.invalid', avatar: 'https://example.invalid/upload.png' },
@@ -46,7 +81,7 @@ test('legacy user list generates another user avatar from that user, not the adm
 });
 test('overlay uses fresh field arrays and admin-only read logic', async () => {
   const calls=[];
-  const model={count:async where=>{calls.push(where);return 1;},select:async(where,options)=>{assert.equal(options.field.filter(key=>key==='id').length,0);options.field.push('id');return [{objectId:1,comment:'原文',nick:'昵称',url:'/a/',status:'approved',type:'guest',password:'secret','2fa':'SECRET',auth_version:0}];}};
+  const model={count:async where=>{calls.push(where);return 1;},select:async(where,options)=>{if(options.field){assert.equal(options.field.filter(key=>key==='id').length,0);options.field.push('id');}return [{objectId:1,comment:'原文',nick:'昵称',url:'/a/',status:'approved',type:'guest',password:'secret','2fa':'SECRET',auth_version:0}];}};
   for(let i=0;i<2;i++){const result=await read(()=>model,{resource:'comment',id:1});assert.equal(result.deleteCount,1);assert.deepEqual(calls.at(-1),{_complex:{_logic:'or',objectId:1,pid:1,rid:1}});}
   const result=await read(()=>model,{resource:'user',id:1});assert.equal('password' in result,false);assert.equal('2fa' in result,false);
   global.think={isString:value=>typeof value==='string',isNumber:value=>typeof value==='number',Logic:class{constructor(ctx){this.ctx=ctx;} getModel(){return model;}get(){return {};}getResource(){return 'management';}getId(){return '';}}};

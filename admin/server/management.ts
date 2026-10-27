@@ -83,7 +83,7 @@ function comment(value: unknown): Comment {
 	};
 	if (!["approved", "waiting", "spam"].includes(result.status))
 		throw new ManagementError(502, "WALINE_RESPONSE");
-	return { ...result, fingerprint: fingerprint(result) };
+	return { ...result, avatar: avatarUrl(row.avatar), fingerprint: fingerprint(result) };
 }
 function user(value: unknown): User {
 	const row = raw(value);

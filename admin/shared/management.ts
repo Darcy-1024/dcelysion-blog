@@ -3,6 +3,7 @@ export type Comment = {
 	objectId: string;
 	comment: string;
 	nick: string;
+	avatar?: string;
 	url: string;
 	status: CommentStatus;
 	pid: string;

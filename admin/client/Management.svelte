@@ -12,6 +12,7 @@ import type {
 import { apiMessage, connectionMessage } from "./i18n.js";
 import { words } from "./management-words.js";
 import UserAvatar from "./UserAvatar.svelte";
+import CommentContent from "./CommentContent.svelte";
 import { commentLink } from "./comment-link.js";
 export let blogOrigin = "";
 export let mode: "comments" | "users" | "account";
@@ -295,11 +296,31 @@ async function reconcile() {
 {#if mode!=="account"}
 <section class="panel"><form class="toolbar" onsubmit={event=>{event.preventDefault();filter();}}><label>{mode==="users"?words.userSearch:words.search}<input bind:value={search} maxlength="150" /></label>{#if mode==="comments"}<label>{words.path}<input bind:value={path} maxlength="500" /></label><select aria-label={words.state} bind:value={status}><option value="all">{words.all}</option><option value="approved">{words.approved}</option><option value="waiting">{words.waiting}</option><option value="spam">{words.spam}</option></select>{/if}<button disabled={busy} type="submit">{words.check}</button></form>
 {#if userId}<p>关联用户 #{userId} <button disabled={busy} onclick={()=>{userId="";filter();}}>清除筛选</button></p>{/if}
-{#if rows}<p class="muted">{rows.total} {words.total}</p>{#each rows.items as item (item.objectId)}<article class="row">{#if !("comment" in item)}<UserAvatar src={item.avatar} name={item.display_name} />{/if}<div class="row-main">{#if "comment" in item}<strong>{item.nick || "匿名"} · #{item.objectId} · {words[item.status]}</strong><p class="comment-snippet">{item.comment}</p><small>{item.article || item.url}{item.user_id?` · 用户 #${item.user_id}`:""}</small>{:else}<strong>{item.display_name} · #{item.objectId}</strong><p>{item.email}</p><small>{userType(item.type)}</small>{/if}</div>{#if "comment" in item && commentLink(item.url,blogOrigin)}<a class="comment-jump" href={commentLink(item.url,blogOrigin)!} target="_blank" rel="noopener noreferrer" aria-label="在新标签页查看评论" title="在新标签页查看评论">查看评论 ↗</a>{/if}{#if !("comment" in item)}<button disabled={busy} onclick={()=>void open(item.objectId)}>{words.detail}</button>{:else if !commentLink(item.url,blogOrigin)}<span class="muted">评论链接不可用</span>{/if}</article>{/each}{#if !rows.items.length}<p class="feedback">{words.empty}</p>{/if}<footer class="pagination"><span>{rows.page} / {Math.max(1,rows.pages)}</span><div><button disabled={busy || page<=1} onclick={()=>turnPage(page-1)}>{words.prev}</button><button disabled={busy || page>=rows.pages} onclick={()=>turnPage(page+1)}>{words.next}</button></div></footer>{/if}</section>
+{#if rows}
+<p class="muted">{rows.total} {words.total}</p>
+{#each rows.items as item (item.objectId)}
+<article class="row" class:comment-row={"comment" in item}>
+  {#if "comment" in item}
+    <UserAvatar src={item.avatar || ""} name={item.nick || "匿名"} />
+    <div class="row-main">
+      <div class="comment-source"><span>来自：{item.article || item.url || "未知页面"}</span>{#if commentLink(item.url,blogOrigin)}<a class="comment-jump" href={commentLink(item.url,blogOrigin)!} target="_blank" rel="noopener noreferrer" aria-label="在新标签页查看评论" title="在新标签页查看评论">查看评论 ↗</a>{:else}<span>评论链接不可用</span>{/if}</div>
+      <CommentContent content={item.comment} />
+      <div class="comment-meta"><span>{item.nick || "匿名"}</span><span>#{item.objectId}</span><span>{words[item.status]}</span>{#if item.user_id}<span>用户 #{item.user_id}</span>{/if}</div>
+    </div>
+  {:else}
+    <UserAvatar src={item.avatar} name={item.display_name} />
+    <div class="row-main"><strong>{item.display_name} · #{item.objectId}</strong><p>{item.email}</p><small>{userType(item.type)}</small></div>
+    <button disabled={busy} onclick={()=>void open(item.objectId)}>{words.detail}</button>
+  {/if}
+</article>
+{/each}
+{#if !rows.items.length}<p class="feedback">{words.empty}</p>{/if}
+<footer class="pagination"><span>{rows.page} / {Math.max(1,rows.pages)}</span><div><button disabled={busy || page<=1} onclick={()=>turnPage(page-1)}>{words.prev}</button><button disabled={busy || page>=rows.pages} onclick={()=>turnPage(page+1)}>{words.next}</button></div></footer>
+{/if}</section>
 {/if}
 {#if mode==="comments" && detail}
-<section class="panel management-detail"><h2>#{detail.item.objectId} · {detail.item.nick}</h2><p>{detail.item.url} · {words[detail.item.status]}</p>{#if commentLink(detail.item.url,blogOrigin)}<a class="comment-jump" href={commentLink(detail.item.url,blogOrigin)!} target="_blank" rel="noopener noreferrer" aria-label="在新标签页查看评论" title="在新标签页查看评论">查看评论 ↗</a>{/if}<p class="muted">{words.concurrency}</p><p class="muted">{words.notifications}</p><h3>{words.original}</h3><pre class="comment-text">{detail.item.comment}</pre><label>编辑正文<textarea bind:value={editText} maxlength="20000" rows="5"></textarea></label><div class="editor-actions"><button disabled={busy || unknown || editText===detail.item.comment || !editText.trim()} onclick={()=>commentAction('edit',words.edit,{comment:editText})}>{words.edit}</button>{#each ['approved','waiting','spam'] as state}<button disabled={busy || unknown || detail.item.status===state} onclick={()=>commentAction('status',words[state as keyof typeof words],{status:state})}>{words[state as keyof typeof words]}</button>{/each}<button class="danger" disabled={busy || unknown} onclick={()=>commentAction('delete',words.remove)}>{words.remove}</button></div>
-<h3>{words.context}</h3>{#each detail.thread as item (item.objectId)}<article class="thread-row"><strong>#{item.objectId} · {item.nick} · {words[item.status]}</strong><small>回复 #{item.pid || '—'} · 根 #{item.rid || item.objectId}</small><pre class="comment-text">{item.comment}</pre><button disabled={busy || unknown} onclick={()=>void open(item.objectId)}>{words.detail}</button></article>{/each}<div class="pagination"><span>{words.threadPage} {detail.page}/{Math.max(1,detail.pages)}</span><div><button disabled={busy || detail.page<=1} onclick={()=>detail && void open(detail.item.objectId,detail.page-1,true)}>{words.prev}</button><button disabled={busy || detail.page>=detail.pages} onclick={()=>detail && void open(detail.item.objectId,detail.page+1,true)}>{words.next}</button></div></div>
+<section class="panel management-detail"><div class="comment-author"><UserAvatar src={detail.item.avatar || ""} name={detail.item.nick || "匿名"} /><h2>#{detail.item.objectId} · {detail.item.nick}</h2></div><p>{detail.item.url} · {words[detail.item.status]}</p>{#if commentLink(detail.item.url,blogOrigin)}<a class="comment-jump" href={commentLink(detail.item.url,blogOrigin)!} target="_blank" rel="noopener noreferrer" aria-label="在新标签页查看评论" title="在新标签页查看评论">查看评论 ↗</a>{/if}<p class="muted">{words.concurrency}</p><p class="muted">{words.notifications}</p><h3>{words.original}</h3><pre class="comment-text">{detail.item.comment}</pre><label>编辑正文<textarea bind:value={editText} maxlength="20000" rows="5"></textarea></label><div class="editor-actions"><button disabled={busy || unknown || editText===detail.item.comment || !editText.trim()} onclick={()=>commentAction('edit',words.edit,{comment:editText})}>{words.edit}</button>{#each ['approved','waiting','spam'] as state}<button disabled={busy || unknown || detail.item.status===state} onclick={()=>commentAction('status',words[state as keyof typeof words],{status:state})}>{words[state as keyof typeof words]}</button>{/each}<button class="danger" disabled={busy || unknown} onclick={()=>commentAction('delete',words.remove)}>{words.remove}</button></div>
+<h3>{words.context}</h3>{#each detail.thread as item (item.objectId)}<article class="thread-row"><div class="comment-author"><UserAvatar src={item.avatar || ""} name={item.nick || "匿名"} /><strong>#{item.objectId} · {item.nick} · {words[item.status]}</strong></div><small>回复 #{item.pid || '—'} · 根 #{item.rid || item.objectId}</small><pre class="comment-text">{item.comment}</pre><button disabled={busy || unknown} onclick={()=>void open(item.objectId)}>{words.detail}</button></article>{/each}<div class="pagination"><span>{words.threadPage} {detail.page}/{Math.max(1,detail.pages)}</span><div><button disabled={busy || detail.page<=1} onclick={()=>detail && void open(detail.item.objectId,detail.page-1,true)}>{words.prev}</button><button disabled={busy || detail.page>=detail.pages} onclick={()=>detail && void open(detail.item.objectId,detail.page+1,true)}>{words.next}</button></div></div>
 <label>以当前博主身份回复 #{detail.item.objectId}<textarea bind:value={replyText} maxlength="20000" rows="4"></textarea></label><p class="muted">{words.keep}</p><button class="primary" disabled={busy || unknown || !replyText.trim()} onclick={()=>commentAction('reply',words.reply,{comment:replyText})}>{words.reply}</button></section>
 {:else if mode==="users" && selectedUser}
 <section class="panel management-detail"><div class="management-user-heading"><UserAvatar src={selectedUser.avatar} name={selectedUser.display_name} /><h2>{selectedUser.display_name} · #{selectedUser.objectId}</h2></div><p>{selectedUser.email}</p><p>{selectedUser.url}</p><p>{words.state}：{userType(selectedUser.type)}</p><div class="editor-actions"><button disabled={busy} onclick={()=>void linked()}>{words.linked}</button>{#if ['guest','banned'].includes(selectedUser.type)}<button class="danger" disabled={busy} onclick={()=>selectedUser && prepare(`/api/manage/users/${selectedUser.objectId}/state`,selectedUser.type==='guest'?words.ban:words.unban,`${selectedUser.display_name} · #${selectedUser.objectId}`,{fingerprint:selectedUser.fingerprint,type:selectedUser.type==='guest'?'banned':'guest'})}>{selectedUser.type==='guest'?words.ban:words.unban}</button>{:else}<p class="muted">管理员及未验证账号不提供状态操作；不开放注册、角色授予或删除。</p>{/if}</div></section>
@@ -310,7 +331,14 @@ async function reconcile() {
 </section>
 
 <style>
-.comment-jump{display:inline-flex;align-items:center;padding:9px 13px;border:1px solid var(--border);border-radius:10px;color:var(--accent);font-size:13px;text-decoration:none;white-space:nowrap}.comment-jump:hover{background:var(--accent-soft)}
+.comment-jump { display: inline-flex; align-items: center; width: fit-content; max-width: 100%; padding: 3px 0; color: var(--accent); font-size: 13px; text-decoration: none; white-space: nowrap; }
+.comment-jump:hover { text-decoration: underline; }
+.comment-row { align-items: flex-start; }
+.comment-author { display: flex; align-items: center; gap: 12px; min-width: 0; margin-bottom: 8px; }
+.comment-author h2 { margin: 0; }
+.comment-meta { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 12px; color: var(--text-muted); font-size: 12px; line-height: 1.6; }
+.comment-source { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 14px; margin-bottom: 8px; color: var(--text-muted); font-size: 12px; line-height: 1.7; }
+.comment-source > span { min-width: 0; overflow-wrap: anywhere; }
 .management, .management > *, .management .row, .management .toolbar, .management .pagination, .management-user-heading, .management-user-heading h2 { min-width: 0; }
 .management h2, .management strong, .management small, .management p, .management a { overflow-wrap: anywhere; }
 .management .toolbar select { min-width: 0; max-width: 100%; }
@@ -323,7 +351,7 @@ async function reconcile() {
  .management .toolbar select { flex: 1 1 140px; }
 }
 @media (max-width: 760px) {
- .management .row-main p:not(.comment-snippet) { white-space: normal; overflow-wrap: anywhere; }
+ .management .row-main p { white-space: normal; overflow-wrap: anywhere; }
  .management button, .management .comment-jump, .management input, .management select { min-height: 44px; }
  .management .comment-jump { justify-content: center; box-sizing: border-box; }
  .management input, .management select, .management textarea { font-size: 16px; }
@@ -333,8 +361,7 @@ async function reconcile() {
  .management-detail .comment-text { padding: 12px; }
  .management .row { padding: 16px 14px; align-items: flex-start; }
  .management .row-main { flex: 1 1 calc(100% - 60px); }
- .management .row > button, .management .row > .comment-jump { flex: 1 1 100%; }
- .management .row > .muted { flex-basis: 100%; }
+ .management .row > button { flex: 1 1 100%; }
  .management .editor-actions > button { flex: 1 1 100px; }
  .management .pagination { padding: 14px 0; gap: 12px; }
  .management .panel > .pagination { padding: 14px; }

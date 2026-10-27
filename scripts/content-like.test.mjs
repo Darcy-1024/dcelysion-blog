@@ -387,12 +387,12 @@ test("comment mount restores a temporary login after reload and Swup replacement
 		"WALINE_USER",
 		JSON.stringify({ token: "session-token" }),
 	);
-	const mount = {
-		dataset: {
-			walineConfig: JSON.stringify({ serverURL: "https://comments.example" }),
-		},
+	const mount = new EventTarget();
+	mount.dataset = {
+		walineConfig: JSON.stringify({ serverURL: "https://comments.example" }),
 	};
 	const document = new EventTarget();
+	document.documentElement = { lang: "zh-CN" };
 	document.querySelector = () => mount;
 	f.window.location = { search: "", pathname: "/dynamic/entry/" };
 	const hooks = new Map();
@@ -417,6 +417,16 @@ test("comment mount restores a temporary login after reload and Swup replacement
 		console,
 		require(name) {
 			if (name === "./content-like-auth") return f.auth;
+			if (name === "./waline-login") {
+				const loginContext = vm.createContext({
+					exports: {},
+					AbortController,
+					console,
+					require: () => f.auth,
+				});
+				vm.runInContext(compile("waline-login"), loginContext);
+				return loginContext.exports;
+			}
 			if (name === "@waline/client/style") return {};
 			assert.equal(name, "@waline/client");
 			return {

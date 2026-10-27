@@ -60,6 +60,7 @@ test("management adapter/API: filters, exact threads, edits/status/replies/casca
 		assert.equal(list.json.data.pages, 1);
 		assert.equal(list.json.data.items[0].objectId, "1");
 		assert.equal(list.json.data.items[0].article, "原标题");
+		assert.equal(list.json.data.items[0].avatar, `/waline-api/avatar?id=${"a".repeat(64)}`);
 		const all = await f.call("/api/manage/comments?search=评论&pageSize=1");
 		assert.equal(all.json.data.total, 1);
 		let thread = (await f.call("/api/manage/comments/1")).json.data as Thread;
@@ -68,6 +69,8 @@ test("management adapter/API: filters, exact threads, edits/status/replies/casca
 			["1", "2"],
 		);
 		assert.equal(thread.deleteCount, 2);
+		assert.equal(thread.item.avatar, list.json.data.items[0].avatar);
+		assert.ok(thread.thread.every(row => row.avatar === thread.item.avatar));
 		for (const status of ["approved", "spam", "waiting"]) {
 			const result = await f.call("/api/manage/comments/1/status", {
 				requestId: randomUUID(),

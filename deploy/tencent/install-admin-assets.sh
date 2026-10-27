@@ -3,15 +3,26 @@
 set -euo pipefail
 source_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 version=0.34.2
+asset_version=0.34.2-dc1
 expected=fb745bd9bd983a6170877861f701752304b1534b835fe72b9db12c36999c627f
-asset_dir=/srv/dcelysion/admin-assets/$version
+asset_dir=/srv/dcelysion/admin-assets/$asset_version
 install -d -m 0755 "$asset_dir"
 asset_tmp=$(mktemp "$asset_dir/.admin.js.XXXXXX")
-trap 'rm -f -- "$asset_tmp"' EXIT
+patched_tmp=$(mktemp "$asset_dir/.admin-patched.js.XXXXXX")
+trap 'rm -f -- "$asset_tmp" "$patched_tmp"' EXIT
 curl --fail --location --retry 3 --connect-timeout 15 --max-time 180 "https://unpkg.com/@waline/admin@$version/dist/admin.js" -o "$asset_tmp"
 printf '%s  %s\n' "$expected" "$asset_tmp" | sha256sum --check
-chmod 0644 "$asset_tmp"
-mv -f -- "$asset_tmp" "$asset_dir/admin.js"
+python3 "$source_dir/patch-waline-admin.py" "$asset_tmp" "$patched_tmp"
+chmod 0644 "$patched_tmp"
+if [[ -e "$asset_dir/admin.js" ]]; then
+    if ! cmp -s -- "$patched_tmp" "$asset_dir/admin.js"; then
+        printf 'Refusing to replace immutable admin asset: %s\n' "$asset_dir/admin.js" >&2
+        exit 1
+    fi
+else
+    # Hard-link creation fails if another installer creates the path first.
+    ln -- "$patched_tmp" "$asset_dir/admin.js"
+fi
 install -m 0644 "$source_dir/show-password.js" /srv/dcelysion/admin-assets/show-password-v2.js
 install -m 0644 "$source_dir/avatar-upload-v1.js" /srv/dcelysion/admin-assets/avatar-upload-v1.js
 bash "$source_dir/install-waline-brand.sh"
@@ -32,4 +43,4 @@ if ! docker compose config --quiet; then
     exit 1
 fi
 docker compose up -d --no-deps waline
-printf 'Installed admin asset %s; config rollback directory: %s\n' "$version" "$backup_dir"
+printf 'Installed admin asset %s; config rollback directory: %s\n' "$asset_version" "$backup_dir"

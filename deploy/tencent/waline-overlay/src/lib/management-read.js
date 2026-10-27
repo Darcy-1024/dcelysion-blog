@@ -9,16 +9,33 @@ const userView = async (row, avatar) => ({ ...pick(row, userFields), avatar: row
 async function read(models, query, avatar = async () => '') {
   const comments = models('Comment');
   const users = models('Users');
+  const linkedUsers = new Map();
+  const commentView = async row => {
+    let user;
+    if (!row.avatar && row.user_id) {
+      const key = String(row.user_id);
+      if (!linkedUsers.has(key)) linkedUsers.set(key, users.select({ objectId: row.user_id }, { field: ['avatar', 'email', 'display_name', 'url'] }).then(rows => rows[0]));
+      user = await linkedUsers.get(key);
+    }
+    const source = row.avatar || user?.avatar || await avatar({
+      mail: row.mail || user?.email,
+      nick: row.nick || user?.display_name,
+      link: row.link || user?.url,
+    });
+    // Mail and other storage fields are inputs only, never part of the response.
+    return { ...pick(row, commentFields), avatar: source };
+  };
   const { resource, id, page = 1, pageSize = 15, search = '', status = '', path = '', userId = '' } = query;
   if (resource === 'comment' && id) {
-    const [item] = await comments.select({ objectId: id }, { field: [...commentFields] });
+    // Read existing storage fields rather than assuming an optional avatar column exists.
+    const [item] = await comments.select({ objectId: id }, {});
     if (!item) return null;
     const rootId = item.rid || item.objectId;
     const threadWhere = { url: item.url, _complex: { _logic: 'or', objectId: rootId, rid: rootId } };
     const total = await comments.count(threadWhere);
-    const thread = await comments.select(threadWhere, { field: [...commentFields], limit: pageSize, offset: (page - 1) * pageSize, order: [{ field: 'insertedAt', direction: 'asc' }, { field: 'objectId', direction: 'asc' }] });
+    const thread = await comments.select(threadWhere, { limit: pageSize, offset: (page - 1) * pageSize, order: [{ field: 'insertedAt', direction: 'asc' }, { field: 'objectId', direction: 'asc' }] });
     const deleteCount = await comments.count({ _complex: { _logic: 'or', objectId: item.objectId, pid: item.objectId, rid: item.objectId } });
-    return { item: pick(item, commentFields), thread: thread.map(row => pick(row, commentFields)), deleteCount, total, page, pageSize, pages: Math.ceil(total / pageSize) };
+    return { item: await commentView(item), thread: await Promise.all(thread.map(commentView)), deleteCount, total, page, pageSize, pages: Math.ceil(total / pageSize) };
   }
   if (resource === 'user' && id) {
     const [item] = await users.select({ objectId: id }, { field: [...userFields] });
@@ -35,7 +52,7 @@ async function read(models, query, avatar = async () => '') {
   }
   const model = resource === 'comment' ? comments : users;
   const total = await model.count(where);
-  const rows = await model.select(where, { field: resource === 'comment' ? [...commentFields] : [...userFields], order: [{ field: resource === 'comment' ? 'insertedAt' : 'createdAt', direction: 'desc' }, { field: 'objectId', direction: 'desc' }], limit: pageSize, offset: (page - 1) * pageSize });
-  return { items: await Promise.all(rows.map(row => resource === 'comment' ? pick(row, commentFields) : userView(row, avatar))), total, page, pageSize, pages: Math.ceil(total / pageSize) };
+  const rows = await model.select(where, { ...(resource === 'comment' ? {} : { field: [...userFields] }), order: [{ field: resource === 'comment' ? 'insertedAt' : 'createdAt', direction: 'desc' }, { field: 'objectId', direction: 'desc' }], limit: pageSize, offset: (page - 1) * pageSize });
+  return { items: await Promise.all(rows.map(row => resource === 'comment' ? commentView(row) : userView(row, avatar))), total, page, pageSize, pages: Math.ceil(total / pageSize) };
 }
 module.exports = { read };

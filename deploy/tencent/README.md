@@ -124,13 +124,15 @@ systemctl list-timers dcelysion-backup.timer
 
 ## Waline 管理资源同源部署
 
-管理脚本固定为 `@waline/admin@0.34.2`，通过 `WALINE_ADMIN_MODULE_ASSET_URL=/admin-assets/0.34.2/admin.js` 加载。Nginx 将该路径映射至 `/srv/dcelysion/admin-assets/0.34.2/admin.js`，版本路径缓存一年；文件 SHA-256 为 `fb745bd9bd983a6170877861f701752304b1534b835fe72b9db12c36999c627f`。资源来自官方 npm 发布包，由部署脚本获取并核验，浏览器加载管理脚本不再依赖 unpkg。升级必须更新版本、校验值和环境变量路径，并重新验收兼容性。
+管理脚本基于固定的 `@waline/admin@0.34.2` 官方 npm 发布包。`install-admin-assets.sh` 先下载并校验官方输入 SHA-256 `fb745bd9bd983a6170877861f701752304b1534b835fe72b9db12c36999c627f`，再使用 Python 3 标准库脚本 `patch-waline-admin.py` 构建本地 `dc1` 补丁；补丁再次校验输入哈希及唯一登录 catch 锚点，不匹配即停止。通过 `WALINE_ADMIN_MODULE_ASSET_URL=/admin-assets/0.34.2-dc1/admin.js` 加载，Nginx 对应 `/srv/dcelysion/admin-assets/0.34.2-dc1/admin.js`，版本路径缓存一年。该哈希属于官方输入，不是补丁输出；升级必须更新版本、校验值、补丁锚点和资源路径，并重新验收兼容性。
+
+`dc1` 仅将登录表单把所有异常统一显示为“账号密码错误”的提示改为“登录流程未完成，请刷新登录页后重试。”，繁中使用对应文案，其余语言使用英文回退，仍通过现有翻译函数显示。它不隐藏错误、不改变认证成功或失败、token 存储、回跳或用户状态，也不记录凭证；该提示修正不代表已经确认 iPhone 异常的根因。本次管理资源补丁仅在本地准备，尚未发布。新资源路径不可覆盖：安装器发现已有文件时只接受与本次构建内容完全一致的文件，否则停止。验证命令为 `node --test deploy/tencent/patch-waline-admin.test.cjs`；核心测试使用隔离合成输入，可选通过 `WALINE_ADMIN_FIXTURE` 指定官方原文件以验证真实资源，未提供或文件不存在时跳过这一项；Python 可通过 `PYTHON` 指定。
 
 登录页的“显示密码”选项与“邮箱或昵称”提示、注册页“个人网站（选填）”提示由 `show-password.js` 提供。部署脚本将它安装为 `/admin-assets/show-password-v2.js`，Nginx 仅在管理页 HTML 中加载；更新此脚本时须同步更改资源文件名和注入路径，以避开一年缓存。
 
 私有 HTTP 代理仅监听 `127.0.0.1:8361`，与 HTTPS `127.0.0.1:8443` 共用配置；预览隧道必须指向 8361，直接访问 Waline 8360 无法获取静态管理脚本。未来正式域名使用相同资源路径。当前没有增加公网监听。
 
-仅适用于私有预览安装；当前公网实例的品牌增量发布见 [品牌样式说明](waline-brand-v3/README.md)，不要用此安装器覆盖公网配置。上传 `compose.yaml`、`nginx-comments-private.conf`、`show-password.js`、`avatar-upload-v1.js`、`install-waline-brand.sh`、完整 `waline-brand-v3/` 目录和 `install-admin-assets.sh` 至 `~/dcelysion-deploy/` 后，执行 `sudo bash ~/dcelysion-deploy/install-admin-assets.sh`。脚本校验下载资源、保存原配置、检查 Nginx/Compose，并只重建 Waline；数据库目录和密钥文件不变。资源位于容器外，容器重建后仍然保留。
+仅适用于私有预览安装；当前公网实例的品牌增量发布见 [品牌样式说明](waline-brand-v4/README.md)，不要用此安装器或整个仓库配置覆盖公网配置。上传 `compose.yaml`、`nginx-comments-private.conf`、`show-password.js`、`avatar-upload-v1.js`、`install-waline-brand.sh`、完整 `waline-brand-v4/` 目录、`patch-waline-admin.py` 和 `install-admin-assets.sh` 至 `~/dcelysion-deploy/` 后，执行 `sudo bash ~/dcelysion-deploy/install-admin-assets.sh`（需要 Python 3）。脚本校验并补丁构建下载资源、保存原配置、检查 Nginx/Compose，并只重建 Waline；数据库目录和密钥文件不变。资源位于容器外，容器重建后仍然保留。公网增量发布须单独获得授权，保留服务器现有配置，只安装新不可变管理资源并调整对应资源 URL。
 
 每次执行输出 `/opt/dcelysion/config-backups/admin-assets-<时间>-<PID>`。回退时从该目录恢复 `compose.yaml` 至 `/opt/dcelysion/compose.yaml`、`nginx-comments-private.conf` 至 `/etc/nginx/sites-available/dcelysion-comments-private`，执行 `nginx -t`、`systemctl reload nginx`，再于 `/opt/dcelysion` 执行 `docker compose up -d --no-deps waline`。若回退配置没有 8361，将预览隧道目标恢复为 8360。版本化静态文件可保留，不影响回退。
 
