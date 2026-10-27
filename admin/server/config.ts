@@ -13,6 +13,7 @@ export type AdminConfig = {
 	ownerId: number;
 	requireTotp?: boolean;
 	contentRoot: string;
+	commentSourceRoot?: string;
 	blogOrigin: string;
 	memosOrigin?: string;
 	memosBridge?: {
@@ -159,6 +160,9 @@ export function readConfig(env: NodeJS.ProcessEnv = process.env): AdminConfig {
 		ownerId,
 		requireTotp: env.ADMIN_REQUIRE_TOTP === "1",
 		contentRoot: resolve(env.ADMIN_CONTENT_ROOT || process.cwd()),
+		commentSourceRoot: env.ADMIN_COMMENT_SOURCE_ROOT
+			? resolve(env.ADMIN_COMMENT_SOURCE_ROOT)
+			: undefined,
 		blogOrigin,
 		memosOrigin: trustedMemosOrigin,
 		memosBridge,

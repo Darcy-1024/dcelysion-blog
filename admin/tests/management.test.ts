@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
-import { writeFile } from "node:fs/promises";
+import { mkdir, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -49,6 +49,89 @@ async function setup() {
 	};
 	return { ...f, call, login, close };
 }
+test("comment sources resolve local slugs, fixed pages and newer public content without changing stored paths", async () => {
+	const f = await setup();
+	try {
+		await writeFile(
+			join(f.root, "src/content/posts/入站必看.md"),
+			"---\ntitle: 入站必看\nslug: welcome\npublished: 2026-09-01\n---\n正文\n",
+		);
+		f.comments[0].url = "/posts/welcome";
+		f.comments[1].url = "/guestbook";
+		f.comments[2].url = "/dynamic/newer-public/";
+		const supplement = join(f.root, "public-source");
+		for (const kind of ["posts", "dynamic"])
+			await mkdir(join(supplement, "src/content", kind), { recursive: true });
+		f.config.commentSourceRoot = supplement;
+		await writeFile(
+			join(supplement, "src/content/dynamic/newer-public.md"),
+			"---\npublished: 2026-10-25\n---\n文学少女20周年纪念开箱\n",
+		);
+		await writeFile(
+			join(supplement, "src/content/dynamic/private-draft.md"),
+			"---\npublished: 2026-10-25\ndraft: true\n---\n私有动态不作为补充来源\n",
+		);
+		await writeFile(
+			join(supplement, "src/content/posts/duplicate.md"),
+			"---\npublished: 2026-10-25\ntitle: 不应覆盖本地标题\nslug: welcome\n---\n正文\n",
+		);
+		await f.login();
+		const response = await f.call("/api/manage/comments");
+		assert.equal(response.response.status, 200);
+		const rows = response.json.data.items as {
+			objectId: string;
+			url: string;
+			article?: string;
+			fingerprint: string;
+		}[];
+		assert.equal(rows.find((row) => row.objectId === "1")?.article, "入站必看");
+		assert.equal(
+			rows.find((row) => row.objectId === "1")?.url,
+			"/posts/welcome",
+		);
+		assert.equal(rows.find((row) => row.objectId === "2")?.article, "留言板");
+		assert.equal(
+			rows.find((row) => row.objectId === "3")?.article,
+			"文学少女20周年纪念开箱",
+		);
+		assert.equal(
+			f.requests.filter((request) => request.path === "/posts/welcome/").length,
+			0,
+		);
+		assert.equal(
+			f.requests.filter((request) => request.path === "/guestbook/").length,
+			0,
+		);
+		f.comments[2].url = "/dynamic/private-draft/";
+		const draft = await f.call("/api/manage/comments");
+		assert.equal(
+			draft.json.data.items.find(
+				(row: { objectId: string }) => row.objectId === "3",
+			).article,
+			undefined,
+		);
+		f.comments[2].url = "/posts/no-longer-available/";
+		const missing = await f.call("/api/manage/comments");
+		assert.equal(missing.response.status, 200);
+		assert.equal(
+			missing.json.data.items.find(
+				(row: { objectId: string }) => row.objectId === "3",
+			).article,
+			undefined,
+		);
+		f.config.commentSourceRoot = join(f.root, "missing-source");
+		const unavailable = await f.call("/api/manage/comments");
+		assert.equal(unavailable.response.status, 200);
+		assert.equal(
+			unavailable.json.data.items.find(
+				(row: { objectId: string }) => row.objectId === "1",
+			).article,
+			"入站必看",
+		);
+	} finally {
+		await f.close();
+	}
+});
 test("management adapter/API: filters, exact threads, edits/status/replies/cascade and users", async () => {
 	const f = await setup();
 	try {
@@ -60,7 +143,10 @@ test("management adapter/API: filters, exact threads, edits/status/replies/casca
 		assert.equal(list.json.data.pages, 1);
 		assert.equal(list.json.data.items[0].objectId, "1");
 		assert.equal(list.json.data.items[0].article, "原标题");
-		assert.equal(list.json.data.items[0].avatar, `/waline-api/avatar?id=${"a".repeat(64)}`);
+		assert.equal(
+			list.json.data.items[0].avatar,
+			`/waline-api/avatar?id=${"a".repeat(64)}`,
+		);
 		const all = await f.call("/api/manage/comments?search=评论&pageSize=1");
 		assert.equal(all.json.data.total, 1);
 		let thread = (await f.call("/api/manage/comments/1")).json.data as Thread;
@@ -70,7 +156,7 @@ test("management adapter/API: filters, exact threads, edits/status/replies/casca
 		);
 		assert.equal(thread.deleteCount, 2);
 		assert.equal(thread.item.avatar, list.json.data.items[0].avatar);
-		assert.ok(thread.thread.every(row => row.avatar === thread.item.avatar));
+		assert.ok(thread.thread.every((row) => row.avatar === thread.item.avatar));
 		for (const status of ["approved", "spam", "waiting"]) {
 			const result = await f.call("/api/manage/comments/1/status", {
 				requestId: randomUUID(),

@@ -8,6 +8,10 @@ import type {
 	User,
 } from "../shared/management.js";
 import type { AuthService, Owner } from "./auth.js";
+import {
+	fixedCommentSourceNames,
+	normalizeCommentSource,
+} from "./comment-source.js";
 import type { AdminConfig } from "./config.js";
 import { listContent } from "./content.js";
 
@@ -83,7 +87,11 @@ function comment(value: unknown): Comment {
 	};
 	if (!["approved", "waiting", "spam"].includes(result.status))
 		throw new ManagementError(502, "WALINE_RESPONSE");
-	return { ...result, avatar: avatarUrl(row.avatar), fingerprint: fingerprint(result) };
+	return {
+		...result,
+		avatar: avatarUrl(row.avatar),
+		fingerprint: fingerprint(result),
+	};
 }
 function user(value: unknown): User {
 	const row = raw(value);
@@ -323,24 +331,43 @@ export class ManagementService {
 		);
 		if (resource === "comment") {
 			const titles = await this.articleTitles();
-			for (const item of result.items as Comment[])
-				item.article = titles.get(item.url);
+			const items = result.items as Comment[];
+			for (const item of items) {
+				const path = normalizeCommentSource(item.url, this.config.blogOrigin);
+				item.article = path ? titles.get(path) : undefined;
+			}
 		}
 		return result;
 	}
 	private async articleTitles() {
-		const map = new Map<string, string>();
-		for (const kind of ["posts", "dynamic"] as const) {
-			const result = await listContent(this.config.contentRoot, {
-				kind,
-				status: "all",
-				search: "",
-				page: 1,
-				pageSize: 100000,
-			});
-			for (const item of result.items) {
-				map.set(item.url, item.title);
-				map.set(item.commentPath, item.title);
+		const map = new Map(fixedCommentSourceNames);
+		const addRoot = async (root: string, publishedOnly: boolean) => {
+			for (const kind of ["posts", "dynamic"] as const) {
+				const result = await listContent(root, {
+					kind,
+					status: publishedOnly ? "published" : "all",
+					search: "",
+					page: 1,
+					pageSize: 100000,
+				});
+				for (const item of result.items) {
+					for (const source of [item.url, item.commentPath]) {
+						const path = normalizeCommentSource(source, this.config.blogOrigin);
+						if (path && (!publishedOnly || !map.has(path)))
+							map.set(path, item.title);
+					}
+				}
+			}
+		};
+		await addRoot(this.config.contentRoot, false);
+		if (
+			this.config.commentSourceRoot &&
+			this.config.commentSourceRoot !== this.config.contentRoot
+		) {
+			try {
+				await addRoot(this.config.commentSourceRoot, true);
+			} catch {
+				// Optional public metadata must never prevent reading the comments themselves.
 			}
 		}
 		return map;

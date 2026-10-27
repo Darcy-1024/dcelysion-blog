@@ -239,6 +239,7 @@ Node.js ≥22.23、仓库固定的 pnpm 11.22。`corepack pnpm install` 后：
 1. 在**独立测试 PostgreSQL 数据库**创建迁移角色、后台运行角色与 Waline 只读角色。不要复用生产评论库来做本地测试。
 2. 将 `admin/.env.example` 中的变量注入后台进程环境，填入真实的数字 `ADMIN_OWNER_WALINE_ID`。`ADMIN_WALINE_URL` 是已有 Waline 的服务端地址；必须提供其既有 `/api/token` 接口。后台没有默认管理员或模拟登录开关。
    `ADMIN_BLOG_ORIGIN` 用于列表中的公开内容链接，默认采用当前站点配置 `https://blog.dcelysion.cn`；若博客域名变化请显式调整。
+   评论来源名称会规范尾斜杠、同源绝对地址及查询参数，并为留言板、关于我和友链提供固定名称。可选 `ADMIN_COMMENT_SOURCE_ROOT` 指向独立的公开发布内容副本（根下须有 `src/content/posts` 和 `src/content/dynamic`），仅用于补齐当前 `ADMIN_CONTENT_ROOT` 缺少的来源标题/动态摘要，忽略草稿；缺失或读取失败时仍正常显示评论并回退为路径，不访问外网。Docker 部署只需将该副本的这两个内容目录分别只读挂载到补充根对应位置，无需挂载 Git 或同步凭据，也不会覆盖后台可编辑仓库。Memos 发布专用 checkout 可作为此来源，但不得以后台修改该 checkout，或挂载同步状态和密钥目录。
 3. 用迁移角色设置 `ADMIN_MIGRATION_DATABASE_URL`，运行 `corepack pnpm admin:migrate`。随后撤去该变量，用受限账号设置 `ADMIN_DATABASE_URL`、`ADMIN_WALINE_DATABASE_URL`。
 4. `corepack pnpm admin:dev` 启动本地开发；`corepack pnpm admin:build` 生成独立前端；设置 `NODE_ENV=production` 后运行 `corepack pnpm admin:start` 服务构建产物。
 
