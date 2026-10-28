@@ -26,10 +26,14 @@ export let onnavigate: (target: {
 }) => void;
 let report: AnalyticsReport | null = null;
 let overview: Overview | null = null;
-let loading = false;
-let error = "";
+let analyticsLoading = false;
+let overviewLoading = false;
+let analyticsError = "";
+let overviewError = "";
 let version = 0;
 let hostVersion = 0;
+let overviewVersion = 0;
+let overviewController: AbortController | null = null;
 let controller: AbortController | null = null;
 let hostController: AbortController | null = null;
 let alive = true;
@@ -46,44 +50,58 @@ async function call<T>(url: string, signal?: AbortSignal): Promise<T> {
 	}
 	return result.data;
 }
-async function load() {
-	const current = ++version;
-	controller?.abort();
-	controller = new AbortController();
-	loading = true;
-	error = "";
-	report = null;
-	const params = new URLSearchParams({ range: filters.range });
-	if (filters.range === "custom") {
-		params.set("start", filters.start);
-		params.set("end", filters.end);
-	}
-	try {
-		const [analytics, summary] = await Promise.allSettled([
-			call<AnalyticsReport>(`/api/analytics?${params}`, controller.signal),
-			mode === "overview"
-				? call<Overview>("/api/overview", controller.signal)
-				: Promise.resolve(null),
-		]);
-		if (!alive || current !== version) return;
-		if (analytics.status === "fulfilled") report = analytics.value;
-		else
-			error =
-				analytics.reason instanceof Error &&
-				analytics.reason.message !== "Failed to fetch"
-					? analytics.reason.message
-					: connectionMessage();
-		if (summary.status === "fulfilled") overview = summary.value;
-		else {
-			overview = null;
-			error ||= connectionMessage();
-		}
-	} finally {
-		if (alive && current === version) loading = false;
-	}
+function failure(cause: unknown) {
+ return cause instanceof Error && cause.message !== "Failed to fetch"
+  ? cause.message : connectionMessage();
+}
+async function loadAnalytics() {
+ const current = ++version;
+ controller?.abort();
+ controller = new AbortController();
+ analyticsLoading = true;
+ analyticsError = "";
+ report = null;
+ const params = new URLSearchParams({ range: filters.range });
+ if (filters.range === "custom") {
+  params.set("start", filters.start);
+  params.set("end", filters.end);
+ }
+ try {
+  const result = await call<AnalyticsReport>(`/api/analytics?${params}`, controller.signal);
+  if (alive && current === version) report = result;
+ } catch (cause) {
+  if (alive && current === version) analyticsError = failure(cause);
+ } finally {
+  if (alive && current === version) analyticsLoading = false;
+ }
+}
+async function loadOverview() {
+ const current = ++overviewVersion;
+ overviewController?.abort();
+ overviewController = new AbortController();
+ // A host sample from the previous summary must not replace fresh summary data.
+ hostVersion++;
+ hostController?.abort();
+ overviewLoading = true;
+ overviewError = "";
+ try {
+  const result = await call<Overview>("/api/overview", overviewController.signal);
+  if (alive && current === overviewVersion) overview = result;
+ } catch (cause) {
+  if (alive && current === overviewVersion) {
+   overview = null;
+   overviewError = failure(cause);
+  }
+ } finally {
+  if (alive && current === overviewVersion) overviewLoading = false;
+ }
+}
+function load() {
+ void loadAnalytics();
+ if (mode === "overview") void loadOverview();
 }
 async function sampleHost() {
-	if (document.hidden || mode !== "overview" || loading) return;
+	if (document.hidden || mode !== "overview" || overviewLoading) return;
 	const current = ++hostVersion;
 	hostController?.abort();
 	hostController = new AbortController();
@@ -109,12 +127,13 @@ async function sampleHost() {
 }
 function choose(range: string) {
 	filters = { ...filters, range };
-	if (range !== "custom") void load();
+	if (range !== "custom") void loadAnalytics();
 	else {
 		report = null;
 		version++;
 		controller?.abort();
-		loading = false;
+		analyticsLoading = false;
+		analyticsError = "";
 	}
 }
 function comparison(metric: "pageviews" | "visitors" | "visits") {
@@ -164,6 +183,8 @@ onMount(() => {
 		alive = false;
 		version++;
 		hostVersion++;
+		overviewVersion++;
+		overviewController?.abort();
 		controller?.abort();
 		hostController?.abort();
 		clearInterval(interval);
@@ -179,12 +200,12 @@ onMount(() => {
   <div class="welcome-note" aria-hidden="true"><span class="note-star">✦</span><span>WRITE · COLLECT · SHARE</span><div class="note-lines"><i></i><i></i><i></i></div></div>
  </section>
  <div class="workspace-shortcuts"><button onclick={()=>onnavigate({view:'media'})}><Icon icon="material-symbols:perm-media-outline-rounded" /><span><strong>素材收藏</strong><small>管理图片、音频与视频</small></span><span aria-hidden="true">↗</span></button><button onclick={()=>onnavigate({view:'comments',status:'waiting'})}><Icon icon="material-symbols:forum-outline-rounded" /><span><strong>评论收件箱</strong><small>查看交流与待审核评论</small></span><span aria-hidden="true">↗</span></button></div>
- <div class="section-heading"><div><p class="eyebrow">YOUR LIBRARY</p><h2>内容与待办</h2></div><button disabled={loading} onclick={()=>void load()}>{words.refresh}</button></div>
+ <div class="section-heading"><div><p class="eyebrow">YOUR LIBRARY</p><h2>内容与待办</h2></div><button disabled={overviewLoading} onclick={()=>void load()}>{words.refresh}</button></div>
  {:else}
- <div class="heading"><div><p class="eyebrow">INSIGHTS</p><h1>{words[mode]}</h1><p class="muted">了解阅读趋势，发现更受欢迎的内容。</p></div><button disabled={loading} onclick={()=>void load()}>{words.refresh}</button></div>
+ <div class="heading"><div><p class="eyebrow">INSIGHTS</p><h1>{words[mode]}</h1><p class="muted">了解阅读趋势，发现更受欢迎的内容。</p></div><button disabled={analyticsLoading} onclick={()=>void load()}>{words.refresh}</button></div>
  {/if}
- {#if error}<p class="error" role="alert">{error}</p>{/if}
- {#if loading}<p role="status">{words.loading}</p>{/if}
+ {#if mode==='overview' && overviewError}<div role="alert"><p class="error">{overviewError}</p><button onclick={()=>void loadOverview()}>重试</button></div>{/if}
+ {#if mode==='overview' && overviewLoading}<p role="status">{words.loading}</p>{/if}
  {#if mode==='overview' && overview}
   <div class="metric-grid">
    {#each ['posts','dynamic'] as kind}<article class="panel metric"><h2>{kind==='posts'?'仓库文章':'仓库动态'}</h2><DataStatus section={overview.content}/>{#if overview.content.data}{@const counts=overview.content.data[kind as 'posts'|'dynamic']}<button onclick={()=>onnavigate({view:'content',kind:kind as 'posts'|'dynamic',status:'published'})}><b>{counts.public}</b> 非草稿</button><button onclick={()=>onnavigate({view:'content',kind:kind as 'posts'|'dynamic',status:'draft'})}>{counts.draft} 仓库草稿</button>{/if}<p class="muted">来源：当前仓库；非草稿不等于线上 release 数量。</p></article>{/each}
@@ -195,8 +216,10 @@ onMount(() => {
  {#if mode==='overview'}<div class="section-heading"><div><p class="eyebrow">READING & REACH</p><h2>博客访问</h2></div><button onclick={()=>onnavigate({view:'analytics'})}>查看分析 ↗</button></div>{/if}
  <div class="range-controls" aria-label="统计日期范围">
   {#each ['today','7d','30d','custom'] as range}<button aria-pressed={filters.range===range} class:primary={filters.range===range} onclick={()=>choose(range)}>{words[range as 'today'|'7d'|'30d'|'custom']}</button>{/each}
-  {#if filters.range==='custom'}<form onsubmit={(event)=>{event.preventDefault();void load();}}><label>开始日期<input type="date" required bind:value={filters.start}/></label><label>结束日期<input type="date" required bind:value={filters.end}/></label><button type="submit" disabled={loading}>应用（最多90天）</button></form>{/if}
+  {#if filters.range==='custom'}<form onsubmit={(event)=>{event.preventDefault();void loadAnalytics();}}><label>开始日期<input type="date" required bind:value={filters.start}/></label><label>结束日期<input type="date" required bind:value={filters.end}/></label><button type="submit" disabled={analyticsLoading}>应用（最多90天）</button></form>{/if}
  </div>
+ {#if analyticsError}<div role="alert"><p class="error">{analyticsError}</p><button onclick={()=>void loadAnalytics()}>重试</button></div>{/if}
+ {#if analyticsLoading}<p role="status">{words.loading}</p>{/if}
  {#if report}
   <details class="panel report-meta"><summary>统计来源与时间范围</summary><strong>{words.source}：{report.source} · {words.states[report.state]}</strong><p>站点 {report.websiteId}</p><p>{words.timezone} · {time(report.range.startAt)} — {time(report.range.endAt)}</p><p>对比：{report.range.preset==='today'?'昨日同期':'上一连续等长区间'} · {time(report.range.previousStart)} — {time(report.range.previousEnd)}</p><p class="muted">近7/30天含今日及前6/29天；今日截止当前分钟（部分日）。刷新 {time(report.refreshedAt)}{report.retryAt?` · 可重试于 ${time(report.retryAt)}`:''}</p></details>
   <div class="metric-grid analytics-metrics">{#each ['pageviews','visitors','visits'] as metric}<article class="panel metric"><h2>{words[metric as 'pageviews'|'visitors'|'visits']}</h2><DataStatus section={report.stats}/>{#if report.stats.data}<b class="number">{report.stats.data[metric as 'pageviews'|'visitors'|'visits']}</b><p>对比 {comparison(metric as 'pageviews'|'visitors'|'visits')}</p>{/if}</article>{/each}</div>

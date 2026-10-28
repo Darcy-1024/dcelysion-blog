@@ -24,13 +24,14 @@ pnpm new-dynamic ... # 新建动态
 构建注意事项：
 
 - `pnpm-workspace.yaml` 把 pnpm store 放在仓库内，因此 `astro.config.mjs` 必须继续从 Vite watcher 排除 `**/.pnpm-store/**`；否则 Windows 启动时会遍历数万个依赖缓存文件。依赖安装或升级后应重启开发服务器，而不是依赖 store 文件的热更新。Cloudflare adapter 也只在设置 `CF_WORKERS` 时动态加载，普通 `pnpm dev` 和静态构建不应提前初始化 Wrangler/Miniflare。
-- `pnpm build` 会更新受版本控制的 `src/constants/lqips.json`，也可用 `pnpm lqips` 单独生成；脚本按路径跳过已有条目，同路径替换图片需定向刷新对应缓存或改用新文件名。提交前检查差异是否来自本次资源变更，并保留此前任务外改动。
-- `pnpm build` 会先更新 `src/constants/github-card-data.json`；瞬时 DNS/连接/超时、HTTP 429 和 5xx 会短暂等待后重试一次，仍失败时保留已有缓存。提交前检查差异是否合理。
+- `pnpm build` 会更新受版本控制的 `src/constants/lqips.json`，也可用 `pnpm lqips` 单独生成；脚本用图片内容 SHA-256 和已生成渐变检查缓存，同路径替换图片会自动重算。指纹保存在已忽略的 `cache/build/lqip-meta.json`，首次运行或清除此缓存后重算；处理失败保留旧渐变，但不把新图片指纹标记为成功。前端 JSON 结构不变。提交前检查生成差异，并保留此前任务外改动。
+- `pnpm build` 会先更新 `src/constants/github-card-data.json`，只收集非草稿正文中的 GitHub 卡片，忽略代码示例与 HTML 注释。成功结果有效期为 24 小时，刷新元数据保存在已忽略的 `cache/build/github-card-meta.json`；`pnpm github-cards --refresh` 可强制刷新。瞬时 DNS/连接/超时、HTTP 429 和 5xx 会短暂等待后重试一次，仍失败时保留已有缓存。提交前检查差异是否合理。
 - `pnpm gallery-previews` 是独立的媒体维护命令，不属于普通 `pnpm build`。它为已配置相册的本地图片生成最大宽度 1200px、不会放大的 AVIF 预览，把待上传文件写入已忽略的 `.gallery-previews/`，并更新受版本控制的 `src/constants/gallery-previews.json`。部署引用新映射的 HTML 前必须先上传并验证映射中的全部 R2 对象。
 - `pnpm format` 与 `pnpm lint` 都带有 `--write`，且作用于整个 `src/` 和 `scripts/`。已有无关改动或只需验证少量文件时，优先使用 `pnpm exec biome check <相关文件>` 做限定范围的只读检查；不要为验证而改写任务外文件。
 - `scripts/generate-vndb-covers.ts` 只在 VNDB 页面启用、模式为 `static`、配置了 `userId` 且开启封面下载时请求外部 API；未配置用户 ID 时会直接跳过。封面写入已忽略的 `public/vndb-covers/`，已有文件会跳过下载。
 - `scripts/prune-pio-assets.ts` 在 Astro 构建后从 `dist/` 移除未启用的 Pio/Live2D 产物：Live2D 关闭时移除 `dist/pio/models/live2d` 及孤立的 `Live2DWidget` chunk；Spine 关闭时移除 `dist/pio/models/spine` 和 `dist/pio/static`；两者都关闭时移除整个 `dist/pio`，都启用时不裁剪。Live2D 关闭时 Vite 的 chunk 警告阈值为 700 KiB，用于容纳随后被删除的已知孤立 chunk，启用时仍使用默认 500 KiB。不要手工修改其输出。
 - 字体子集脚本在 Astro 构建后扫描 `dist/**/*.html` 与 `dist/**/*.json`，输出到 `dist/_astro/fonts`。
+- 独立后台的 `pnpm admin:build` / `admin:dev` 由 `admin/build/assets.ts` 自动生成 MiSans WOFF2 分片和后台专用 WebP 品牌图到忽略目录 `cache/admin-assets/`，再由 Vite 输出带哈希的资源。常用界面字符合并成一个分片，其余原字体字符全部保留并按 `unicode-range` 按需下载，因此新评论和新标题不需要重新构建字体。保留可变字重与 `font-display: swap`；不手改缓存或 `admin/dist/`。后台资源变更运行 `pnpm admin:check`、`pnpm admin:build` 和相关后台检查即可，不触发公开博客构建。
 - `scripts/minify-inline-scripts.ts` 会在字体处理后压缩 `dist/` 中的内联脚本。
 - Pagefind 只在完整构建后生成，因此开发服务器中的搜索可用性与生产预览不同。
 - `scripts/prepare-sites-dist.ts` 在构建末尾生成 `dist/server/index.js`，供 OpenAI Sites 使用 `ASSETS` binding 托管静态产物；不要手工修改该生成文件。

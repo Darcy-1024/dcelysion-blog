@@ -1,11 +1,5 @@
 /* Independent admin build: matches the blog's hue 308 and card language. */
-@font-face {
-  font-family: "MiSans";
-  src: url("../../public/assets/fonts/MiSansVF.ttf") format("truetype");
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
+@import "../../cache/admin-assets/misans.css";
 :root {
   color-scheme: light;
   --accent: oklch(0.50 0.09 308);

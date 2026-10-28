@@ -94,6 +94,8 @@ pnpm build
 
 本地动态正文经 `rehype-dynamic-image-source` 标记本地图片，再由 `DynamicContent.astro` 在服务端把原图请求替换为最大 960px 的响应式预览，保留正文和图片顺序。图库网格、缩略图及页内查看使用预览，仅显式打开 Fancybox 时读取原图；未知远程图保持原样。这样避免多张手机照片同时以完整分辨率解码。
 
+`FancyboxManager.astro` 的初始化不等待 SVG 网络预处理。SVG 尺寸修正只在灯箱附加对应 slide（包括灯箱相邻预加载 slide）时执行，不替换正文图片或链接；普通图片仍同步交给媒体选路加载。每个灯箱实例单独缓存 SVG blob，关闭或 Swup 切页时撤销并使迟到结果失效；SVG 处理失败回退原媒体 URL。
+
 ### `src/layouts/`：页面骨架
 
 - `Layout.astro` 是最底层 HTML 外壳，负责 `<head>`、SEO、favicon、全局 CSS、字体、分析服务、主题初始化、全局音乐/特效、Swup 生命周期和通用浏览器增强。

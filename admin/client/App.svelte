@@ -1,22 +1,17 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
-import logoLight from "../../public/assets/brand/dcelysion-portal-v3.png";
-import logoDark from "../../public/assets/brand/dcelysion-portal-v3-dark.png";
+import logoLight from "../../cache/admin-assets/logo-light.webp";
+import logoDark from "../../cache/admin-assets/logo-dark.webp";
 import { onMount } from "svelte";
 import type { ConfigurationKind } from "../shared/configuration.js";
 import type { DraftDetail } from "../shared/contracts";
 import { words as analyticsWords } from "./analytics-words.js";
-import ConfigurationEditor from "./ConfigurationEditor.svelte";
 import Dashboard from "./Dashboard.svelte";
-import Editor from "./Editor.svelte";
+import LazyPage from "./LazyPage.svelte";
 import { apiMessage, connectionMessage } from "./i18n";
-import Management from "./Management.svelte";
-import MediaLibrary from "./MediaLibrary.svelte";
-import MemosEmbed from "./MemosEmbed.svelte";
 import UserAvatar from "./UserAvatar.svelte";
 import { memosWords } from "./memos-words.js";
 import { words as managementWords } from "./management-words.js";
-import Publishing from "./Publishing.svelte";
 
 type Entry = {
 	id: string;
@@ -314,7 +309,7 @@ async function initialize() {
 			if (me.ok) {
 				owner = me.data;
 				void loadOwnerAvatar();
-				await load();
+				if (isContentView()) await load();
 			} else if (me.error.code !== "UNAUTHORIZED")
 				errorText = apiMessage(me.error);
 		}
@@ -360,7 +355,7 @@ async function login() {
 		password = "";
 		code = "";
 		expired = false;
-		if (!editor) await load();
+		if (isContentView()) await load();
 	} catch (cause) {
 		errorText = message(cause);
 	} finally {
@@ -387,8 +382,11 @@ async function logout() {
 		errorText = message(cause);
 	}
 }
+function isContentView() {
+ return !memosMode && !dashboardMode && !managementMode && !configurationKind && !mediaLibrary && !publishing && !editor;
+}
 async function load() {
-	if (!owner) return;
+	if (!owner || !isContentView()) return;
 	if (privateMode) {
 		const current = ++requestVersion;
 		loading = true;
@@ -510,21 +508,21 @@ function changePage(next: number) {
       <header class="topbar"><button bind:this={menuButton} class="menu-button" aria-label={words.menu} aria-expanded={drawer} onclick={openDrawer}><Icon icon="material-symbols:menu-rounded" /></button><div class="breadcrumb"><span class="breadcrumb-section">{sectionTitle} /</span> <strong>{pageTitle}</strong></div><div class="top-tools"><button class="icon-button" onclick={toggleTheme} aria-label={dark ? '切换浅色模式' : '切换深色模式'} title={dark ? '切换浅色模式' : '切换深色模式'}><Icon icon={dark ? 'material-symbols:light-mode-outline-rounded' : 'material-symbols:dark-mode-outline-rounded'} /></button>{#if blogOrigin}<a class="blog-link" href={blogOrigin} target="_blank" rel="noopener noreferrer">查看博客 <Icon icon="material-symbols:open-in-new-rounded" /></a>{/if}</div></header>
       <div class="page-body">
        {#if memosVisited}
-        <div hidden={!memosMode} inert={!memosMode}><MemosEmbed bind:this={memosRef} onexpired={() => expired = true}/></div>
+        <div hidden={!memosMode} inert={!memosMode}><LazyPage loader={() => import("./MemosEmbed.svelte")} let:value><svelte:component this={value.default} bind:this={memosRef} onexpired={() => expired = true}/></LazyPage></div>
        {/if}
        {#if !memosMode}
        {#if dashboardMode}
         {#key dashboardMode}<Dashboard mode={dashboardMode} bind:filters={analyticsFilters} onexpired={()=>expired=true} onnavigate={dashboardNavigate}/>{/key}
        {:else if managementMode}
-        <Management {blogOrigin} bind:this={managementRef} bind:mode={managementMode} initialStatus={overviewCommentStatus} onexpired={()=>expired=true} onsignout={()=>{owner=null;managementMode=null;managementRef=undefined;}} />
+        <LazyPage loader={() => import("./Management.svelte")} let:value><svelte:component this={value.default} {blogOrigin} bind:this={managementRef} bind:mode={managementMode} initialStatus={overviewCommentStatus} onexpired={()=>expired=true} onsignout={()=>{owner=null;managementMode=null;managementRef=undefined;}} /></LazyPage>
        {:else if configurationKind}
-        {#key configurationKind}<ConfigurationEditor bind:this={configurationRef} kind={configurationKind} onexpired={() => expired=true}/>{/key}
+        {#key configurationKind}<LazyPage loader={() => import("./ConfigurationEditor.svelte")} let:value><svelte:component this={value.default} bind:this={configurationRef} kind={configurationKind} onexpired={() => expired=true}/></LazyPage>{/key}
        {:else if mediaLibrary}
-        <MediaLibrary onexpired={()=>expired=true}/>
+        <LazyPage loader={() => import("./MediaLibrary.svelte")} let:value><svelte:component this={value.default} onexpired={()=>expired=true}/></LazyPage>
        {:else if publishing}
-        <Publishing initialJobId={overviewJobId} onexpired={()=>expired=true}/>
+        <LazyPage loader={() => import("./Publishing.svelte")} let:value><svelte:component this={value.default} initialJobId={overviewJobId} onexpired={()=>expired=true}/></LazyPage>
        {:else if editor}
-        {#key editor}<Editor bind:this={editorRef} initial={editor} onback={() => { if (leaveEditor()) void load(); }} onexpired={() => expired = true} onreplace={(detail) => editor = detail} />{/key}
+        {#key editor}<LazyPage loader={() => import("./Editor.svelte")} let:value><svelte:component this={value.default} bind:this={editorRef} initial={editor} onback={() => { if (leaveEditor()) void load(); }} onexpired={() => expired = true} onreplace={(detail) => editor = detail} /></LazyPage>{/key}
        {:else}
        <div class="heading library-heading"><div><p class="eyebrow">CONTENT LIBRARY</p><h1>{kind === "posts" ? '文章书架' : '动态归档'} <span class="count">{privateMode ? draftPage?.total ?? 0 : data?.total ?? '—'}</span></h1><p class="muted">{kind === 'posts' ? '让想法成为文字，慢慢积累自己的作品。' : '管理保存在博客仓库中的动态与图片。'}</p></div><button class="primary" disabled={editorBusy} onclick={() => { creating = !creating; newPath = ""; createRequest = null; }}><Icon icon="material-symbols:add-rounded" />新建私有草稿</button></div>
        <div class="library-tabs" aria-label="内容来源"><button class:active={!privateMode} aria-pressed={!privateMode} disabled={editorBusy} onclick={()=>{if(privateMode)switchPrivate();}}>仓库内容</button><button class:active={privateMode} aria-pressed={privateMode} disabled={editorBusy} onclick={()=>{if(!privateMode)switchPrivate();}}>私有草稿</button><span>私有保存不会更改公开内容</span></div>

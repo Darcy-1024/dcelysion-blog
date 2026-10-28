@@ -101,6 +101,8 @@ async function staticFile(res: ServerResponse, pathname: string) {
 			".css": "text/css",
 			".png": "image/png",
 			".ttf": "font/ttf",
+			".woff2": "font/woff2",
+			".webp": "image/webp",
 			".svg": "image/svg+xml",
 		};
 		const contents = await readFile(file);

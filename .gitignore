@@ -20,6 +20,11 @@ yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 
+# local preview and review logs (repository root only)
+/.*-preview.stdout.log
+/.*-preview.stderr.log
+/.review-build.log
+
 # environment variables
 .env
 .env.production

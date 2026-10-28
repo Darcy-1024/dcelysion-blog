@@ -54,8 +54,8 @@ const enabled =
   content-like [hidden] { display: none; }
   content-like [data-like-users] { display: flex; flex-wrap: wrap; gap: .5rem 1rem; width: 100%; list-style: none; padding: 0; margin: 0; }
   content-like [data-like-users]:empty { display: none; }
-  content-like [data-like-users] li { display: flex; align-items: center; gap: .4rem; max-width: 100%; color: var(--content-meta); font-size: .8rem; }
-  content-like [data-like-users] li > span:last-child { overflow-wrap: anywhere; }
+  content-like [data-like-users] li { display: flex; align-items: center; flex: 0 0 auto; gap: .4rem; min-width: 0; max-width: 100%; color: var(--content-meta); font-size: .8rem; }
+  content-like [data-like-users] li > span:last-child { min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   content-like .like-avatar { position: relative; display: inline-flex; justify-content: center; align-items: center; flex: 0 0 28px; height: 28px; overflow: hidden; border-radius: 50%; background: var(--btn-regular-bg); color: var(--btn-content); }
   content-like .like-avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
   content-like [data-like-more] { font-size: .8rem; }
