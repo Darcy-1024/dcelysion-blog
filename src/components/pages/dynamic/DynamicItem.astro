@@ -3,6 +3,7 @@ import { type CollectionEntry, render } from "astro:content";
 import { Icon } from "astro-icon/components";
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
 import LikeButton from "@/components/common/LikeButton.astro";
+import DynamicContent from "@/components/pages/dynamic/DynamicContent.astro";
 import DynamicGallery from "@/components/pages/dynamic/DynamicGallery.astro";
 import DynamicInlineComments from "@/components/pages/dynamic/DynamicInlineComments.astro";
 import { dynamicConfig, profileConfig, siteConfig } from "@/config";
@@ -95,7 +96,7 @@ const profileUrl = url(dynamicConfig.profileUrl || "/about/");
 		</header>
 
 		<div id={`${anchorId}-content`} class="page-content custom-md" data-dynamic-content>
-			<Content />
+			<DynamicContent><Content /></DynamicContent>
 		</div>
 		<DynamicGallery sourceId={`${anchorId}-content`} />
 		<div class="dynamic-actions">

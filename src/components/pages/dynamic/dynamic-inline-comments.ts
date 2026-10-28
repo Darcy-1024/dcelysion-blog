@@ -63,6 +63,8 @@ export function registerDynamicInlineComments(): void {
 		}
 
 		connectedCallback() {
+			this.frame?.addEventListener("load", this.syncTheme);
+			if (this.frame) this.syncTheme();
 			this.label ||=
 				this.querySelector("[data-comment-label]")?.textContent || "Comments";
 			this.querySelector("[data-comment-toggle]")?.addEventListener(
@@ -79,6 +81,7 @@ export function registerDynamicInlineComments(): void {
 		}
 
 		disconnectedCallback() {
+			this.frame?.removeEventListener("load", this.syncTheme);
 			this.querySelector("[data-comment-toggle]")?.removeEventListener(
 				"click",
 				this.handleToggle,
@@ -104,6 +107,11 @@ export function registerDynamicInlineComments(): void {
 				{
 					type: "dynamic-comment-theme",
 					dark: document.documentElement.classList.contains("dark"),
+					hue: Number(
+						getComputedStyle(document.documentElement)
+							.getPropertyValue("--hue")
+							.trim(),
+					),
 				},
 				window.location.origin,
 			);
@@ -117,7 +125,16 @@ export function registerDynamicInlineComments(): void {
 			)
 				return;
 			if (this.frame) {
-				this.frame.style.height = `${Math.max(240, Number(event.data.height))}px`;
+				const height = event.data.height;
+				if (
+					typeof height !== "number" ||
+					!Number.isFinite(height) ||
+					height <= 0
+				)
+					return;
+				const nextHeight = `${Math.max(240, Math.ceil(height))}px`;
+				if (this.frame.style.height !== nextHeight)
+					this.frame.style.height = nextHeight;
 			}
 		};
 

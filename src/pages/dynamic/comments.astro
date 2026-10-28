@@ -1,7 +1,14 @@
 ---
 import Comment from "@/components/comment/index.astro";
-import { commentConfig, dynamicConfig, siteConfig } from "@/config";
-import Layout from "@/layouts/Layout.astro";
+import FontSetup from "@/components/features/FontSetup.astro";
+import {
+	commentConfig,
+	displaySettingsConfig,
+	dynamicConfig,
+	siteConfig,
+} from "@/config";
+import "@/styles/main.css";
+import "@/styles/variables.styl";
 import "@/styles/pages/dynamic-comments.css";
 
 if (
@@ -14,33 +21,35 @@ if (
 }
 ---
 
-<Layout title="">
-	<main class="page-comment-embed">
-		<Comment customPath="/dynamic/" />
-	</main>
-</Layout>
+<!doctype html>
+<html lang={siteConfig.lang.replace("_", "-")} class="text-[14px] md:text-[16px]">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>{siteConfig.title}</title>
+		<style is:inline>@layer properties, theme, base, components, utilities;</style>
+		<script is:inline define:vars={{ configHue: siteConfig.themeColor.hue, defaultMode: siteConfig.themeColor.defaultMode ?? "light", switchable: displaySettingsConfig.themeColorSwitchable }}>
+			let theme = defaultMode;
+			let hue = configHue;
+			try {
+				theme = localStorage.getItem("theme") || defaultMode;
+				if (switchable) hue = localStorage.getItem("hue") || configHue;
+			} catch { /* Parent messaging still synchronizes restricted storage contexts. */ }
+			const dark = theme === "dark" || (theme === "system" && matchMedia("(prefers-color-scheme: dark)").matches);
+			document.documentElement.classList.toggle("dark", dark);
+			document.documentElement.dataset.theme = dark ? "dark" : "light";
+			document.documentElement.style.setProperty("--hue", String(hue));
+		</script>
+		<FontSetup />
+	</head>
+	<body data-no-swup>
+		<main class="page-comment-embed">
+			<Comment customPath="/dynamic/" />
+		</main>
+	</body>
+</html>
 
 <script>
-	window.addEventListener("message", (event) => {
-		if (
-			event.origin !== window.location.origin ||
-			event.data?.type !== "dynamic-comment-theme"
-		) {
-			return;
-		}
-		document.documentElement.classList.toggle("dark", Boolean(event.data.dark));
-		document.documentElement.dataset.theme = event.data.dark ? "dark" : "light";
-	});
-
-	const reportHeight = () => {
-		window.parent.postMessage(
-			{
-				type: "dynamic-comment-height",
-				height: document.documentElement.scrollHeight,
-			},
-			window.location.origin,
-		);
-	};
-	new ResizeObserver(reportHeight).observe(document.body);
-	window.addEventListener("load", reportHeight);
+	import { initDynamicCommentEmbed } from "@/components/pages/dynamic/dynamic-comment-embed";
+	initDynamicCommentEmbed();
 </script>

@@ -2,8 +2,16 @@
 
 html:has(.page-comment-embed),
 body:has(.page-comment-embed) {
+	min-height: 0;
+	height: auto;
+	margin: 0;
 	overflow: hidden;
 	background: transparent !important;
+}
+
+.page-comment-embed {
+	/* Contain child margins without tying content height to the iframe viewport. */
+	display: flow-root;
 }
 
 .page-comment-embed #post-comments {

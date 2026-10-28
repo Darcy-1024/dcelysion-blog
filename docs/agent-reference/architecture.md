@@ -92,12 +92,14 @@ pnpm build
 
 `siteConfig.pages` 控制 friends、sponsor、guestbook、bilibili、bangumi、vndb、mal、gallery、dynamic、booknav 等页面是否开放。关闭的页面会通过各路由守卫重定向到 `/404/`，导航栏按 `pageKey` 过滤链接；sitemap 在 `astro.config.mjs` 中另行维护过滤规则。新增或调整页面开关时，必须逐项核对页面守卫、导航 `pageKey`、页面子路由和 sitemap 过滤，不能假定这些入口会自动保持一致。
 
+本地动态正文经 `rehype-dynamic-image-source` 标记本地图片，再由 `DynamicContent.astro` 在服务端把原图请求替换为最大 960px 的响应式预览，保留正文和图片顺序。图库网格、缩略图及页内查看使用预览，仅显式打开 Fancybox 时读取原图；未知远程图保持原样。这样避免多张手机照片同时以完整分辨率解码。
+
 ### `src/layouts/`：页面骨架
 
 - `Layout.astro` 是最底层 HTML 外壳，负责 `<head>`、SEO、favicon、全局 CSS、字体、分析服务、主题初始化、全局音乐/特效、Swup 生命周期和通用浏览器增强。
 - `MainGridLayout.astro` 构建可变壁纸/横幅、导航栏、分类栏、主内容区、左右侧边栏、页脚、悬浮控件和看板娘。普通网格由 `resolveSidebarLayout()` 统一计算输入变量，SSR 写到 `#main-grid`，Swup 换页时更新同一组变量；`layout-base.css` 按 768/1280 断点消费。沉浸阅读以 `body` 状态类提供独立的生效列、正文列号和间距变量，沿用同一网格消费规则；1024px 是进入资格，1200px 是目录由浮层转为 sticky 双列的断点。退出后撤销状态类，即恢复当前普通输入变量。
 
-普通站内页面优先使用 `MainGridLayout`；只有需要极简外壳的嵌入页面才直接使用 `Layout`。不要随意改动这些稳定 DOM 标识：`#swup-container`、`#banner-overlay-container`、`#banner-dim-container`、`#left-sidebar-dynamic`、`#right-sidebar-dynamic`、`#floating-toc-wrapper`，它们是 Swup 多容器切换契约的一部分。
+普通站内页面优先使用 `MainGridLayout`；动态评论 iframe 使用独立轻量文档，保留评论样式、字体和主题同步，不挂载整站统计、音乐、特效或布局初始化。其高度以实际评论内容测量，父子消息去重，避免视口最小高度参与反馈；`body[data-no-swup]` 让评论链接不走整站局部导航。不要随意改动这些稳定 DOM 标识：`#swup-container`、`#banner-overlay-container`、`#banner-dim-container`、`#left-sidebar-dynamic`、`#right-sidebar-dynamic`、`#floating-toc-wrapper`，它们是 Swup 多容器切换契约的一部分。
 
 ### `src/components/`：按职责分组的 UI
 

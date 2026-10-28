@@ -47,6 +47,8 @@ type GalleryImage = {
 	alt: string;
 	element: HTMLImageElement;
 	src: string;
+	previewSrc: string;
+	previewSrcset?: string;
 };
 
 export function registerDynamicGallery(): void {
@@ -72,6 +74,12 @@ export function registerDynamicGallery(): void {
 					element.dataset.mediaSrc ||
 					element.currentSrc ||
 					element.src,
+				previewSrc:
+					element.dataset.mediaSrc || element.getAttribute("src") || "",
+				previewSrcset:
+					element.dataset.mediaSrcset ||
+					element.getAttribute("srcset") ||
+					undefined,
 			}));
 			this.buildGrid();
 			this.buildThumbnails();
@@ -132,7 +140,8 @@ export function registerDynamicGallery(): void {
 				"[data-gallery-thumbnails]",
 			);
 			if (!thumbnails) return;
-			this.images.forEach(({ element, alt, src }, index) => {
+			this.images.forEach((image, index) => {
+				const { element, alt, previewSrc, previewSrcset } = image;
 				const button = document.createElement("button");
 				button.type = "button";
 				button.className = "page-gallery-thumbnail";
@@ -179,19 +188,13 @@ export function registerDynamicGallery(): void {
 						thumbnail.removeAttribute("srcset");
 						thumbnail.removeAttribute("sizes");
 						thumbnail.dataset.previewFallback = "true";
-						if (thumbnail.src !== new URL(src, document.baseURI).href) {
-							assignMedia(thumbnail, src);
+						if (thumbnail.src !== new URL(previewSrc, document.baseURI).href) {
+							assignMedia(thumbnail, previewSrc);
 						}
 					},
 					{ once: true },
 				);
-				assignMedia(
-					thumbnail,
-					element.dataset.mediaSrc || element.getAttribute("src") || src,
-					element.dataset.mediaSrcset ||
-						element.getAttribute("srcset") ||
-						undefined,
-				);
+				assignMedia(thumbnail, previewSrc, previewSrcset);
 				button.append(thumbnail);
 				thumbnails.append(button);
 			});
@@ -216,6 +219,7 @@ export function registerDynamicGallery(): void {
 					Fancybox.show(
 						this.images.map((image) => ({
 							src: image.src,
+							thumbSrc: image.previewSrc,
 							type: "image",
 						})),
 						getLightboxOptions(this.activeIndex),
@@ -246,6 +250,7 @@ export function registerDynamicGallery(): void {
 			Fancybox.show(
 				this.images.map((image) => ({
 					src: image.src,
+					thumbSrc: image.previewSrc,
 					type: "image",
 				})),
 				getLightboxOptions(index),
@@ -260,9 +265,8 @@ export function registerDynamicGallery(): void {
 			const image = this.images[this.activeIndex];
 			const main = this.querySelector<HTMLImageElement>("[data-gallery-main]");
 			if (!main) return;
-			main.removeAttribute("srcset");
-			main.removeAttribute("sizes");
-			assignMedia(main, image.src);
+			main.sizes = "(max-width: 768px) 92vw, 640px";
+			assignMedia(main, image.previewSrc, image.previewSrcset);
 			main.alt = image.alt;
 			main.dataset.galleryIndex = String(this.activeIndex);
 			this.querySelector<HTMLElement>("[data-gallery-lightbox]")?.setAttribute(
