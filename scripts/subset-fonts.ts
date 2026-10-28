@@ -10,6 +10,7 @@ import subsetFont from "subset-font";
 import { fontConfig, fontsList } from "../src/config";
 import { musicPlayerConfig } from "../src/config/musicConfig";
 import { collectUsedFontCssVars, toPublicPath } from "../src/utils/fontHelper";
+import { fontCodepoints, splitCodepoints, subsetFace } from "./font-subsets";
 import { resolveSiteRoot } from "./site-root";
 
 // ─── 配置 ───────────────────────────────────────────────
@@ -22,6 +23,7 @@ const OUTPUT_DIR = `${siteRoot}/_astro/fonts`;
 // ─── 字体配置解析 ────────────────────────────────────────
 
 type LocalSubsetFont = {
+	fullCoverage: boolean;
 	id: string;
 	family: string;
 	src: string;
@@ -77,6 +79,7 @@ function getLocalSubsetFonts(): LocalSubsetFont[] {
 				continue;
 			}
 			result.push({
+				fullCoverage: cssVar === "--font-misans",
 				id: `${f.name}-${v.weight || "default"}`
 					.toLowerCase()
 					.replace(/\s+/g, "-"),
@@ -116,7 +119,17 @@ function extractTextFromHtml(html: string): string {
 	for (const match of attrMatches) {
 		text += match[1];
 	}
-	return text;
+	return text.replace(/&#(x[0-9a-f]+|\d+);/gi, (entity, value: string) => {
+		const point =
+			value[0].toLowerCase() === "x"
+				? Number.parseInt(value.slice(1), 16)
+				: Number.parseInt(value, 10);
+		return point > 0 &&
+			point <= 0x10ffff &&
+			!(point >= 0xd800 && point <= 0xdfff)
+			? String.fromCodePoint(point)
+			: entity;
+	});
 }
 
 /** 从 JSON 中递归提取字符串值，覆盖构建后由浏览器动态加载的本地内容。 */
@@ -219,6 +232,7 @@ function detectFontFormat(
 // ─── 主流程 ──────────────────────────────────────────────
 
 interface SubsetResult {
+	groups?: { hash: string; points: number[] }[];
 	id: string;
 	family: string;
 	weight?: string | number;
@@ -252,8 +266,7 @@ async function main() {
 	console.log(`   Collected ${pageChars.length} unique characters.`);
 
 	if (pageChars.length === 0) {
-		console.warn("⚠ No characters found in dist/. Skipping subsetting.");
-		return;
+		throw new Error("No characters found in dist/. Run a fresh Astro build.");
 	}
 
 	// 3. 确保输出目录存在
@@ -269,8 +282,7 @@ async function main() {
 		try {
 			await fs.access(fontPath);
 		} catch {
-			console.error(`❌ Font file not found: ${fontPath} (src: ${font.src})`);
-			continue;
+			throw new Error(`Font file not found: ${fontPath} (src: ${font.src})`);
 		}
 
 		// 合并页面字符和额外字符
@@ -289,6 +301,9 @@ async function main() {
 		const originalFormat = detectFontFormat(fontPath);
 
 		try {
+			const groups = font.fullCoverage
+				? splitCodepoints(fontCodepoints(fontBuffer), chars)
+				: undefined;
 			const subsetBuffer = await subsetFont(fontBuffer, chars, {
 				targetFormat: "woff2",
 			});
@@ -296,6 +311,26 @@ async function main() {
 			const hash = contentHash(subsetBuffer);
 			const outFile = path.join(OUTPUT_DIR, `${hash}.woff2`);
 			await fs.writeFile(outFile, subsetBuffer);
+			const generatedGroups = groups
+				? [{ hash, points: groups[0] }]
+				: undefined;
+			for (const points of groups?.slice(1) ?? []) {
+				const bytes = await subsetFont(
+					fontBuffer,
+					String.fromCodePoint(...points),
+					{
+						targetFormat: "woff2",
+					},
+				);
+				const shardHash = contentHash(bytes);
+				await fs.writeFile(path.join(OUTPUT_DIR, `${shardHash}.woff2`), bytes);
+				generatedGroups?.push({ hash: shardHash, points });
+			}
+			if (generatedGroups) {
+				console.log(
+					`   ✔ Full Unicode coverage: ${groups?.flat().length} characters, ${generatedGroups.length} nonoverlapping subsets`,
+				);
+			}
 
 			const sizeKB = (subsetBuffer.length / 1024).toFixed(1);
 			const originalSizeKB = (fontBuffer.length / 1024).toFixed(1);
@@ -309,6 +344,7 @@ async function main() {
 			);
 
 			results.push({
+				groups: generatedGroups,
 				id: font.id,
 				family: font.family,
 				weight: font.weight,
@@ -321,7 +357,7 @@ async function main() {
 				originalSize: fontBuffer.length,
 			});
 		} catch (err) {
-			console.error(`   ❌ Failed to subset '${font.id}':`, err);
+			throw new Error(`Failed to subset '${font.id}'`, { cause: err });
 		}
 	}
 
@@ -353,15 +389,20 @@ async function main() {
 
 		originalFilesByResult.set(result, originalFiles);
 		if (originalFiles.length === 0) {
-			console.warn(
-				`   ⚠ Original asset for '${result.id}' was not found in dist/.`,
+			throw new Error(
+				`Original asset for '${result.id}' was not found in dist/. Run a fresh Astro build.`,
 			);
 		}
 	}
+	const faceCounts = new Map<SubsetResult, number>();
+	// Plan and validate every rewrite before changing output or deleting source fonts.
+	const updates = new Map<string, string>();
+	const stylesheets = new Map<string, string>();
 
 	for (const file of filesToReplace) {
 		let content = await fs.readFile(file, "utf-8");
 		let replaced = false;
+		const links = new Set<string>();
 
 		for (const result of results) {
 			const subsetUrl = `/_astro/fonts/${result.hash}.woff2`;
@@ -375,29 +416,65 @@ async function main() {
 				const originalUrl = `/${relativePath}`;
 
 				if (!content.includes(originalUrl)) continue;
+				content = content.replace(/@font-face\s*\{[^{}]*\}/gi, (face) => {
+					if (!face.includes(originalUrl)) return face;
+					faceCounts.set(result, (faceCounts.get(result) ?? 0) + 1);
+					const core = subsetFace(face, subsetUrl, result.groups?.[0].points);
+					const fallback = (result.groups?.slice(1) ?? [])
+						.map((group) =>
+							subsetFace(
+								face,
+								`/_astro/fonts/${group.hash}.woff2`,
+								group.points,
+							),
+						)
+						.join("\n");
+					if (!fallback) return core;
+					if (path.extname(file) === ".css") return `${core}\n${fallback}`;
+					const cssHash = contentHash(Buffer.from(fallback));
+					const cssUrl = `/_astro/fonts/${cssHash}.css`;
+					stylesheets.set(path.join(OUTPUT_DIR, `${cssHash}.css`), fallback);
+					links.add(cssUrl);
+					return core;
+				});
 
 				const originalExtension = path
 					.extname(originalFile)
 					.slice(1)
 					.toLowerCase();
-				content = content
-					.replaceAll(
-						`url("${originalUrl}") format("${result.format}")`,
-						`url("${subsetUrl}") format("woff2")`,
-					)
-					.replaceAll(
-						`href="${originalUrl}" as="font" type="font/${originalExtension}"`,
-						`href="${subsetUrl}" as="font" type="font/woff2"`,
-					)
-					.replaceAll(originalUrl, subsetUrl);
+				content = content.replaceAll(
+					`href="${originalUrl}" as="font" type="font/${originalExtension}"`,
+					`href="${subsetUrl}" as="font" type="font/woff2"`,
+				);
+				if (content.includes(originalUrl)) {
+					throw new Error(
+						`Unhandled reference to ${originalUrl} in ${file}; original font retained.`,
+					);
+				}
 				replaced = true;
 			}
 		}
 
 		if (replaced) {
-			await fs.writeFile(file, content);
-			console.log(`   ✔ Updated: ${file}`);
+			if (links.size) {
+				if (!content.includes("</head>"))
+					throw new Error(`Cannot attach fallback stylesheet in ${file}`);
+				content = content.replace(
+					"</head>",
+					`${[...links].map((url) => `<link rel="stylesheet" href="${url}">`).join("")}</head>`,
+				);
+			}
+			updates.set(file, content);
 		}
+	}
+	for (const result of results) {
+		if (!faceCounts.get(result))
+			throw new Error(
+				`No font-face was rewritten for '${result.id}'; original font retained.`,
+			);
+	}
+	for (const [file, content] of [...stylesheets, ...updates]) {
+		await fs.writeFile(file, content);
 	}
 
 	// 6. 清理 dist/ 中的原始字体文件，避免大文件进入部署包

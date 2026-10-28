@@ -30,7 +30,7 @@ pnpm new-dynamic ... # 新建动态
 - `pnpm format` 与 `pnpm lint` 都带有 `--write`，且作用于整个 `src/` 和 `scripts/`。已有无关改动或只需验证少量文件时，优先使用 `pnpm exec biome check <相关文件>` 做限定范围的只读检查；不要为验证而改写任务外文件。
 - `scripts/generate-vndb-covers.ts` 只在 VNDB 页面启用、模式为 `static`、配置了 `userId` 且开启封面下载时请求外部 API；未配置用户 ID 时会直接跳过。封面写入已忽略的 `public/vndb-covers/`，已有文件会跳过下载。
 - `scripts/prune-pio-assets.ts` 在 Astro 构建后从 `dist/` 移除未启用的 Pio/Live2D 产物：Live2D 关闭时移除 `dist/pio/models/live2d` 及孤立的 `Live2DWidget` chunk；Spine 关闭时移除 `dist/pio/models/spine` 和 `dist/pio/static`；两者都关闭时移除整个 `dist/pio`，都启用时不裁剪。Live2D 关闭时 Vite 的 chunk 警告阈值为 700 KiB，用于容纳随后被删除的已知孤立 chunk，启用时仍使用默认 500 KiB。不要手工修改其输出。
-- 字体子集脚本在 Astro 构建后扫描 `dist/**/*.html` 与 `dist/**/*.json`，输出到 `dist/_astro/fonts`。
+- 字体子集脚本在 Astro 构建后扫描 `dist/**/*.html` 与 `dist/**/*.json`，输出到 `dist/_astro/fonts`。MiSans 保留静态内容的首屏子集，其余原字体字符生成互不重叠的 `unicode-range` 分片，仅在昵称、评论、远程歌单等文字实际使用时下载；新增动态文字无需重建字体。分享海报在 Canvas 测量和导出前按正文、标题及作者文字显式等待字体加载。其他本地字体仍按构建内容生成子集。
 - 独立后台的 `pnpm admin:build` / `admin:dev` 由 `admin/build/assets.ts` 自动生成 MiSans WOFF2 分片和后台专用 WebP 品牌图到忽略目录 `cache/admin-assets/`，再由 Vite 输出带哈希的资源。常用界面字符合并成一个分片，其余原字体字符全部保留并按 `unicode-range` 按需下载，因此新评论和新标题不需要重新构建字体。保留可变字重与 `font-display: swap`；不手改缓存或 `admin/dist/`。后台资源变更运行 `pnpm admin:check`、`pnpm admin:build` 和相关后台检查即可，不触发公开博客构建。
 - `scripts/minify-inline-scripts.ts` 会在字体处理后压缩 `dist/` 中的内联脚本。
 - Pagefind 只在完整构建后生成，因此开发服务器中的搜索可用性与生产预览不同。

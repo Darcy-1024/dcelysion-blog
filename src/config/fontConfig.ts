@@ -145,7 +145,7 @@ export const fontConfig: FontSelectionConfig = {
 			extraChars: "",
 		},
 		"--font-misans": {
-			// 动态 JSON 中的文字也会由子集脚本自动收集
+			// 静态 HTML/JSON 字符合并为首屏子集；其余字符由构建脚本分片按需加载
 			extraChars: "",
 		},
 		"--font-greatvibes": {

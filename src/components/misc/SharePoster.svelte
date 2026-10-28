@@ -258,6 +258,18 @@ async function generatePoster() {
 		const posterFontFamily = getComputedStyle(document.body).fontFamily;
 		const posterFont = (size: number, weight = 400) =>
 			`${weight} ${size * scale}px ${posterFontFamily}`;
+		// Canvas-only text does not trigger DOM font loading. Load its actual glyphs
+		// before measuring or exporting, including characters in on-demand shards.
+		await Promise.all([
+			document.fonts.load(
+				posterFont(24, 700),
+				`${dynamicMode ? "" : title}${siteTitle}${author}`,
+			),
+			document.fonts.load(
+				posterFont(14),
+				`${description.slice(0, 2000)}${i18n(I18nKey.author)}${i18n(dynamicMode ? I18nKey.dynamicScanToRead : I18nKey.scanToRead)}0123456789.-`,
+			),
+		]);
 
 		// 1. Prepare resources
 		const qrCodeUrl = await QRCode.toDataURL(url, {
