@@ -6,6 +6,7 @@ import path from "node:path";
 import test from "node:test";
 import { promisify } from "node:util";
 import {
+	tarListingArguments,
 	validateArchiveEntries,
 	verifyPayload,
 } from "./download-blog-release.mjs";
@@ -16,15 +17,16 @@ test("archive boundary rejects traversal, links, duplicate and private members",
 		"cloudflare/",
 		"cloudflare/assets/",
 		"cloudflare/assets/index.html",
+		"cloudflare/assets/posts/博客100天纪念/index.html",
 		"edgeone/assets/__route/probe-v1.bin",
 		"manifest.json",
 	];
 	assert.equal(
 		validateArchiveEntries(
 			names.join("\n"),
-			["d", "d", "-", "-", "-"].join("\n"),
+			["d", "d", "-", "-", "-", "-"].join("\n"),
 		).size,
-		5,
+		6,
 	);
 	for (const name of [
 		"/cloudflare/assets/index.html",
@@ -46,6 +48,18 @@ test("archive boundary rejects traversal, links, duplicate and private members",
 		() => validateArchiveEntries("manifest.json\nmanifest.json", "-\n-"),
 		/INVALID_ARCHIVE_PATH/,
 	);
+});
+
+test("Linux tar listings preserve literal UTF-8 archive paths", () => {
+	assert.deepEqual(tarListingArguments("-tzf", "release.tar.gz", "linux"), [
+		"--quoting-style=literal",
+		"-tzf",
+		"release.tar.gz",
+	]);
+	assert.deepEqual(tarListingArguments("-tzf", "release.tar.gz", "win32"), [
+		"-tzf",
+		"release.tar.gz",
+	]);
 });
 
 test("release verification checks both payloads, source identity and unlisted files", async () => {

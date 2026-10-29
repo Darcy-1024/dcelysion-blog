@@ -30,6 +30,15 @@ const tarOptions = {
 };
 const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+export function tarListingArguments(
+	flag,
+	archive,
+	platform = process.platform,
+) {
+	const args = [flag, archive];
+	return platform === "linux" ? ["--quoting-style=literal", ...args] : args;
+}
+
 export function validateArchiveEntries(names, verbose) {
 	const entries = names.trim().split(/\r?\n/u);
 	const types = verbose.trim().split(/\r?\n/u);
@@ -281,8 +290,16 @@ export async function downloadBlogRelease(platform = "cloudflare") {
 			},
 		}),
 	);
-	const listing = await execute("tar", ["-tzf", archive], tarOptions);
-	const verbose = await execute("tar", ["-tvzf", archive], tarOptions);
+	const listing = await execute(
+		"tar",
+		tarListingArguments("-tzf", archive),
+		tarOptions,
+	);
+	const verbose = await execute(
+		"tar",
+		tarListingArguments("-tvzf", archive),
+		tarOptions,
+	);
 	validateArchiveEntries(listing.stdout, verbose.stdout);
 	const extracted = path.join(temporary, "extracted");
 	await mkdir(extracted);
