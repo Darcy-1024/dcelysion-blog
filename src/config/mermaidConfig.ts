@@ -20,4 +20,10 @@ export const mermaidConfig: MermaidConfig = {
 	 * 可选：editor-dark、one-dark、gruvbox-dark、ayu-dark。
 	 */
 	darkTheme: "editor-dark",
+
+	/**
+	 * 流程图节点文字的换行宽度。
+	 * 默认值 200 对中文长句偏窄，容易把词语拆到两行。
+	 */
+	flowchartWrappingWidth: 360,
 };

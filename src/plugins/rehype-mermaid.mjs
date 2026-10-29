@@ -28,7 +28,7 @@ await initMerman({
  * 在构建时将 Mermaid 源码渲染为浅色和深色两套静态 SVG
  *
  * @param {string} mermaidCode - Mermaid 图表源码
- * @param {object} themeConfig - { lightTheme, darkTheme } 主题名
+ * @param {object} themeConfig - 主题名与流程图换行宽度
  * @param {number} diagramIndex - 当前文档中的图表序号
  * @returns {{ lightSvg: string, darkSvg: string }}
  */
@@ -42,14 +42,24 @@ function removeSvgMaxWidth(svg) {
 
 function buildMermaidSvgs(mermaidCode, themeConfig, diagramIndex) {
 	const lightSvg = renderSvg(mermaidCode, {
-		host_theme: { preset: themeConfig.lightTheme },
+		host_theme: {
+			preset: themeConfig.lightTheme,
+			site_config: {
+				flowchart: { wrappingWidth: themeConfig.flowchartWrappingWidth },
+			},
+		},
 		svg: {
 			diagram_id: `mermaid-${diagramIndex}-light`,
 			pipeline: "parity",
 		},
 	});
 	const darkSvg = renderSvg(mermaidCode, {
-		host_theme: { preset: themeConfig.darkTheme },
+		host_theme: {
+			preset: themeConfig.darkTheme,
+			site_config: {
+				flowchart: { wrappingWidth: themeConfig.flowchartWrappingWidth },
+			},
+		},
 		svg: {
 			diagram_id: `mermaid-${diagramIndex}-dark`,
 			pipeline: "parity",
@@ -69,11 +79,13 @@ function buildMermaidSvgs(mermaidCode, themeConfig, diagramIndex) {
  * @param {object} [options] - 配置选项
  * @param {string} [options.lightTheme] - 亮色主题名
  * @param {string} [options.darkTheme] - 暗色主题名
+ * @param {number} [options.flowchartWrappingWidth] - 流程图节点文字换行宽度
  */
 export function rehypeMermaid(options = {}) {
 	const themeConfig = {
 		lightTheme: options.lightTheme || "editor-light",
 		darkTheme: options.darkTheme || "editor-dark",
+		flowchartWrappingWidth: options.flowchartWrappingWidth || 360,
 	};
 
 	return (tree) => {

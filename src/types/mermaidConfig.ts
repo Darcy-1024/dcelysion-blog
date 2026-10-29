@@ -15,4 +15,6 @@ export type MermaidConfig = {
 	lightTheme: MermaidThemeName;
 	/** 暗色模式下使用的 merman 宿主主题预设名 */
 	darkTheme: MermaidThemeName;
+	/** 流程图节点文字的最大换行宽度（单位：SVG 用户坐标） */
+	flowchartWrappingWidth: number;
 };
