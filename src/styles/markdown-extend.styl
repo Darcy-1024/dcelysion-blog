@@ -279,6 +279,43 @@ a.card-github.fetch-error
 .mermaid-wrapper
   text-align: center
 
+// Match flowcharts to the site palette. !important overrides the renderer's
+// SVG ID selectors; keep geometry/font size intact to preserve label layout.
+.mermaid-wrapper svg.flowchart
+  background-color: transparent !important
+  font-family: inherit !important
+
+  .label, .nodeLabel, .edgeLabel, text, foreignObject, foreignObject div, foreignObject span, foreignObject p
+    font-family: inherit !important
+    color: var(--tw-prose-body, var(--content-meta)) !important
+
+  text, .label text
+    fill: var(--tw-prose-body, var(--content-meta)) !important
+
+  .node.default > .label-container
+    fill: var(--btn-regular-bg) !important
+    stroke: var(--primary) !important
+    stroke-opacity: 0.55
+
+  .node.default > rect.label-container
+    rx: 10px
+    ry: 10px
+
+  .flowchart-link
+    stroke: var(--primary) !important
+    stroke-opacity: 0.65
+
+  .marker
+    fill: var(--primary) !important
+    stroke: var(--primary) !important
+
+  .edgeLabel, .edgeLabel p, .labelBkg
+    background-color: var(--card-bg) !important
+
+  .cluster > rect
+    fill: var(--btn-regular-bg) !important
+    stroke: var(--line-color) !important
+
 .mermaid-svg-light,
 .mermaid-svg-dark
   display: flex
@@ -291,7 +328,7 @@ a.card-github.fetch-error
     display: block
     width: 100%
     max-width: 100%
-    max-height: 420px
+    // Long diagrams expand at their natural aspect ratio.
     height: auto
     border-radius: 0.5rem
     user-select: none
@@ -348,7 +385,6 @@ a.card-github.fetch-error
 
 .plantuml-image
   max-width: 100%
-  max-height: 420px
   height: auto
   display: block
   user-select: none
@@ -387,14 +423,6 @@ a.card-github.fetch-error
 
   .plantuml-image
     filter: brightness(0.95)
-
-@media (max-width: 768px)
-  .mermaid-svg-light svg,
-  .mermaid-svg-dark svg
-    max-height: 400px
-
-  .plantuml-image
-    max-height: 400px
 
 // ─── 图表 pan-zoom / 全屏交互样式（共享） ───────────────────────────────────
 // 由 rehype-diagram-panzoom 注入的客户端脚本驱动
