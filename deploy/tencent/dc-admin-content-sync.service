@@ -10,4 +10,3 @@ UMask=0077
 ExecStart=/usr/bin/python3 /opt/dcelysion-admin-stage2/operator/content-sync/sync-admin-content.py
 TimeoutStartSec=15min
 # SIGTERM is handled by the next run's recovery journal before a new sync.
-
