@@ -112,6 +112,8 @@ const minutes = remarkPluginFrontmatter.minutes;
   ]}
   style={style}
 >
+  <!-- 扩展原生链接的点击范围；键盘和读屏仍使用标题入口。 -->
+  <a href={url} class="post-card-hit-area" tabindex="-1" aria-hidden="true" />
   <!-- pinned icon -->
   <div
     class:list={[
@@ -281,6 +283,29 @@ const minutes = remarkPluginFrontmatter.minutes;
 </div>
 
 <style define:vars={{ coverWidth, descriptionClampLines }}>
+  .post-card-wrapper {
+    isolation: isolate;
+  }
+
+  .post-card-hit-area {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+  }
+
+  /* 标题是 flex 子项，无需改变定位即可提升层级，保留装饰条位置。 */
+  .post-card-title,
+  .post-card-image,
+  .post-card-enter-btn {
+    z-index: 2;
+  }
+
+  .post-card-content :global(.post-meta a),
+  .post-card-bottom-tags a {
+    position: relative;
+    z-index: 2;
+  }
+
   .description-clamped {
     display: -webkit-box;
     -webkit-box-orient: vertical;

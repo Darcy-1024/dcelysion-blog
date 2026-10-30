@@ -25,6 +25,15 @@ jobs:
           version: 11.22.0
           run_install: false
       - run: pnpm install --frozen-lockfile
+      - name: Restore public build metadata
+        uses: actions/cache@v4
+        with:
+          path: |
+            cache/build/lqip-meta.json
+            cache/build/github-card-meta.json
+          key: public-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'scripts/generate-lqips.ts', 'scripts/generate-github-card-data.ts') }}-${{ github.sha }}
+          restore-keys: |
+            public-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'scripts/generate-lqips.ts', 'scripts/generate-github-card-data.ts') }}-
       - run: pnpm run build
         env:
           PUBLIC_BUILD_REVISION: ${{ github.sha }}

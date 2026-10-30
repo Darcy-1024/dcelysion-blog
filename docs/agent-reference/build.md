@@ -24,7 +24,7 @@ pnpm new-dynamic ... # 新建动态
 构建注意事项：
 
 - `pnpm-workspace.yaml` 把 pnpm store 放在仓库内，因此 `astro.config.mjs` 必须继续从 Vite watcher 排除 `**/.pnpm-store/**`；否则 Windows 启动时会遍历数万个依赖缓存文件。依赖安装或升级后应重启开发服务器，而不是依赖 store 文件的热更新。Cloudflare adapter 也只在设置 `CF_WORKERS` 时动态加载，普通 `pnpm dev` 和静态构建不应提前初始化 Wrangler/Miniflare。
-- `pnpm build` 会更新受版本控制的 `src/constants/lqips.json`，也可用 `pnpm lqips` 单独生成；脚本用图片内容 SHA-256 和已生成渐变检查缓存，同路径替换图片会自动重算。指纹保存在已忽略的 `cache/build/lqip-meta.json`，首次运行或清除此缓存后重算；处理失败保留旧渐变，但不把新图片指纹标记为成功。前端 JSON 结构不变。提交前检查生成差异，并保留此前任务外改动。
+- `pnpm build` 会更新受版本控制的 `src/constants/lqips.json`，也可用 `pnpm lqips` 单独生成；脚本用图片内容 SHA-256 和处理算法版本检查缓存，同路径替换图片会自动重算。指纹及对应渐变保存在已忽略的 `cache/build/lqip-meta.json`，命中时直接恢复生成结果，不要求仓库中的生成 JSON 已同步。首次运行、清除此缓存或算法版本变化后重算；修改 `processImage` 时须递增 `LQIP_CACHE_VERSION`。处理失败保留旧渐变，但不把新图片指纹标记为成功。前端 JSON 结构不变。提交前检查生成差异，并保留此前任务外改动。
 - `pnpm build` 会先更新 `src/constants/github-card-data.json`，只收集非草稿正文中的 GitHub 卡片，忽略代码示例与 HTML 注释。成功结果有效期为 24 小时，刷新元数据保存在已忽略的 `cache/build/github-card-meta.json`；`pnpm github-cards --refresh` 可强制刷新。瞬时 DNS/连接/超时、HTTP 429 和 5xx 会短暂等待后重试一次，仍失败时保留已有缓存。提交前检查差异是否合理。
 - `pnpm gallery-previews` 是独立的媒体维护命令，不属于普通 `pnpm build`。它为已配置相册的本地图片生成最大宽度 1200px、不会放大的 AVIF 预览，把待上传文件写入已忽略的 `.gallery-previews/`，并更新受版本控制的 `src/constants/gallery-previews.json`。部署引用新映射的 HTML 前必须先上传并验证映射中的全部 R2 对象。
 - `pnpm format` 与 `pnpm lint` 都带有 `--write`，且作用于整个 `src/` 和 `scripts/`。已有无关改动或只需验证少量文件时，优先使用 `pnpm exec biome check <相关文件>` 做限定范围的只读检查；不要为验证而改写任务外文件。
@@ -80,6 +80,7 @@ pnpm new-dynamic ... # 新建动态
 ## 部署状态核验
 
 - `.github/workflows/public-blog.yml` 在 GitHub 云端完整构建一次；成功后 `scripts/finalize-blog-release.mjs` 筛选公开文件、生成固定探针及提交/公开树摘要。双端包按完整提交发布到 `blog-<SHA>` Release，并附压缩包 SHA-256；不含后台或私有文件。本地普通构建跳过正式打包，不启动腾讯后台 builder。
+- 云端工作流只缓存 `cache/build/lqip-meta.json` 与 `cache/build/github-card-meta.json`，按运行系统、锁文件及生成脚本隔离，并跨提交恢复最近可用缓存；图片内容指纹和 GitHub 卡片 TTL 仍决定各条目是否可复用。首次填充缓存仍需全量处理图片，后续未改变的图片跳过解码；不缓存整个 `cache/`、源码生成 JSON 或正式发布包。
 - EdgeOne 根 `edgeone.json` 跳过依赖安装，仅运行 `scripts/download-blog-release.mjs edgeone` 下载同提交的云端包，校验压缩包、清单、版本再生成 dist；Cloudflare 默认分支的构建命令使用同一脚本的 cloudflare 模式，部署命令保留 Wrangler。Release 尚未生成时最多等待 10 分钟，失败不切换生产。两端不再分别执行 MDX 构建，以避免 EdgeOne 磁盘/内存不足及产物漂移。
 - 发布后必须核对 `/__route/version.json` 的完整提交和 `publicTreeSha256`，以及固定探针字节/头。未通过时继续禁用自动选路；旧演练包不得上传。自动发布包是公开站点内容，不得将源码、环境文件或后台包加入 Release。
 

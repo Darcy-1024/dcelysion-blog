@@ -11,7 +11,12 @@ const SRC_DIR = "src";
 const PUBLIC_DIR = "public";
 const OUTPUT_FILE = "src/constants/lqips.json";
 const METADATA_FILE = "cache/build/lqip-meta.json";
-type Fingerprints = Record<string, { sourceHash: string; lqip: string }>;
+// Bump when processImage changes so an older result is never reused.
+const LQIP_CACHE_VERSION = 1;
+type Fingerprints = Record<
+	string,
+	{ version: number; sourceHash: string; lqip: string }
+>;
 // 需要忽略的目录（相对于项目根目录）
 const IGNORE_DIRS = [
 	"public/favicon/**",
@@ -107,17 +112,24 @@ export async function generateLqips({
 			const sourceHash = createHash("sha256").update(image).digest("hex");
 			const previous = fingerprints[key];
 			if (
-				existing[key] &&
-				previous?.sourceHash === sourceHash &&
-				previous.lqip === existing[key]
+				previous?.version === LQIP_CACHE_VERSION &&
+				previous.sourceHash === sourceHash &&
+				typeof previous.lqip === "string" &&
+				/^[0-9a-f]{18}$/i.test(previous.lqip)
 			) {
+				// CI restores metadata independently of the checked-in generated map.
+				lqips[key] = previous.lqip;
 				nextFingerprints[key] = previous;
 				continue;
 			}
 			const compact = await transform(image);
 			if (compact !== null) {
 				lqips[key] = compact;
-				nextFingerprints[key] = { sourceHash, lqip: compact };
+				nextFingerprints[key] = {
+					version: LQIP_CACHE_VERSION,
+					sourceHash,
+					lqip: compact,
+				};
 				processed++;
 			}
 		} catch (error) {
