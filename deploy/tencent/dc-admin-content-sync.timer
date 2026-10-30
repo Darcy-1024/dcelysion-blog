@@ -1,0 +1,12 @@
+[Unit]
+Description=Check published blog content for the admin every five minutes
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=5min
+RandomizedDelaySec=15s
+Persistent=true
+Unit=dc-admin-content-sync.service
+
+[Install]
+WantedBy=timers.target

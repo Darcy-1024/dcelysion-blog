@@ -1,5 +1,34 @@
 # 腾讯云私有部署记录
 
+## 后台公开内容自动同步
+
+后台的 `ADMIN_CONTENT_ROOT=/app/repository` 是独立只读快照，宿主来源为 `/opt/dcelysion-admin-stage2/repository`，更新后台 UI 不会更新内容。`dc-admin-content-sync.timer` 每 5 分钟（加最多 15 秒抖动）检查主博客 `/__route/version.json`，只接受 GitHub Actions 正式构建的已发布 SHA，启动后约 2 分钟也会检查。仅推送尚未发布的提交不会进入后台。
+
+`sync-admin-content.py` 根据该 SHA 的 GitHub Git Tree 清单准备 `src/content`：逐层定位内容子树，复用字节一致的文件，只下载变化的正文和附件。服务器访问 `raw.githubusercontent.com` 不稳定，因此使用 jsDelivr 的固定提交 URL，GitHub blob raw API 作为后备；CDN 只承担传输，大小和 Git blob 哈希必须与官方清单完全一致。拒绝不完整清单、路径穿越、链接、特殊文件、重复文件及超限内容。它不读取 Git 凭据、不执行远程仓库代码。网络、API 限流或验证失败时保留旧内容，下个周期重试，服务失败可在 journal 中查看。连续失败时后台可能保持旧内容，应检查服务状态。
+
+准备完成后，用当前后台镜像在无网络、无数据库的隔离容器内运行与后台相同的内容解析器。内容有变化时，才短暂停止 `dc-admin-formal`、保留旧内容备份、替换 `repository/src/content` 子目录并重新启动；保持挂载根目录 inode，避免容器继续读取旧副本。启动后核验健康状态、实际内容哈希和容器内文章/动态列表。失败恢复旧快照；事务日志也覆盖替换中断窗口。保留最近三份成功切换前的备份，故障候选另行保留，均在专用受限状态目录内。
+
+私有草稿数据库、媒体目录、配置目录和 Memos publisher checkout 不参与同步；已有草稿的原文发生变化时继续提示来源冲突，不重写草稿基准。若内容目录被同步器之外的操作修改，服务会拒绝覆盖，须先核对差异与备份再处理，不能简单删除保护记录。文章页重新进入或刷新后读取新列表，概览库存缓存最多约 60 秒。
+
+源码与部署文件：`sync-admin-content.py`、`validate-admin-content.ts`、`dc-admin-content-sync.service`、`dc-admin-content-sync.timer`。在项目根构建校验器并做隔离测试：
+
+```powershell
+corepack pnpm exec esbuild deploy/tencent/validate-admin-content.ts --bundle --platform=node --format=cjs --outfile=.tmp/admin-content-sync/validate.cjs
+```
+
+Linux 上将测试文件与同步脚本放在同一目录，运行 `python3 test-sync-admin-content.py -v`；测试不访问 Docker、网络或生产数据。部署时将同步脚本和构建后的 `validate.cjs` 安装到 `/opt/dcelysion-admin-stage2/operator/content-sync/`，目录权限 0700、脚本 0700、校验器 0644；systemd 文件安装到 `/etc/systemd/system/`，先执行一次 service 并验证成功，再启用 timer。所有同步状态和日志不应进入 Git。
+
+```bash
+sudo systemctl start dc-admin-content-sync.service
+sudo systemctl enable --now dc-admin-content-sync.timer
+sudo systemctl status dc-admin-content-sync.timer dc-admin-content-sync.service
+sudo journalctl -u dc-admin-content-sync.service -n 30 --no-pager
+```
+
+暂停未来同步：`sudo systemctl disable --now dc-admin-content-sync.timer`；已在运行的同步仍会完成。不要在替换期间手工移动内容或删除 `pending.json`。人工回退应先停用 timer、确认没有运行中的 service，再使用状态目录内备份，同时核对 `current.json` 的 manifest；下次运行优先恢复未完成事务。
+
+2026-10-31 已安装并启用：首次同步到主博客正式版本 `4059724b34577a708f70620453fdcb35e801d777`，校验 106 个内容文件，下载 27 个变化文件。实际后台容器解析得到文章 17 篇、动态 18 条，《博客 100 天纪念》日期为 2026-10-29；未登录内容 API 仍返回 401。第二次无变化运行跳过下载，容器启动时间未变；6 项隔离测试通过。未替真实账号进行编辑或保存验收。
+
 > 2026-10-17：已开放 Waline 评论域 HTTPS、普通用户账号页面及博客/EdgeOne 请求域；管理接口权限遗漏已修复并增加公开代理拦截，现有 Access 后台保持保护。源码默认 Waline，博客前端随本次 Git 发布切换；实际部署结果以发布回执为准。当前配置、旧评论增量处理、验证和回退见[公开接入记录](../../docs/plans/2026-10-17-waline-public-cutover.md)。下文带日期的私有部署状态为历史记录。
 
 2026-10-03 独立后台[真实接入与统一上线记录](../../docs/plans/2026-10-03-admin-runtime-integration.md)已建立；用户要求改在服务器验证四项接入后统一上线。`admin-edit-only.env.example`仅作回退参考，尚未应用正式数据库/服务切换。
