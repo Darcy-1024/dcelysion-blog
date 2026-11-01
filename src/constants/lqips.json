@@ -234,5 +234,7 @@
   "src:assets/images/MobileWallpaper/m39.avif": "a18faac7b8bdb5a7b7",
   "src:assets/images/MobileWallpaper/m40.avif": "c5a8c0bca7c6a592b1",
   "public:gallery/wallpaper-2026/d40.avif": "9b89a86d566e634c6a",
-  "src:assets/images/DesktopWallpaper/d40.avif": "9b89a86d566e634c6a"
+  "src:assets/images/DesktopWallpaper/d40.avif": "9b89a86d566e634c6a",
+  "src:content/dynamic/images/zzz-ost-vinyl-back-cover.avif": "4911057e382184462f",
+  "src:content/dynamic/images/zzz-ost-vinyl-front-cover.avif": "38322c4f49443e312d"
 }
