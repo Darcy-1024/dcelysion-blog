@@ -25,11 +25,13 @@ let {
 	onback,
 	onexpired,
 	onreplace,
+	onpublish,
 }: {
 	initial: DraftDetail;
 	onback: () => void;
 	onexpired: () => void;
 	onreplace: (detail: DraftDetail) => void;
+	onpublish?: (detail: DraftDetail) => void;
 } = $props();
 let version = $state(0);
 let sourceArea: HTMLTextAreaElement;
@@ -255,7 +257,7 @@ function diff(a: string, b: string) {
 <svelte:window onkeydown={(event) => { if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") { event.preventDefault(); void session.save(); } }} />
 
 <section class="editor" aria-label="私有内容编辑器">
- <div class="editor-bar"><button onclick={onback}>{words.back}</button><strong>{initial.draft.path}</strong><span role="status" aria-live="polite">{words[view.state]} · r{view.revision}</span><button class="primary" disabled={view.busy || operationBusy || view.state === "conflict" || !view.dirty} onclick={() => void session.save()}>{view.state === "failed" ? "重试保存" : words.save}</button></div>
+ <div class="editor-bar"><button onclick={onback}>{words.back}</button><strong>{initial.draft.path}</strong><span role="status" aria-live="polite">{words[view.state]} · r{view.revision}</span><button class="primary" disabled={view.busy || operationBusy || view.state === "conflict" || !view.dirty} onclick={() => void session.save()}>{view.state === "failed" ? "重试保存" : words.save}</button>{#if onpublish}<button disabled={view.busy || operationBusy || view.dirty || view.state !== "saved" || view.detail.sourceState.changed} onclick={() => onpublish?.(view.detail)}>{words.publish}</button>{/if}</div>
  <p class="muted">保存仅进入后台私有数据库。文件路径与已有文章 URL、动态评论标识保持固定。表单中的 draft 仅表示未来发布后的状态。固定标识：{initial.draft.contentId}</p>
  {#if view.error}<p class="error" role="alert">{apiMessage({ code: view.error })}</p>{/if}
  {#if notice}<p class="error" role="alert">{notice}</p>{/if}

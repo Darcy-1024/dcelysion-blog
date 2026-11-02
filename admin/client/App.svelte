@@ -4,7 +4,7 @@ import logoLight from "../../cache/admin-assets/logo-light.webp";
 import logoDark from "../../cache/admin-assets/logo-dark.webp";
 import { onMount } from "svelte";
 import type { ConfigurationKind } from "../shared/configuration.js";
-import type { DraftDetail } from "../shared/contracts";
+import type { Draft, DraftDetail } from "../shared/contracts";
 import { words as analyticsWords } from "./analytics-words.js";
 import Dashboard from "./Dashboard.svelte";
 import LazyPage from "./LazyPage.svelte";
@@ -60,6 +60,7 @@ const words = {
 };
 let editor: DraftDetail | null = null;
 let publishing = false;
+let publishingDraft: Draft | null = null;
 let dashboardMode: "overview" | "analytics" | null = "overview";
 let analyticsFilters = { range: "today", start: "", end: "" };
 let overviewCommentStatus = "all";
@@ -106,6 +107,7 @@ function leaveEditor() {
 	configurationKind = null;
 	configurationRef = undefined;
 	editor = null;
+	publishingDraft = null;
 	editorRef = undefined;
 	memosMode = false;
 	editorRequestVersion++;
@@ -116,6 +118,13 @@ function changeMemos() {
 	if (!leaveEditor()) return;
 	memosMode = true;
 	publishing = mediaLibrary = false;
+	if (drawer) closeDrawer();
+}
+function publishDraft(detail: DraftDetail) {
+	if (!leaveEditor()) return;
+	publishingDraft = detail.draft;
+	publishing = true;
+	mediaLibrary = false;
 	if (drawer) closeDrawer();
 }
 function changeConfiguration(next: ConfigurationKind) {
@@ -495,6 +504,7 @@ function changePage(next: number) {
         <button class:active={kind === "posts" && !memosMode && !dashboardMode && !publishing && !mediaLibrary && !configurationKind && !managementMode} disabled={editorBusy} onclick={() => changeKind("posts")}><Icon icon="material-symbols:article-outline-rounded" />{words.posts}</button>
         <button class:active={kind === "dynamic" && !memosMode && !dashboardMode && !publishing && !mediaLibrary && !configurationKind && !managementMode} disabled={editorBusy} onclick={() => changeKind("dynamic")}><Icon icon="material-symbols:dynamic-feed-outline-rounded" />动态归档</button>
         <button class:active={memosMode} disabled={editorBusy} onclick={changeMemos}><Icon icon="material-symbols:edit-note-rounded" />{memosWords.nav}</button>
+        <button class:active={publishing} disabled={editorBusy} onclick={() => dashboardNavigate({view: 'publishing'})}><Icon icon="material-symbols:publish-rounded" />改动与发布</button>
       </div>
       <div class="nav-group"><span class="nav-label">媒体与站点</span>
         <button class:active={mediaLibrary} disabled={editorBusy} onclick={()=>{if(leaveEditor()){mediaLibrary=true;publishing=false;if(drawer)closeDrawer();}}}><Icon icon="material-symbols:perm-media-outline-rounded" />统一媒体库</button>
@@ -520,9 +530,9 @@ function changePage(next: number) {
        {:else if mediaLibrary}
         <LazyPage loader={() => import("./MediaLibrary.svelte")} let:value><svelte:component this={value.default} onexpired={()=>expired=true}/></LazyPage>
        {:else if publishing}
-        <LazyPage loader={() => import("./Publishing.svelte")} let:value><svelte:component this={value.default} initialJobId={overviewJobId} onexpired={()=>expired=true}/></LazyPage>
+        <LazyPage loader={() => import("./Publishing.svelte")} let:value><svelte:component this={value.default} draft={publishingDraft} initialJobId={overviewJobId} onexpired={()=>expired=true}/></LazyPage>
        {:else if editor}
-        {#key editor}<LazyPage loader={() => import("./Editor.svelte")} let:value><svelte:component this={value.default} bind:this={editorRef} initial={editor} onback={() => { if (leaveEditor()) void load(); }} onexpired={() => expired = true} onreplace={(detail) => editor = detail} /></LazyPage>{/key}
+        {#key editor}<LazyPage loader={() => import("./Editor.svelte")} let:value><svelte:component this={value.default} bind:this={editorRef} initial={editor} onback={() => { if (leaveEditor()) void load(); }} onexpired={() => expired = true} onreplace={(detail) => editor = detail} onpublish={publishDraft} /></LazyPage>{/key}
        {:else}
        <div class="heading library-heading"><div><p class="eyebrow">CONTENT LIBRARY</p><h1>{kind === "posts" ? '文章书架' : '动态归档'} <span class="count">{privateMode ? draftPage?.total ?? 0 : data?.total ?? '—'}</span></h1><p class="muted">{kind === 'posts' ? '让想法成为文字，慢慢积累自己的作品。' : '管理保存在博客仓库中的动态与图片。'}</p></div><button class="primary" disabled={editorBusy} onclick={() => { creating = !creating; newPath = ""; createRequest = null; }}><Icon icon="material-symbols:add-rounded" />新建私有草稿</button></div>
        <div class="library-tabs" aria-label="内容来源"><button class:active={!privateMode} aria-pressed={!privateMode} disabled={editorBusy} onclick={()=>{if(privateMode)switchPrivate();}}>仓库内容</button><button class:active={privateMode} aria-pressed={privateMode} disabled={editorBusy} onclick={()=>{if(!privateMode)switchPrivate();}}>私有草稿</button><span>私有保存不会更改公开内容</span></div>

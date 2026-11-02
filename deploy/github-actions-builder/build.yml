@@ -1,0 +1,48 @@
+name: Private admin build
+run-name: build-${{ inputs.jobId }}-${{ inputs.attemptId }}
+on:
+  workflow_dispatch:
+    inputs:
+      jobId:
+        required: true
+        type: string
+      attemptId:
+        required: true
+        type: string
+      releaseId:
+        required: true
+        type: string
+      inputSha256:
+        required: true
+        type: string
+permissions:
+  contents: read
+concurrency:
+  group: private-admin-${{ inputs.jobId }}
+  cancel-in-progress: false
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Download authenticated job input
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_ID: ${{ inputs.jobId }}
+          ATTEMPT_ID: ${{ inputs.attemptId }}
+          RELEASE_ID: ${{ inputs.releaseId }}
+          INPUT_SHA256: ${{ inputs.inputSha256 }}
+        run: python3 runner/download.py
+      - name: Build inside the isolated container
+        run: python3 runner/build.py
+      - name: Upload validated output
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ inputs.jobId }}
+          path: output/artifact.tar.gz
+          if-no-files-found: error
+          retention-days: 1
+          compression-level: 0

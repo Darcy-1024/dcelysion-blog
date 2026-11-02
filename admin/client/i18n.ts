@@ -123,6 +123,10 @@ export const configurationWords = {
 export const publishWords = {
 	title: "预览与发布",
 	queue: "发布任务与日志",
+	chooseDraft:
+		"要预览或发布文章，请先打开文章编辑器，完成私有保存后点击“检查与发布”。",
+	cloudBuild: "GitHub Actions 私有构建 · 无网络隔离容器",
+	pushDeploy: "推送 master 后触发现有站点部署，各平台结果分别确认。",
 	refresh: "刷新",
 	preview: "构建受保护预览",
 	diff: "检查差异与目标",
@@ -161,6 +165,7 @@ export const editorWords = {
 	conflict: "存在冲突",
 	source: "Markdown / MDX 源码",
 	save: "手动保存",
+	publish: "检查与发布",
 	back: "返回列表",
 	copy: "另存私有副本",
 	title: "标题",

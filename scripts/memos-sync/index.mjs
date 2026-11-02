@@ -32,6 +32,16 @@ export function validateConfig(config) {
 	)
 		throw new Error("Invalid config; publish must be false and paths absolute");
 	new Intl.DateTimeFormat("en", { timeZone: config.timezone });
+	if (config.excludedMemoNames === undefined) config.excludedMemoNames = [];
+	if (
+		!Array.isArray(config.excludedMemoNames) ||
+		config.excludedMemoNames.some(
+			(name) =>
+				typeof name !== "string" || !/^memos\/[a-zA-Z0-9_-]+$/u.test(name),
+		) ||
+		new Set(config.excludedMemoNames).size !== config.excludedMemoNames.length
+	)
+		throw new Error("Invalid excluded memo names");
 	for (const [key, fallback, max] of [
 		["timeoutMs", 15000, 60000],
 		["maxRunMs", 300000, 3600000],
@@ -60,7 +70,12 @@ async function proof(client, creator) {
 		throw new Error("PAT must belong to the configured author");
 }
 
-export async function snapshot(client, creator, known) {
+export async function snapshot(client, creator, known, excludedMemoNames = []) {
+	const excluded = new Set(excludedMemoNames);
+	if (Object.keys(known).some((name) => excluded.has(name)))
+		throw new Error(
+			"Cannot exclude an already managed memo; manual migration required",
+		);
 	await proof(client, creator);
 	const records = {};
 	for (const state of ["NORMAL", "ARCHIVED"]) {
@@ -72,6 +87,7 @@ export async function snapshot(client, creator, known) {
 		for (const memo of memos) {
 			validateMemo(memo);
 			if (memo.creator !== creator) continue;
+			if (excluded.has(memo.name)) continue;
 			if (memo.state !== state || Object.hasOwn(records, memo.name))
 				throw new Error("Duplicate/inconsistent memo list");
 			records[memo.name] = memo;
@@ -169,7 +185,12 @@ export async function synchronize(
 		const client = suppliedClient ?? new MemosClient({ ...config, token });
 		client.deadline = Date.now() + config.maxRunMs;
 		client.attachmentBytes = 0;
-		const first = await snapshot(client, config.creator, state.entries);
+		const first = await snapshot(
+			client,
+			config.creator,
+			state.entries,
+			config.excludedMemoNames,
+		);
 		const next = structuredClone(state);
 		const desired = new Map();
 		const originals = new Map();
@@ -265,7 +286,12 @@ export async function synchronize(
 				});
 		}
 		// Do not apply a plan built against a changing API. This is a guard, not a source transaction.
-		const second = await snapshot(client, config.creator, state.entries);
+		const second = await snapshot(
+			client,
+			config.creator,
+			state.entries,
+			config.excludedMemoNames,
+		);
 		const semanticSnapshot = (records) =>
 			Object.fromEntries(
 				Object.entries(records).map(([name, memo]) => [

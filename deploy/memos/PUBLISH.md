@@ -1,5 +1,13 @@
 # Memos 发布适配与运维
 
+## 2026-11-02 Git 停机恢复
+
+10 月 27 日发布器留下 `git-operation` 并停止 timer；旧日志未保存具体 Git 子命令或超时类型，因此不能仅凭约 46 秒耗时确定底层原因。11 月 2 日恢复时，同一 Deploy Key 的 IPv4 认证及 fetch 成功（303 个对象、约 16.7 MiB）。专用 checkout 持久化 IPv4、15 秒连接超时和 SSH keepalive；新安装 clone 使用相同设置。仅 fetch 的进程上限从 45 秒提高为 5 分钟，其他 Git 操作仍为 45 秒；失败回执区分固定的 `git-fetch/push/local-timeout/failed` 类别，不输出 stderr、凭据或源内容，也不自动重试不确定的推送。
+
+停止 timer 并核对无活动发布器后，成对备份位于服务器私有 `/var/backups/dc-memos-repair-20261102/checkpoint.tar`，SHA256 为 `4d964555f010baac25f94769202e27ee4f01e2649f4eb13f659be3c0030a5bf6`。经用户确认，ZZZ 手工动态保留现有文件、URL 和封面→封底顺序，对应资源 ID 仅在私有 `sync.excludedMemoNames` 中排除，不接管或修改映射。其余记录继续自动同步，排除项语义见 [SYNC.md](SYNC.md)。Linux 无网络、无生产凭据隔离回归 67/67 通过；生产 `--resume` 成功返回 `no-git-change`，未产生新内容提交，因此本次没有触发网站构建。
+
+普通 systemd service 及随后 timer 触发轮次均成功返回 `no-git-change`，timer 为 enabled/active，停机标记已解除，专用 checkout 干净且 HEAD 为 `efe7a9f39d50e85c1d96c1a0cf7e3f825c348f70`。双站动态 JSON 各有且仅有一条 ZZZ 手工动态，图片保持封面→封底。本轮验证了同步和定时运行恢复；没有新的发布候选，因此没有重新验证新提交的双站自动部署。运行脚本已安装到独立 tools 目录；仓库修复源码尚未提交或推送。
+
 ## 2026-10-25 大图转码超时修复
 
 真实 12 张 JPEG（合计 41,119,323 字节）在原 0.5 CPU、384 MiB、AVIF effort 6 环境中，仅前两张转码即耗时约 365 秒；同参数只读诊断在第三次附件读取时明确报 `Run deadline exceeded`，超过同步默认 300 秒。无部分内容应用或新提交。此前日志吞掉异常原因，仅显示 halt。

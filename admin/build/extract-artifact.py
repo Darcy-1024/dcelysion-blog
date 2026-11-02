@@ -7,7 +7,7 @@ from pathlib import Path
 archive, output = map(Path, sys.argv[1:])
 with tarfile.open(archive) as package:
     members = package.getmembers()
-    if len(members) > 30000 or sum(item.size for item in members) > 512 * 1024 * 1024:
+    if len(members) > 30000 or sum(item.size for item in members) > 1024 * 1024 * 1024:
         raise ValueError('ARTIFACT_LIMIT')
     seen = set()
     for item in members:

@@ -22,7 +22,7 @@ export const buildJobId = (value: string) => {
 };
 
 export interface BuildDriver {
-	mode: "docker-astro" | "fixture";
+	mode: "docker-astro" | "github-actions" | "fixture";
 	available(): Promise<boolean>;
 	stop(jobId: string): Promise<void>;
 	build(

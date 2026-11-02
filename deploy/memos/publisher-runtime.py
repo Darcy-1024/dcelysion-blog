@@ -217,7 +217,7 @@ WantedBy=timers.target
         print(json.dumps({'status': 'prepared-disabled', 'privateState': str(PRIVATE), 'tools': str(TOOLS)}))
     elif action == 'clone':
         assert not (CHECKOUT/'.git').exists(), 'Existing checkout must be inspected'
-        ssh = 'ssh -i /private/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/private/known_hosts -o BatchMode=yes'
+        ssh = 'ssh -4 -i /private/id_ed25519 -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes -o UserKnownHostsFile=/private/known_hosts -o BatchMode=yes -o ConnectTimeout=15 -o ServerAliveInterval=15 -o ServerAliveCountMax=3'
         container('-c', 'core.sshCommand=' + ssh, 'clone', '--single-branch', '--branch', 'master', REMOTE, '/checkout', entrypoint='git')
         container('-C', '/checkout', 'config', '--local', 'core.sshCommand', ssh, entrypoint='git')
         container('-C', '/checkout', 'config', '--local', 'memos.publisher', 'true', entrypoint='git')

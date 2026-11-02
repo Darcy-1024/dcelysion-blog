@@ -36,6 +36,8 @@ const git = (root: string, args: string[]) =>
 			...args,
 		],
 		root,
+		undefined,
+		args.includes("fetch") ? 10 * 60_000 : 60_000,
 	);
 const refreshes = new Map<string, Promise<void>>();
 export class CandidateExecutor {
@@ -76,6 +78,7 @@ export class CandidateExecutor {
 					await git(cache, ["init", "--bare"]);
 					await git(cache, [
 						"fetch",
+						"--depth=1",
 						"--no-tags",
 						this.remote,
 						`refs/heads/${this.branch}:refs/heads/source`,
@@ -144,6 +147,7 @@ export class CandidateExecutor {
 		]);
 		await git(repo, [
 			"fetch",
+			"--depth=1",
 			"--no-tags",
 			this.remote,
 			`refs/heads/${this.branch}`,
@@ -183,7 +187,7 @@ export class CandidateExecutor {
 				{
 					cwd: repo,
 					encoding: "buffer",
-					maxBuffer: 64 * 1024 * 1024,
+					maxBuffer: 128 * 1024 * 1024,
 					windowsHide: true,
 				},
 			);

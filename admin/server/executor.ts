@@ -21,6 +21,7 @@ export async function command(
 	args: string[],
 	cwd?: string,
 	input?: string,
+	timeoutMs = 60_000,
 ) {
 	const env: NodeJS.ProcessEnv = {
 		PATH: process.env.PATH,
@@ -39,7 +40,7 @@ export async function command(
 			await runFile(program, args, {
 				cwd,
 				env,
-				timeout: 60_000,
+				timeout: timeoutMs,
 				maxBuffer: 16 * 1024 * 1024,
 				windowsHide: true,
 			})
@@ -56,7 +57,7 @@ export async function command(
 		const timer = setTimeout(() => {
 			child.kill();
 			reject(new Error("EXECUTOR_TIMEOUT"));
-		}, 60_000);
+		}, timeoutMs);
 		child.stdout.on("data", (chunk: Buffer) => {
 			size += chunk.length;
 			if (size > 1024 * 1024) {
@@ -115,7 +116,7 @@ export async function safeFile(root: string, name: string) {
 		throw new DraftError(400, "PATH");
 	return file;
 }
-export async function tree(root: string) {
+export async function tree(root: string, maximumBytes = 1024 * 1024 * 1024) {
 	if ((await lstat(root)).isSymbolicLink()) throw new DraftError(400, "PATH");
 	const files: Record<string, string> = {};
 	let total = 0;
@@ -128,7 +129,7 @@ export async function tree(root: string) {
 			if (info.isDirectory()) await visit(full, `${name}/`);
 			else if (info.isFile()) {
 				total += info.size;
-				if (total > 512 * 1024 * 1024 || Object.keys(files).length >= 30000)
+				if (total > maximumBytes || Object.keys(files).length >= 30000)
 					throw new DraftError(400, "ARTIFACT_LIMIT");
 				const checksum = createHash("sha256");
 				for await (const bytes of createReadStream(full))

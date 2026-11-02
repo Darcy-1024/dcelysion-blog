@@ -54,7 +54,8 @@ export async function git(root, args) {
 			],
 			{
 				cwd: root,
-				timeout: 45000,
+				// Fetch can transfer days of media history after an outage.
+				timeout: args[0] === "fetch" ? 300000 : 45000,
 				maxBuffer: 8 * 1024 * 1024,
 				env: {
 					...process.env,
@@ -64,10 +65,16 @@ export async function git(root, args) {
 			},
 		);
 		return result.stdout.trimEnd();
-	} catch {
-		throw new Error(
+	} catch (cause) {
+		const error = new Error(
 			`Git ${args[0]} failed; inspect private checkout without logging credentials`,
 		);
+		// Retain only a fixed operation and timeout flag, never stderr or arguments.
+		error.gitOperation = ["fetch", "push"].includes(args[0])
+			? args[0]
+			: "local";
+		error.gitTimedOut = cause?.killed === true && cause?.signal === "SIGTERM";
+		throw error;
 	}
 }
 
@@ -101,7 +108,12 @@ function owned(state, names, root) {
 
 export async function verifySource(client, config, state) {
 	client.deadline = Date.now() + config.maxRunMs;
-	const records = await snapshot(client, config.creator, state.entries);
+	const records = await snapshot(
+		client,
+		config.creator,
+		state.entries,
+		config.excludedMemoNames,
+	);
 	for (const [name, memo] of Object.entries(records)) {
 		const entry = state.entries[name];
 		if (publicMemo(memo, config.creator) && !entry)

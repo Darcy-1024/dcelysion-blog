@@ -19,6 +19,8 @@ node scripts/memos-sync/index.mjs --config /private/sync.json --apply
 
 `timezone` 应与 `src/config/siteConfig.ts` 的 `siteConfig.timezone` 一致，当前为 Asia/Shanghai。绝对路径按运行系统填写；Windows 可以用 `F:/...`，但私有状态仍须在输出仓库外并限制 Windows ACL。Linux 状态目录要求 0700、PAT 文件要求 0600；文件原子写入使用 0600。不要将这些目录或备份挂到静态服务器。同步账号应独占输出目录及私有状态；其他编辑器、Git 更新与构建也必须在同步任务结束后串行运行。
 
+已通过手工动态发布、并明确不再随 Memos 更新的记录，可在同步配置中设置 `excludedMemoNames: ["memos/<实际资源 ID>"]`（外层发布配置放在 `sync.excludedMemoNames`）。默认空数组；只接受不重复的完整资源名，不按标题、时间或正文模糊匹配。排除记录不读取详情或附件、不生成自动动态，也不参与发布前的源变化复核；Memos 后续编辑、设私密、归档或删除均不会改动独立手工动态及其图片、URL，手工动态须另行维护。其他记录仍执行完整资格与源一致性检查。排除 ID 若已存在自动托管映射，整轮会停止，须先人工审阅迁移，不能借此静默删除托管文件。配置及备份应长期保留该排除项；移除它会让仍公开的记录成为新的自动发布候选。
+
 真实作者 PAT 已在服务器私有目录创建，运行时使用 UID1000、0600 的单文件副本，不输出其内容。独立 clone、运行镜像与 service 已安装，专用可写 Deploy Key 已授权注册；按生产验收记录，timer 已 enabled/active，每轮完整结束60秒后检查新变化。源码样例不含真实配置/凭据，不因生产授权改变默认开关。没有 webhook。
 
 ## 导出规则

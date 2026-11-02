@@ -154,7 +154,7 @@ test("a malformed empty-array API list cannot masquerade as a complete empty sna
 	assert.equal((await f.outputs()).length, 1);
 });
 
-import { synchronize } from "./index.mjs";
+import { synchronize, validateConfig } from "./index.mjs";
 
 const NOW = new Date("2026-10-18T01:02:03Z");
 const memo = (id = "one", overrides = {}) => ({
@@ -307,6 +307,69 @@ const png = () =>
 	})
 		.png()
 		.toBuffer();
+
+test("excluded memo configuration rejects malformed and duplicate resource names", async (t) => {
+	const f = await fixture(t);
+	for (const excludedMemoNames of [
+		null,
+		"memos/one",
+		["one"],
+		["memos/../one"],
+		[1],
+		["memos/one", "memos/one"],
+	]) {
+		assert.throws(
+			() => validateConfig({ ...f.config, excludedMemoNames }),
+			/Invalid excluded memo names/u,
+		);
+	}
+	assert.deepEqual(validateConfig({ ...f.config }).excludedMemoNames, []);
+});
+
+test("excluded manual memo is never exported or read in detail while other public memos sync", async (t) => {
+	const f = await fixture(t, [
+		memo("manual"),
+		memo(),
+		memo("private", { visibility: "PRIVATE" }),
+	]);
+	f.config.excludedMemoNames = ["memos/manual"];
+	await f.image(f.records[0], "manual-pic", await png());
+	const manualPath = path.join(
+		f.config.outputRoot,
+		"src/content/dynamic/2026-11-02-001258.md",
+	);
+	const manual =
+		"---\npublished: 2026-11-02 00:12:58\n---\n\n原文🙂\n\n![封面](./images/front.avif)\n\n![封底](./images/back.avif)\n";
+	await fs.mkdir(path.dirname(manualPath), { recursive: true });
+	await fs.writeFile(manualPath, manual);
+	assert.equal((await f.run()).changes.length, 1);
+	assert.deepEqual(Object.keys((await f.state()).entries), ["memos/one"]);
+	f.records[0].content = "edited excluded source";
+	assert.deepEqual((await f.run()).files, []);
+	f.records[0].visibility = "PRIVATE";
+	assert.deepEqual((await f.run()).files, []);
+	f.records = f.records.filter((item) => item.name !== "memos/manual");
+	assert.deepEqual((await f.run()).files, []);
+	assert.equal(await fs.readFile(manualPath, "utf8"), manual);
+	assert(
+		!f.requests.some(
+			(request) =>
+				request.path.includes("/memos/manual") ||
+				request.path === "/file/attachments/manual-pic",
+		),
+	);
+});
+
+test("excluding an already managed memo refuses migration and preserves its output", async (t) => {
+	const f = await fixture(t);
+	await f.run();
+	const before = await f.state();
+	const content = await f.content(before.entries["memos/one"]);
+	f.config.excludedMemoNames = ["memos/one"];
+	await assert.rejects(f.run(), /Cannot exclude an already managed memo/u);
+	assert.deepEqual(await f.state(), before);
+	assert.equal(await f.content(before.entries["memos/one"]), content);
+});
 
 test("only public normal author main memos export; API requests use the pinned authenticated contract", async (t) => {
 	const f = await fixture(t, [

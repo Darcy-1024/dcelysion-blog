@@ -2,6 +2,7 @@ import { resolve } from "node:path";
 import type { PublishTarget } from "../shared/publishing.js";
 import { DockerBuild } from "./build.js";
 import { type DraftService, hash } from "./drafts.js";
+import { GitHubActionsBuild } from "./github-actions-build.js";
 import { JobService } from "./jobs.js";
 import type { MediaService } from "./media.js";
 import { type ReleaseDriver, TencentReleases } from "./releases.js";
@@ -39,6 +40,8 @@ export function productionPublishing(
 					...value,
 					buildImage: env.ADMIN_BUILD_IMAGE,
 					builderEndpoint: env.ADMIN_BUILD_REMOTE_URL,
+					githubBuilder: env.ADMIN_BUILD_GITHUB_REPOSITORY,
+					githubWorkflow: env.ADMIN_BUILD_GITHUB_WORKFLOW_REVISION,
 					dockerEndpoint: env.ADMIN_BUILD_DOCKER_ENDPOINT,
 					commentProvider: env.ADMIN_BUILD_COMMENT_PROVIDER,
 					walineServer: env.ADMIN_BUILD_WALINE_SERVER_URL,
@@ -70,22 +73,33 @@ export function productionPublishing(
 	if (provider === "waline" && !env.ADMIN_BUILD_WALINE_SERVER_URL)
 		throw new Error("Waline builds require ADMIN_BUILD_WALINE_SERVER_URL");
 	return new JobService(
-		{ repository, stateRoot: resolve(state), targets, mediaOrigins },
+		{
+			repository: resolve(env.ADMIN_PUBLISH_REPOSITORY || repository),
+			stateRoot: resolve(state),
+			targets,
+			mediaOrigins,
+		},
 		drafts,
-		env.ADMIN_BUILD_REMOTE_URL
-			? new RemoteBuild(
-					env.ADMIN_BUILD_REMOTE_URL,
-					env.ADMIN_BUILD_REMOTE_TOKEN || "",
-					env.ADMIN_BUILD_IMAGE || "",
-				)
-			: new DockerBuild(
-					env.ADMIN_BUILD_IMAGE,
-					{
-						commentProvider: provider,
-						walineServer: env.ADMIN_BUILD_WALINE_SERVER_URL,
-					},
-					env.ADMIN_BUILD_DOCKER_ENDPOINT,
-				),
+		env.ADMIN_BUILD_GITHUB_REPOSITORY
+			? new GitHubActionsBuild({
+					repository: env.ADMIN_BUILD_GITHUB_REPOSITORY,
+					token: env.ADMIN_BUILD_GITHUB_TOKEN || "",
+					workflowRevision: env.ADMIN_BUILD_GITHUB_WORKFLOW_REVISION || "",
+				})
+			: env.ADMIN_BUILD_REMOTE_URL
+				? new RemoteBuild(
+						env.ADMIN_BUILD_REMOTE_URL,
+						env.ADMIN_BUILD_REMOTE_TOKEN || "",
+						env.ADMIN_BUILD_IMAGE || "",
+					)
+				: new DockerBuild(
+						env.ADMIN_BUILD_IMAGE,
+						{
+							commentProvider: provider,
+							walineServer: env.ADMIN_BUILD_WALINE_SERVER_URL,
+						},
+						env.ADMIN_BUILD_DOCKER_ENDPOINT,
+					),
 		releases,
 		databaseUrl,
 		undefined,

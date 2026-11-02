@@ -174,6 +174,36 @@ test("local bare remote gets only named managed files, stable edit/withdraw iden
 	assert.equal(await git(f.root, ["status", "--porcelain"]), "");
 });
 
+test("publication source guards ignore explicitly excluded memos and preserve manual content", async (t) => {
+	const f = await fixture(t);
+	const excluded = { ...memo(), name: "memos/manual" };
+	f.records.push(excluded, {
+		...memo(),
+		name: "memos/private",
+		visibility: "PRIVATE",
+	});
+	f.config.sync.excludedMemoNames = [excluded.name];
+	const first = await f.run({
+		inject: async (stage) => {
+			if (stage === "after-sync")
+				excluded.content = "excluded edit during publication";
+		},
+	});
+	assert.equal(first.status, "pushed-awaiting-build");
+	assert.equal(first.commit, await f.remoteHead());
+	assert.deepEqual(Object.keys((await f.state()).entries), ["memos/one"]);
+	excluded.visibility = "PRIVATE";
+	assert.equal((await f.run()).status, "no-git-change");
+	assert.equal(await f.head(), first.commit);
+	assert.equal(
+		await fs.readFile(
+			path.join(f.root, "src/content/dynamic/history.md"),
+			"utf8",
+		),
+		"---\npublished: 2020-01-01T00:00:00Z\n---\n历史正文",
+	);
+});
+
 test("unrelated dirty and staged files stop without pushing", async (t) => {
 	const f = await fixture(t);
 	await fs.writeFile(path.join(f.root, "unrelated.txt"), "preserve");

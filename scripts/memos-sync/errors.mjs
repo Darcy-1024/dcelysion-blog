@@ -1,5 +1,7 @@
 // Fixed categories only: exception messages may contain credentials or source data.
 export function errorReason(error) {
+	if (["fetch", "push", "local"].includes(error?.gitOperation))
+		return `git-${error.gitOperation}-${error.gitTimedOut ? "timeout" : "failed"}`;
 	if (error?.message === "Run deadline exceeded") return "run-deadline";
 	if (error?.name === "TimeoutError") return "network-timeout";
 	if (error?.name === "TypeError") return "network-or-type-error";

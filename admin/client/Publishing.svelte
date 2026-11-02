@@ -244,11 +244,12 @@ onMount(() => {
 <section class="publishing panel">
  <div class="publish-heading"><h2>{draft?words.title:words.queue}</h2><button disabled={busy} onclick={()=>void load()}>{words.refresh}</button></div>
  {#if error}<p class="error" role="alert">{error}</p>{/if}
+ {#if !draft}<p class="muted">{words.chooseDraft}</p>{/if}
  {#if info}
   <p class="muted">保存只进私有区。候选提交、Git 推送、release 安装分别记录。{#if draft && !isConfiguration(draft.kind)}draft:true 会保留。{/if}</p>
   {#if !info.targets.length}<p>尚未配置真实目标。</p>{:else}<label>执行目标<select bind:value={targetId} disabled={busy} onchange={()=>{plan=null;pending=null;void load();}}>{#each info.targets as value}<option value={value.id}>{value.label} · {value.branch}</option>{/each}</select></label>{/if}
-  {#if target}<p>{target.mode==='local-fixture'?'仅隔离验收：本地 bare remote + 临时 release 目录。':target.label}{target.pages?' 推送 master 会触发 GitHub Pages，腾讯安装单独执行。':''}</p>{/if}
-  <p>构建：{info.buildMode==='fixture'?'fixture（不代表真实 Astro 渲染）':'受限容器中的真实 Astro 管线'}{!info.available?' · '+apiMessage({code:info.reason||'BUILD_UNAVAILABLE'}):''}</p>
+  {#if target}<p>{target.mode==='local-fixture'?'仅隔离验收：本地 bare remote + 临时 release 目录。':target.label}{target.pages?' '+words.pushDeploy:''}</p>{/if}
+  <p>构建：{info.buildMode==='fixture'?'fixture（不代表真实 Astro 渲染）':info.buildMode==='github-actions'?words.cloudBuild:'受限容器中的真实 Astro 管线'}{!info.available?' · '+apiMessage({code:info.reason||'BUILD_UNAVAILABLE'}):''}</p>
   {#if draft}<div class="editor-actions"><button disabled={busy||locked||!target} onclick={()=>void inspect()}>{words.diff} · r{draft.revision}</button><button disabled={busy||locked||!plan||!info.available} onclick={()=>void create('preview')}>{words.preview}</button><button class="primary" disabled={busy||locked||!plan||!info.available} onclick={()=>void create('publish')}>{words.publish}</button></div>{#if locked}<p>先完成当前私有保存，再固定预览或发布快照。</p>{/if}{/if}
   {#if plan}<details open><summary>{plan.path} · 固定 r{plan.revision} · 基准 {plan.base.slice(0,12)}</summary><div class="publish-diff"><div><strong>远端基准</strong><pre>{plan.before||'（新内容）'}</pre></div><div><strong>候选快照</strong><pre>{plan.after}</pre></div></div></details>{/if}
  {/if}
