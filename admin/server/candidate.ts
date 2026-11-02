@@ -81,7 +81,7 @@ export class CandidateExecutor {
 						"--depth=1",
 						"--no-tags",
 						this.remote,
-						`refs/heads/${this.branch}:refs/heads/source`,
+						`+refs/heads/${this.branch}:refs/heads/source`,
 					]);
 				});
 			refreshes.set(cache, refresh);
