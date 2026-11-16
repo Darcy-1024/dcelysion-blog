@@ -21,6 +21,35 @@ function resolve(overrides: Partial<SidebarLayoutInput> = {}) {
 	return resolveSidebarLayout({ ...baseInput, ...overrides });
 }
 
+test("首页复用左栏到视觉右侧，离开首页恢复原双栏及文章目录布局", () => {
+	const home = resolve({
+		isHomePage: true,
+		postPageTocLeftLayoutEnabled: true,
+	});
+	assert.equal(
+		home.layoutVars["--main-grid-cols-xl"],
+		"1fr var(--main-grid-sidebar-width)",
+	);
+	assert.equal(
+		home.layoutVars["--main-grid-cols-md"],
+		home.layoutVars["--main-grid-cols-xl"],
+	);
+	assert.equal(home.layoutVars["--main-grid-left-column-xl"], "2");
+	assert.equal(home.layoutVars["--main-grid-right-display-xl"], "none");
+	assert.equal(home.layoutVars["--main-grid-content-column-xl"], "1");
+	assert.equal(home.layoutVars["--main-grid-footer-column-xl"], "1");
+	// 常驻侧栏仍须 SSR，切页后才能恢复。
+	assert.equal(home.effectiveHasRightComponents, true);
+	assert.equal(home.gridDataAttrs["data-sidebar-position"], "both");
+	const post = resolve({
+		isPostPage: true,
+		postPageTocLeftLayoutEnabled: true,
+	});
+	assert.equal(post.layoutVars["--main-grid-left-column-xl"], "3");
+	assert.equal(post.layoutVars["--main-grid-right-column-xl"], "1");
+	assert.equal(post.layoutVars["--main-grid-content-column-xl"], "2");
+});
+
 test("关闭侧栏或文章页隐藏侧栏时，SSR 与 Swup 都得到单列", () => {
 	for (const state of [
 		resolve({ enabled: false }),

@@ -128,7 +128,7 @@ const pendingRequests = new Map<string, Promise<DynamicEntry[]>>();
 /**
  * 从 Memos API 获取数据并转换为动态格式
  */
-export async function fetchMemos(
+export function fetchMemos(
 	memosApiUrl: string,
 	options?: { pageSize?: number; maxPages?: number; parent?: string },
 ): Promise<DynamicEntry[]> {
@@ -136,9 +136,10 @@ export async function fetchMemos(
 	const pending = pendingRequests.get(cacheKey);
 	if (pending) return pending;
 
-	const promise = fetchMemosInternal(memosApiUrl, options);
+	const promise = fetchMemosInternal(memosApiUrl, options).finally(() =>
+		pendingRequests.delete(cacheKey),
+	);
 	pendingRequests.set(cacheKey, promise);
-	promise.finally(() => pendingRequests.delete(cacheKey));
 	return promise;
 }
 

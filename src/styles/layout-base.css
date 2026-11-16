@@ -19,6 +19,17 @@
 }
 
 @media (min-width: 768px) {
+  /* 只看卡片显隐，不测量祖先可能被响应式隐藏的侧栏高度。 */
+  #main-grid .sidebar-top:has(> .card-base:not(.hidden)) {
+    padding-bottom: 1rem;
+  }
+
+  /* 作者与动态属于普通文档流；仅下方 sticky 组参与吸顶。 */
+  #main-grid .sidebar-top,
+  #main-grid .sidebar-top > .profile-card {
+    position: static;
+  }
+
   #main-grid {
     grid-template-columns: var(
       --main-grid-active-cols,

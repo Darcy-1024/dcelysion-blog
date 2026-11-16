@@ -7,11 +7,13 @@ import {
 
 export interface EffectiveSidebarContext {
 	isPostPage: boolean;
+	isHomePage?: boolean;
 }
 
 /** SSR 与 Swup 共享的纯布局计算输入。 */
 export interface SidebarLayoutInput {
 	isPostPage: boolean;
+	isHomePage?: boolean;
 	enabled: boolean;
 	position: "left" | "right" | "both";
 	tabletSidebar: "left" | "right";
@@ -88,6 +90,28 @@ export function resolveSidebarLayout(
 		tabletSidebar: effectiveTabletSidebar,
 	};
 
+	const layoutVars = computeMainGridLayoutVars(
+		updatedGridConfig,
+		usePostPageTocLeftLayout,
+	);
+	// 首页复用常驻的逻辑左栏，视觉放到右侧；不改变其他路由的组件与配置。
+	if (layoutActive && input.isHomePage) {
+		Object.assign(layoutVars, {
+			"--main-grid-cols-md": "1fr var(--main-grid-sidebar-width)",
+			"--main-grid-cols-xl": "1fr var(--main-grid-sidebar-width)",
+			"--main-grid-left-display-md": "block",
+			"--main-grid-left-display-xl": "block",
+			"--main-grid-right-display-md": "none",
+			"--main-grid-right-display-xl": "none",
+			"--main-grid-left-column-md": "2",
+			"--main-grid-left-column-xl": "2",
+			"--main-grid-content-column-md": "1",
+			"--main-grid-content-column-xl": "1",
+			"--main-grid-footer-column-md": "1",
+			"--main-grid-footer-column-xl": "1",
+		});
+	}
+
 	return {
 		hideSidebarOnPostPage: input.hideSidebarOnPostPage,
 		postPageTocLeftLayoutEnabled: input.postPageTocLeftLayoutEnabled,
@@ -117,10 +141,7 @@ export function resolveSidebarLayout(
 			"data-has-left-components": input.hasLeftComponents ? "true" : "false",
 			"data-has-right-components": input.hasRightComponents ? "true" : "false",
 		},
-		layoutVars: computeMainGridLayoutVars(
-			updatedGridConfig,
-			usePostPageTocLeftLayout,
-		),
+		layoutVars,
 	};
 }
 
@@ -150,6 +171,7 @@ export function getEffectiveSidebarState(
 
 	return resolveSidebarLayout({
 		isPostPage: ctx.isPostPage,
+		isHomePage: ctx.isHomePage,
 		enabled: sidebarLayoutConfig.enable,
 		position: sidebarLayoutConfig.position,
 		tabletSidebar: sidebarLayoutConfig.tabletSidebar ?? "left",

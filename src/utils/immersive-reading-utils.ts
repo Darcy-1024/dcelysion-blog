@@ -184,7 +184,7 @@ function exitImmersiveReading(rememberPreference = false): void {
 	document.body.classList.remove("immersive-toc-open");
 	clearContentTop();
 
-	// 侧边栏恢复显示后重新测量 top 容器可见性，恢复 mb-4（sticky 与 top 组件之间间距）
+	// 侧边栏恢复显示后刷新吸顶状态与阅读进度轨道。
 	requestAnimationFrame(() => {
 		refreshSidebarStickyState();
 		IR.rail?.refresh();

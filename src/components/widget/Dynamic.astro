@@ -9,12 +9,18 @@ import type { WidgetComponentConfig } from "@/types/config";
 import { url } from "@/utils/url-utils";
 
 interface Props {
+	id?: string;
 	class?: string;
 	style?: string;
 	widgetConfig?: WidgetComponentConfig;
 }
 
-const { class: className, style, widgetConfig } = Astro.props;
+const {
+	id = "latest-dynamics",
+	class: className,
+	style,
+	widgetConfig,
+} = Astro.props;
 const showTitle = widgetConfig?.showTitle !== false;
 const configuredLimit = widgetConfig?.specificConfig?.dynamic?.limit ?? 3;
 const limit = Math.max(1, Math.floor(configuredLimit));
@@ -30,7 +36,7 @@ const memos = dynamicConfig.memos;
 		<WidgetLayout
 			name={i18n(I18nKey.latestDynamics)}
 			showTitle={showTitle}
-			id="latest-dynamics"
+			id={id}
 			class={className}
 			style={style}
 		>

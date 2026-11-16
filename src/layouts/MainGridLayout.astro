@@ -81,7 +81,10 @@ const banner = getBannerVisibilityState({
 	title,
 	bannerPostMeta,
 });
-const sidebar = getEffectiveSidebarState({ isPostPage });
+const sidebar = getEffectiveSidebarState({
+	isPostPage,
+	isHomePage: isHomePageCheck,
+});
 
 const { hasWallpaper } = banner;
 const {
@@ -134,7 +137,7 @@ const {
                     id="swup-container"
                     class="transition-main"
                     data-current-post-category={postCategory || ""}
-					data-page-kind={isPostPage ? "post" : "default"}
+					data-page-kind={isPostPage ? "post" : isHomePageCheck ? "home" : "default"}
                 >
                 {isPostPage ? <div class="sr-only">{title}</div> : <h1 class="sr-only">{heading || title}</h1>}
                 <div id="content-wrapper" class="onload-animation transition-leaving">

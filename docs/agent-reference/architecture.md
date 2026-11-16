@@ -101,6 +101,10 @@ pnpm build
 - `Layout.astro` 是最底层 HTML 外壳，负责 `<head>`、SEO、favicon、全局 CSS、字体、分析服务、主题初始化、全局音乐/特效、Swup 生命周期和通用浏览器增强。
 - `MainGridLayout.astro` 构建可变壁纸/横幅、导航栏、分类栏、主内容区、左右侧边栏、页脚、悬浮控件和看板娘。普通网格由 `resolveSidebarLayout()` 统一计算输入变量，SSR 写到 `#main-grid`，Swup 换页时更新同一组变量；`layout-base.css` 按 768/1280 断点消费。沉浸阅读以 `body` 状态类提供独立的生效列、正文列号和间距变量，沿用同一网格消费规则；1024px 是进入资格，1200px 是目录由浮层转为 sticky 双列的断点。退出后撤销状态类，即恢复当前普通输入变量。
 
+首页的 `#swup-container[data-page-kind="home"]` 使用宽文章区与右侧单栏：复用常驻逻辑左栏的完整作者卡和音乐，在两者之间显示首页专用动态；其他模块仅在首页隐藏。文章页继续使用原目录/正文/侧栏网格，仅将 Profile 切换为紧凑头像、名称和签名。SSR 与 `grid-layout-utils.ts` 根据页面类型同步布局、组件可见性和 Profile 变体，不移动侧栏 DOM，保留播放器状态。
+
+侧栏顶部组通过 `.sidebar-top:has(> .card-base:not(.hidden))` 保留与吸顶组的 1rem 间隔，全隐藏时不留空位；不再按 `offsetHeight` 增删组间距，避免窄屏隐藏后恢复宽屏时卡片贴合。顶部作者卡随文档滚动，仅下方 sticky 组吸顶。
+
 普通站内页面优先使用 `MainGridLayout`；动态评论 iframe 使用独立轻量文档，保留评论样式、字体和主题同步，不挂载整站统计、音乐、特效或布局初始化。其高度以实际评论内容测量，父子消息去重，避免视口最小高度参与反馈；`body[data-no-swup]` 让评论链接不走整站局部导航。不要随意改动这些稳定 DOM 标识：`#swup-container`、`#banner-overlay-container`、`#banner-dim-container`、`#left-sidebar-dynamic`、`#right-sidebar-dynamic`、`#floating-toc-wrapper`，它们是 Swup 多容器切换契约的一部分。
 
 ### `src/components/`：按职责分组的 UI

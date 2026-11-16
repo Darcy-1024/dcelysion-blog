@@ -15,6 +15,8 @@ let keyword = "";
 let results: SearchResult[] = [];
 let isSearching = false;
 let initialized = false;
+let requestId = 0;
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 
 // 在客户端获取 URL 参数
 const getInitialKeyword = (): string => {
@@ -41,8 +43,10 @@ const fakeResult: SearchResult[] = [
 
 // --- Core Search Logic ---
 const search = async () => {
+	const id = ++requestId;
 	if (!initialized || !keyword.trim()) {
 		results = [];
+		isSearching = false;
 		return;
 	}
 	isSearching = true;
@@ -53,7 +57,7 @@ const search = async () => {
 			const rawResults = await Promise.all(
 				response.results.map((item) => item.data()),
 			);
-			results = rawResults;
+			if (id === requestId) results = rawResults;
 		} else if (import.meta.env.DEV) {
 			// 开发模式下的模拟结果
 			results = fakeResult.filter(
@@ -63,30 +67,26 @@ const search = async () => {
 			);
 		}
 	} catch (error) {
+		if (id !== requestId) return;
 		console.error("Search error:", error);
 		results = [];
 	} finally {
-		isSearching = false;
+		if (id === requestId) isSearching = false;
 	}
 };
 
 // --- Initialization onMount ---
 onMount(() => {
-	const initialize = async () => {
+	const initialize = () => {
+		if (initialized) return;
+		document.removeEventListener("pagefindready", initialize);
+		window.removeEventListener("pagefindready", initialize);
 		initialized = true;
-
-		// 从 URL 获取初始关键词
-		const initialKeyword = getInitialKeyword();
-		if (initialKeyword) {
-			keyword = initialKeyword;
-		}
-
-		// 如果有关键词，自动执行搜索
-		if (keyword.trim()) {
-			await search();
-		}
+		clearTimeout(debounceTimer);
+		void search();
 	};
 
+	keyword = getInitialKeyword();
 	// 开发环境直接初始化
 	if (import.meta.env.DEV) {
 		initialize();
@@ -99,15 +99,28 @@ onMount(() => {
 			document.addEventListener("pagefindready", initialize, {
 				once: true,
 			});
+			window.addEventListener("pagefindready", initialize, { once: true });
 		}
 	}
+	return () => {
+		++requestId;
+		clearTimeout(debounceTimer);
+		document.removeEventListener("pagefindready", initialize);
+		window.removeEventListener("pagefindready", initialize);
+	};
 });
 
-let debounceTimer: NodeJS.Timeout;
-const handleInput = () => {
+const handleInput = (event: Event & { currentTarget: HTMLInputElement }) => {
+	keyword = event.currentTarget.value;
+	++requestId;
 	clearTimeout(debounceTimer);
+	if (!keyword.trim()) {
+		results = [];
+		isSearching = false;
+		return;
+	}
 	debounceTimer = setTimeout(() => {
-		search();
+		void search();
 	}, 300);
 };
 </script>
@@ -140,7 +153,7 @@ const handleInput = () => {
                 type="text"
                 class="block w-full p-4 pl-10 text-sm bg-transparent border border-black/10 dark:border-white/10 rounded-lg focus:ring-2 focus:ring-(--primary) focus:border-(--primary) hover:border-black/20 dark:hover:border-white/20 text-75 placeholder:opacity-50 transition-colors outline-hidden"
                 placeholder={i18n(I18nKey.search)}
-                bind:value={keyword}
+                value={keyword}
                 on:input={handleInput}
             >
         </div>

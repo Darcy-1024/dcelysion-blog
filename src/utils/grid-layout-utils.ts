@@ -28,6 +28,7 @@ function readLayoutInput(mainGrid: Element): SidebarLayoutInput {
 
 	return {
 		isPostPage: swupContainer?.getAttribute("data-page-kind") === "post",
+		isHomePage: swupContainer?.getAttribute("data-page-kind") === "home",
 		enabled: flag(mainGrid, "data-sidebar-enable"),
 		position,
 		tabletSidebar:
@@ -66,6 +67,10 @@ export function updateMainGridCols(): void {
 // 更新侧边栏组件的可见性
 export function updateSidebarComponentsVisibility(): void {
 	const isPostPage = isCurrentPagePost();
+	const isHomePage =
+		document
+			.getElementById("swup-container")
+			?.getAttribute("data-page-kind") === "home";
 
 	// 处理侧边栏级别的 hideSidebarOnPostPage 配置
 	document
@@ -80,26 +85,28 @@ export function updateSidebarComponentsVisibility(): void {
 			}
 		});
 
-	// 处理组件级别的 showOnPostPage 配置
-	document.querySelectorAll(".widget-hide-on-post").forEach((widget) => {
-		isPostPage
-			? widget.classList.add("hidden")
-			: widget.classList.remove("hidden");
+	// 合并页面规则，避免不同规则相互移除 hidden。
+	document
+		.querySelectorAll(
+			".widget-hide-on-post, .widget-hide-on-non-post, .widget-hide-on-home, .widget-home-only",
+		)
+		.forEach((widget) => {
+			const hidden =
+				(isPostPage && widget.classList.contains("widget-hide-on-post")) ||
+				(!isPostPage && widget.classList.contains("widget-hide-on-non-post")) ||
+				(isHomePage && widget.classList.contains("widget-hide-on-home")) ||
+				(!isHomePage && widget.classList.contains("widget-home-only"));
+			widget.classList.toggle("hidden", hidden);
+		});
+	document.querySelectorAll<HTMLElement>(".profile-card").forEach((profile) => {
+		profile.dataset.variant = isPostPage ? "compact" : "full";
 	});
 
-	// 处理 hideOnNonPostPage === true 的组件
-	document.querySelectorAll(".widget-hide-on-non-post").forEach((widget) => {
-		!isPostPage
-			? widget.classList.add("hidden")
-			: widget.classList.remove("hidden");
-	});
-
-	// 组件可见性变化后，重新读取 top 容器可见性并重算 sticky 间距，避免 swup 切页后残留旧间距
+	// 组件可见性变化后刷新吸顶偏移；组间距由 CSS 直接处理。
 	refreshSidebarStickyState();
 }
 
-// 重新读取侧边栏 top 容器的可见性并应用间距。
-// 含 offsetHeight 布局读取，仅初始化 / 切页时调用；滚动路径使用缓存值，避免每帧强制布局
+// 读取页面规则下的顶部卡片状态，不受祖先在移动/平板端隐藏影响。
 export function refreshSidebarStickyState(): void {
 	(["left", "right"] as const).forEach((side) => {
 		const sticky = document.getElementById(`${side}-sidebar-sticky`);
@@ -107,17 +114,10 @@ export function refreshSidebarStickyState(): void {
 
 		// 结构为：sidebar -> top 容器（可选） + sticky 容器
 		const topContainer = sticky.previousElementSibling as HTMLElement | null;
-		const hasVisibleTop = !!topContainer && topContainer.offsetHeight > 1;
+		const hasVisibleTop = !!topContainer?.querySelector(
+			":scope > .card-base:not(.hidden)",
+		);
 		sidebarStickyState[side].hasVisibleTop = hasVisibleTop;
-
-		// swup 从非文章页切换到文章页时，top 容器可能残留 mb-4，需要按可见性动态修正
-		if (topContainer) {
-			if (hasVisibleTop) {
-				topContainer.classList.add("mb-4");
-			} else {
-				topContainer.classList.remove("mb-4");
-			}
-		}
 	});
 
 	updateSidebarStickySpacing();

@@ -80,7 +80,9 @@ pnpm new-dynamic ... # 新建动态
 ## 部署状态核验
 
 - `.github/workflows/public-blog.yml` 在 GitHub 云端完整构建一次；成功后 `scripts/finalize-blog-release.mjs` 筛选公开文件、生成固定探针及提交/公开树摘要。双端包按完整提交发布到 `blog-<SHA>` Release，并附压缩包 SHA-256；不含后台或私有文件。本地普通构建跳过正式打包，不启动腾讯后台 builder。
-- 云端工作流只缓存 `cache/build/lqip-meta.json` 与 `cache/build/github-card-meta.json`，按运行系统、锁文件及生成脚本隔离，并跨提交恢复最近可用缓存；图片内容指纹和 GitHub 卡片 TTL 仍决定各条目是否可复用。首次填充缓存仍需全量处理图片，后续未改变的图片跳过解码；不缓存整个 `cache/`、源码生成 JSON 或正式发布包。
+- 共享构建及 PR 完整构建缓存 `cache/build/lqip-meta.json` 与 `cache/build/github-card-meta.json`，按运行系统、锁文件及生成脚本隔离，并跨提交恢复最近可用缓存；图片内容指纹和 GitHub 卡片 TTL 仍决定各条目是否可复用。依赖安装任务另外缓存 `.pnpm-store/v11`，按系统、架构、锁文件、workspace 和 package 配置隔离，仍执行 `pnpm install --frozen-lockfile`。后台生成资源单独缓存 `cache/admin-assets`，按字体、品牌图、后台源码、生成器和锁文件失效；生成器仍校验自身内容签名。不缓存整个 `cache/`、`node_modules`、源码生成 JSON 或正式发布包。
+- master 推送只由 `public-blog.yml` 执行一次完整博客构建，并在发布 Release 前检查首页、Pagefind、字体、公开探针及原始 Sites 入口。`build.yml` 在 master 保留后台检查/测试/构建和 Node 22/23 类型检查；完整构建及 Astro 兼容构建矩阵仅在 PR 运行。
+- GitHub Pages 的 `deploy.yml` 不再安装依赖或重建博客，使用 `node scripts/download-blog-release.mjs cloudflare` 下载并校验同一提交的公开包，添加 `.nojekyll` 后沿用 Pages 上传/部署步骤。最多等待 Release 10 分钟；构建失败、包缺失或校验失败时不部署。共享发布和 Pages 手动触发仅允许 master；Pages 重跑可复用已有同提交 Release。首次引入此流程时需要让该提交的共享构建成功发布 Release。
 - EdgeOne 根 `edgeone.json` 跳过依赖安装，仅运行 `scripts/download-blog-release.mjs edgeone` 下载同提交的云端包，校验压缩包、清单、版本再生成 dist；Cloudflare 默认分支的构建命令使用同一脚本的 cloudflare 模式，部署命令保留 Wrangler。Release 尚未生成时最多等待 10 分钟，失败不切换生产。两端不再分别执行 MDX 构建，以避免 EdgeOne 磁盘/内存不足及产物漂移。
 - 发布后必须核对 `/__route/version.json` 的完整提交和 `publicTreeSha256`，以及固定探针字节/头。未通过时继续禁用自动选路；旧演练包不得上传。自动发布包是公开站点内容，不得将源码、环境文件或后台包加入 Release。
 

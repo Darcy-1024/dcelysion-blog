@@ -31,6 +31,12 @@ jobs:
         with:
           run_install: false
 
+      - name: Restore pnpm store
+        uses: actions/cache@v4
+        with:
+          path: .pnpm-store/v11
+          key: pnpm-store-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json') }}
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -39,6 +45,12 @@ jobs:
 
       - name: Run isolated admin tests
         run: pnpm admin:test
+
+      - name: Restore admin generated assets
+        uses: actions/cache@v4
+        with:
+          path: cache/admin-assets
+          key: admin-assets-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'admin/build/assets.ts', 'admin/client/*.svelte', 'admin/client/*.ts', 'public/assets/fonts/MiSansVF.ttf', 'public/assets/brand/dcelysion-portal-v3*.png') }}
 
       - name: Build admin
         run: pnpm admin:build
@@ -63,6 +75,12 @@ jobs:
         with:
           run_install: false # Disable auto-install
 
+      - name: Restore pnpm store
+        uses: actions/cache@v4
+        with:
+          path: .pnpm-store/v11
+          key: pnpm-store-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json') }}
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
@@ -72,6 +90,8 @@ jobs:
           pnpm type-check
 
   build:
+    # master is fully built and artifact-checked by public-blog.yml.
+    if: github.event_name == 'pull_request'
     strategy:
       matrix:
         node: [ 22, 23 ]
@@ -91,8 +111,25 @@ jobs:
         with:
           run_install: false # Disable auto-install
 
+      - name: Restore pnpm store
+        uses: actions/cache@v4
+        with:
+          path: .pnpm-store/v11
+          key: pnpm-store-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json') }}
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
+
+      - name: Restore public build metadata
+        if: matrix.node == 22
+        uses: actions/cache@v4
+        with:
+          path: |
+            cache/build/lqip-meta.json
+            cache/build/github-card-meta.json
+          key: public-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'scripts/generate-lqips.ts', 'scripts/generate-github-card-data.ts') }}-${{ github.sha }}
+          restore-keys: |
+            public-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'scripts/generate-lqips.ts', 'scripts/generate-github-card-data.ts') }}-
 
       - name: Run full project build
         if: matrix.node == 22

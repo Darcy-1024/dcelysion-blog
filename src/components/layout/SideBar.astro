@@ -16,6 +16,7 @@ import type {
 	MobileBottomComponentConfig,
 	WidgetComponentConfig,
 } from "@/types/config";
+import { isHomePage } from "@/utils/layout-utils";
 
 interface Props {
 	class?: string;
@@ -104,11 +105,22 @@ const getAnimationDelay = (index: number): string => {
 
 // 判断当前页面是否为文章页面（服务端渲染时确定）
 const isPostPage = Astro.url.pathname.includes("/posts/");
+const isHome = isHomePage(Astro.url.pathname);
+const showOnHome = (
+	config: WidgetComponentConfig | MobileBottomComponentConfig,
+) =>
+	(side === SIDEBAR_SIDE.LEFT && ["profile", "music"].includes(config.type)) ||
+	(side === SIDEBAR_SIDE.BOTTOM &&
+		["profile", "dynamic"].includes(config.type));
+const homeDynamicConfig = sidebarLayoutConfig.rightComponents.find(
+	(component) => component.type === "dynamic",
+);
 
 // 判断组件在当前页面首屏是否可见（用于计算布局间距，避免隐藏组件占位）
 const isComponentInitiallyVisible = (
 	config: WidgetComponentConfig | MobileBottomComponentConfig,
 ): boolean => {
+	if (isHome && !showOnHome(config)) return false;
 	if (
 		"showOnPostPage" in config &&
 		config.showOnPostPage === false &&
@@ -136,6 +148,16 @@ const getComponentProps = (
 		style: `animation-delay: ${getAnimationDelay(index)}`,
 		widgetConfig: config,
 	};
+	if (!showOnHome(config)) {
+		baseProps.class += " widget-hide-on-home";
+		if (isHome) baseProps.class += " hidden";
+	}
+	if (config.type === "profile") {
+		baseProps.variant = isPostPage ? "compact" : "full";
+	}
+	if (config.type === "dynamic") {
+		baseProps.id = `${side}-latest-dynamics`;
+	}
 
 	// 添加 showOnPostPage 和 hideOnNonPostPage 标记class（仅WidgetComponentConfig有这些属性）
 	// 同时根据当前页面类型在服务端渲染时设置初始 hidden 状态，避免页面加载时闪烁
@@ -191,22 +213,26 @@ const hasInitiallyVisibleTopComponents = topComponents.some(
 						const props = getComponentProps(comp, index) as any;
 						return <Component {...props} />;
 					})}
+					<Music class:list={["onload-animation widget-home-only", !isHome && "hidden"]} />
 				</div>
 			) : (
 				<>
 					{/* Top components */}
 					{topComponents.length > 0 && (
 						<div
-							class:list={[
-								"flex flex-col w-full gap-4",
-								hasInitiallyVisibleTopComponents && "mb-4",
-							]}
+							class="sidebar-top flex flex-col w-full gap-4"
 						>
 							{topComponents.map((comp, index) => {
 								const Component = componentMap[comp.type];
 								if (!Component) return null;
 								const props = getComponentProps(comp, index) as any;
-								return <Component {...props} />;
+								return <>
+									<Component {...props} />
+									{side === SIDEBAR_SIDE.LEFT && comp.type === "profile" && (
+										<Dynamic id="home-latest-dynamics" widgetConfig={homeDynamicConfig}
+											class:list={["onload-animation widget-home-only", !isHome && "hidden"]} />
+									)}
+								</>;
 							})}
 						</div>
 					)}

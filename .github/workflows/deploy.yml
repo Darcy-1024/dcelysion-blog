@@ -18,6 +18,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -26,26 +27,12 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: '22'
+          node-version: '24'
           
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v6
-        with:
-          version: 11.22.0
-          run_install: false
-          
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-      
-      - name: Build site
-        run: pnpm run build
-
-      - name: Save paired public release
-        uses: actions/upload-artifact@v4
-        with:
-          name: blog-public-${{ github.sha }}
-          path: cache/public-${{ github.sha }}/
-          retention-days: 7
+      # Reuse the exact SHA's reviewed output; the downloader verifies the
+      # checksum, manifest and public files, and waits at most 10 minutes.
+      - name: Download verified shared public build
+        run: node scripts/download-blog-release.mjs cloudflare
 
       - name: Create .nojekyll file
         run: touch dist/.nojekyll

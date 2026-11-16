@@ -8,16 +8,17 @@ import { url } from "@/utils/url-utils";
 interface Props {
 	class?: string;
 	style?: string;
+	variant?: "full" | "compact";
 }
-const { style } = Astro.props;
+const { style, variant = "full" } = Astro.props;
 const className = Astro.props.class;
 ---
 
-<div class:list={["card-base", "p-3", className]} style={style}>
+<div class:list={["card-base", "p-3", "profile-card", className]} data-variant={variant} style={style}>
   <a
     aria-label="Go to About Page"
     href={url("/about/")}
-    class="group block relative mx-auto mt-1 lg:mx-0 lg:mt-0 mb-3
+    class="profile-avatar-link group block relative mx-auto mt-1 lg:mx-0 lg:mt-0 mb-3
        max-w-48 lg:max-w-none overflow-hidden rounded-xl active:scale-95"
   >
     <div
@@ -39,20 +40,20 @@ const className = Astro.props.class;
       sizes="350px"
     />
   </a>
-  <div class="px-2">
+  <div class="profile-details px-2">
     <div
-      class="font-bold text-xl text-center mb-1 dark:text-neutral-50 transition"
+      class="profile-name font-bold text-xl text-center mb-1 dark:text-neutral-50 transition"
     >
       {profileConfig.name}
     </div>
     <div
-      class="h-1 w-5 bg-(--primary) mx-auto rounded-full mb-2 transition"
+      class="profile-accent h-1 w-5 bg-(--primary) mx-auto rounded-full mb-2 transition"
     >
     </div>
-    <div class="text-center text-neutral-400 mb-2.5 transition">
+    <div class="profile-bio text-center text-neutral-400 mb-2.5 transition">
       {profileConfig.bio}
     </div>
-        <div class="flex flex-wrap gap-2 justify-center mb-1">
+        <div class="profile-links flex flex-wrap gap-2 justify-center mb-1">
             {profileConfig.links.length > 1 && profileConfig.links.map(item =>
                     {
                     const showName = item.showName;
@@ -94,3 +95,42 @@ const className = Astro.props.class;
         </div>
   </div>
 </div>
+
+<style>
+  .profile-card[data-variant="compact"] {
+    display: flex;
+    align-items: center;
+    gap: 0.875rem;
+    padding: 1rem;
+    min-height: 6rem;
+  }
+  .profile-card[data-variant="compact"] .profile-avatar-link {
+    width: 3.5rem;
+    height: 3.5rem;
+    flex: 0 0 3.5rem;
+    margin: 0;
+    border-radius: 50%;
+  }
+  .profile-card[data-variant="compact"] .profile-details {
+    min-width: 0;
+    padding: 0;
+  }
+  .profile-card[data-variant="compact"] .profile-name,
+  .profile-card[data-variant="compact"] .profile-bio {
+    text-align: left;
+  }
+  .profile-card[data-variant="compact"] .profile-bio {
+    margin-bottom: 0;
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+  }
+  .profile-card[data-variant="compact"] .profile-accent,
+  .profile-card[data-variant="compact"] .profile-links {
+    display: none;
+  }
+  .profile-card[data-variant="compact"] :global(.profile-avatar-image) {
+    width: 100%;
+    height: 100%;
+  }
+</style>

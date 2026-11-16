@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -24,6 +25,12 @@ jobs:
         with:
           version: 11.22.0
           run_install: false
+      - name: Restore pnpm store
+        uses: actions/cache@v4
+        with:
+          path: .pnpm-store/v11
+          key: pnpm-store-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json') }}
+
       - run: pnpm install --frozen-lockfile
       - name: Restore public build metadata
         uses: actions/cache@v4
@@ -37,6 +44,18 @@ jobs:
       - run: pnpm run build
         env:
           PUBLIC_BUILD_REVISION: ${{ github.sha }}
+      - name: Verify full build artifacts
+        shell: bash
+        run: |
+          test -s dist/index.html
+          test -s dist/pagefind/pagefind.js
+          test -s "cache/raw-$GITHUB_SHA/server/index.js"
+          test ! -e dist/server
+          test -s dist/__route/probe-v1.bin
+          test -s dist/__route/version.json
+          find dist/_astro/fonts -type f -name '*.woff2' -print -quit | grep -q .
+          test -z "$(find dist/_astro/fonts -type f -name '*.ttf' -print -quit)"
+
       - name: Archive reviewed public output
         run: |
           tar -czf blog-public.tar.gz -C "cache/public-$GITHUB_SHA" cloudflare edgeone manifest.json

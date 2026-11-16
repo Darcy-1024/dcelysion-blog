@@ -19,6 +19,7 @@ Astro + Svelte 博客，使用 Swup 局部导航。依赖版本与命令以 `pac
 ## 项目约束
 
 - 保持用户给出的正文、标点、表情和图片顺序；未要求时不润色。局部视觉调整限定作用范围。
+- 编写页面、HTML mockup、UI 视觉稿、营销页或产品页时，正文面向最终用户，说明能获得什么、如何操作以及会看到什么结果。错误提示可以保留，优先说清发生了什么；有可行的下一步时，告诉用户怎么做。设计推导、组件规则、开发边界和验收标准等内部说明放在规范文档或备注中。
 - 上游同步带来的教学、指南和功能示例文章保持 `draft: true`，只有明确要求公开时才改变；个人正式文章不受此默认规则限制。
 - 交互修改须考虑 Swup 重入与清理，保留现有容器 ID 和事件契约；相关细节见架构参考。
 - 使用既有配置类型与模块约定。配置结构或事件契约变化时同步读取方；用户可见文案沿用 i18n。
@@ -44,3 +45,7 @@ Astro + Svelte 博客，使用 Swup 局部导航。依赖版本与命令以 `pac
 | 音乐、视频、相册、R2 或媒体域名 | [媒体约定](docs/agent-reference/media.md) |
 | 新内容、页面、Widget、Markdown 或文档维护 | [工作流参考](docs/agent-reference/workflows.md) |
 | 创建或修改动态及附件 | [.agents/skills/publish-dynamic/SKILL.md](.agents/skills/publish-dynamic/SKILL.md) |
+
+## UI 设计参考
+
+- 设计新项目的 UI、新增页面或调整现有 UI 时，可按需从本机 `C:/Users/Darcy/Documents/Codex/design-references/awesome-design-md/design-md` 挑选设计参考，优先读相关模板的 `DESIGN.md`，需要时查看同目录的 HTML 预览。本机目录不可用时，可查阅 [上游模板库](https://github.com/VoltAgent/awesome-design-md/tree/main/design-md)。 博客优先沿用现有视觉语言、阅读排版与浅深色规则；局部调整只借鉴本次需要的设计元素。
