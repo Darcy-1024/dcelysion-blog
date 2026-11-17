@@ -19,6 +19,50 @@
 
 @reference "tailwindcss";
 
+/* 根据导航实际宽度逐级收起控件，避免菜单侵入按钮区（布局 §3.4）。 */
+#navbar {
+    container: navbar / inline-size;
+}
+
+#navbar .navbar-actions > button,
+#navbar .navbar-menu > .dropdown-container {
+    flex-shrink: 0;
+}
+
+#navbar #search-input-desktop {
+    width: 10rem;
+}
+
+@container navbar (width < 76rem) {
+    #navbar #search-bar {
+        display: none;
+    }
+
+    #navbar #search-switch {
+        display: flex;
+    }
+
+    #navbar #search-bar-inside {
+        display: flex;
+    }
+}
+
+@container navbar (width < 70rem) {
+    #navbar .navbar-menu {
+        display: none;
+    }
+
+    #navbar #nav-menu-switch {
+        display: flex;
+    }
+}
+
+@container navbar (width < 26rem) {
+    #navbar .navbar-brand .navbar-wordmark {
+        width: clamp(4rem, calc(100cqw - 15rem), 8.5rem);
+    }
+}
+
 /*
  * 导航栏条状背景的模糊半径。
  */

@@ -21,7 +21,7 @@ function resolve(overrides: Partial<SidebarLayoutInput> = {}) {
 	return resolveSidebarLayout({ ...baseInput, ...overrides });
 }
 
-test("首页复用左栏到视觉右侧，离开首页恢复原双栏及文章目录布局", () => {
+test("首页与普通页面共用右侧单栏，文章页恢复目录布局", () => {
 	const home = resolve({
 		isHomePage: true,
 		postPageTocLeftLayoutEnabled: true,
@@ -38,6 +38,7 @@ test("首页复用左栏到视觉右侧，离开首页恢复原双栏及文章�
 	assert.equal(home.layoutVars["--main-grid-right-display-xl"], "none");
 	assert.equal(home.layoutVars["--main-grid-content-column-xl"], "1");
 	assert.equal(home.layoutVars["--main-grid-footer-column-xl"], "1");
+	assert.deepEqual(resolve({ isHomePage: false }).layoutVars, home.layoutVars);
 	// 常驻侧栏仍须 SSR，切页后才能恢复。
 	assert.equal(home.effectiveHasRightComponents, true);
 	assert.equal(home.gridDataAttrs["data-sidebar-position"], "both");
@@ -65,7 +66,11 @@ test("关闭侧栏或文章页隐藏侧栏时，SSR 与 Swup 都得到单列", (
 });
 
 test("普通单左、单右布局保持正文与侧栏顺序", () => {
-	const left = resolve({ position: "left" });
+	const left = resolve({
+		isPostPage: true,
+		showBothSidebarsOnPostPage: false,
+		position: "left",
+	});
 	assert.equal(
 		left.layoutVars["--main-grid-cols-md"],
 		"var(--main-grid-sidebar-width) 1fr",
@@ -84,7 +89,7 @@ test("普通单左、单右布局保持正文与侧栏顺序", () => {
 });
 
 test("双栏平板选择决定两列方向，桌面仍为三列", () => {
-	const left = resolve({ tabletSidebar: "left" });
+	const left = resolve({ isPostPage: true, tabletSidebar: "left" });
 	assert.equal(
 		left.layoutVars["--main-grid-cols-md"],
 		"var(--main-grid-sidebar-width) 1fr",
@@ -95,7 +100,7 @@ test("双栏平板选择决定两列方向，桌面仍为三列", () => {
 	);
 	assert.equal(left.layoutVars["--main-grid-content-column-md"], "2");
 
-	const right = resolve({ tabletSidebar: "right" });
+	const right = resolve({ isPostPage: true, tabletSidebar: "right" });
 	assert.equal(
 		right.layoutVars["--main-grid-cols-md"],
 		"1fr var(--main-grid-sidebar-width)",
@@ -110,7 +115,7 @@ test("双栏平板选择决定两列方向，桌面仍为三列", () => {
 test("文章 TOC 特例只在文章启用，并保留逻辑侧栏 ID 的视觉换位", () => {
 	const nonPost = resolve({ postPageTocLeftLayoutEnabled: true });
 	assert.equal(nonPost.usePostPageTocLeftLayout, false);
-	assert.equal(nonPost.layoutVars["--main-grid-left-column-md"], "1");
+	assert.equal(nonPost.layoutVars["--main-grid-left-column-md"], "2");
 
 	const post = resolve({
 		isPostPage: true,
@@ -153,7 +158,11 @@ test("组件缺失不会凭 position 虚构侧栏列", () => {
 
 test("每个状态输出完整变量集合，保留双栏缺失组件的既有显示边界", () => {
 	const normal = resolve();
-	const edge = resolve({ hasRightComponents: false, tabletSidebar: "right" });
+	const edge = resolve({
+		isPostPage: true,
+		hasRightComponents: false,
+		tabletSidebar: "right",
+	});
 	assert.deepEqual(
 		Object.keys(edge.layoutVars),
 		Object.keys(normal.layoutVars),

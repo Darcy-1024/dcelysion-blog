@@ -1,5 +1,11 @@
 /* Layout 基础布局样式（从 Layout.astro 内联 <style is:global> 迁出） */
 
+/* 普通页面的内容与非全宽导航共用宽度（布局 §3.2）；随 Swup 切换，文章保留原宽度。 */
+body:has(#swup-container:not([data-page-kind="post"])) #top-row[data-full-width="false"],
+.main-grid-shell:has(#swup-container:not([data-page-kind="post"])) {
+  max-width: min(var(--page-width), 80rem);
+}
+
 /* 普通配置由 resolveSidebarLayout 写入；沉浸态通过继承的 active 变量切换同一消费层。 */
 #main-grid {
   grid-template-columns: var(

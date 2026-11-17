@@ -94,8 +94,8 @@ export function resolveSidebarLayout(
 		updatedGridConfig,
 		usePostPageTocLeftLayout,
 	);
-	// 首页复用常驻的逻辑左栏，视觉放到右侧；不改变其他路由的组件与配置。
-	if (layoutActive && input.isHomePage) {
+	// 普通页面复用常驻的逻辑左栏，视觉放到右侧；文章页保留目录布局。
+	if (layoutActive && !input.isPostPage && effectiveHasLeftComponents) {
 		Object.assign(layoutVars, {
 			"--main-grid-cols-md": "1fr var(--main-grid-sidebar-width)",
 			"--main-grid-cols-xl": "1fr var(--main-grid-sidebar-width)",

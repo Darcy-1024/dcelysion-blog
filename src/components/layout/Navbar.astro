@@ -221,7 +221,7 @@ const logoVariants = await Promise.all(
         className,
         "overflow-visible! h-18 px-4"
     ]}>
-        <div class="mx-auto h-full w-full max-w-(--page-width) grid grid-cols-[auto_minmax(0,1fr)_auto] items-center">
+        <div class="navbar-row mx-auto h-full w-full max-w-(--page-width) grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2">
             <a href={url('/')} aria-label={navbarTitle} class:list={["navbar-brand rounded-lg h-13 px-3 md:px-5 font-bold", { "navbar-brand-wordmark": logoIsWordmark }]}>
                 <div class:list={[
                     "flex flex-row items-center text-md",
@@ -259,7 +259,7 @@ const logoVariants = await Promise.all(
                 </div>
             </a>
             <div class:list={[
-                "hidden lg:flex items-center space-x-1 col-start-2",
+                "navbar-menu hidden lg:flex items-center space-x-1 col-start-2",
                 { "navbar-wordmark-menu": logoIsWordmark },
                 isNavbarMenuCentered
                     ? "justify-center"
@@ -269,7 +269,7 @@ const logoVariants = await Promise.all(
                     return <DropdownMenu link={l} />;
                 })}
             </div>
-            <div class="flex col-start-3 justify-self-end">
+            <div class="navbar-actions flex shrink-0 col-start-3 justify-self-end">
                 <!--<SearchPanel client:load>-->
                 <Search
                     client:load
@@ -298,7 +298,7 @@ const logoVariants = await Promise.all(
                 )}
                 {/* @ts-ignore */}
                 <LightDarkSwitch client:load></LightDarkSwitch>
-                <button aria-label="Menu" aria-controls="nav-menu-panel" aria-expanded="false" name="Nav Menu" class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90 lg:hidden!" id="nav-menu-switch">
+                <button aria-label="Menu" aria-controls="nav-menu-panel" aria-expanded="false" name="Nav Menu" class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90 lg:hidden" id="nav-menu-switch">
                     <Icon name="material-symbols:menu-rounded" class="text-[1.25rem]"></Icon>
                 </button>
             </div>

@@ -67,10 +67,6 @@ export function updateMainGridCols(): void {
 // 更新侧边栏组件的可见性
 export function updateSidebarComponentsVisibility(): void {
 	const isPostPage = isCurrentPagePost();
-	const isHomePage =
-		document
-			.getElementById("swup-container")
-			?.getAttribute("data-page-kind") === "home";
 
 	// 处理侧边栏级别的 hideSidebarOnPostPage 配置
 	document
@@ -88,14 +84,14 @@ export function updateSidebarComponentsVisibility(): void {
 	// 合并页面规则，避免不同规则相互移除 hidden。
 	document
 		.querySelectorAll(
-			".widget-hide-on-post, .widget-hide-on-non-post, .widget-hide-on-home, .widget-home-only",
+			".widget-hide-on-post, .widget-hide-on-non-post, .widget-post-only, .widget-non-post-only",
 		)
 		.forEach((widget) => {
 			const hidden =
 				(isPostPage && widget.classList.contains("widget-hide-on-post")) ||
 				(!isPostPage && widget.classList.contains("widget-hide-on-non-post")) ||
-				(isHomePage && widget.classList.contains("widget-hide-on-home")) ||
-				(!isHomePage && widget.classList.contains("widget-home-only"));
+				(!isPostPage && widget.classList.contains("widget-post-only")) ||
+				(isPostPage && widget.classList.contains("widget-non-post-only"));
 			widget.classList.toggle("hidden", hidden);
 		});
 	document.querySelectorAll<HTMLElement>(".profile-card").forEach((profile) => {

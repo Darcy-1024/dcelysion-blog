@@ -16,7 +16,6 @@ import type {
 	MobileBottomComponentConfig,
 	WidgetComponentConfig,
 } from "@/types/config";
-import { isHomePage } from "@/utils/layout-utils";
 
 interface Props {
 	class?: string;
@@ -105,8 +104,8 @@ const getAnimationDelay = (index: number): string => {
 
 // 判断当前页面是否为文章页面（服务端渲染时确定）
 const isPostPage = Astro.url.pathname.includes("/posts/");
-const isHome = isHomePage(Astro.url.pathname);
-const showOnHome = (
+const useStandardLayout = !isPostPage;
+const showOnStandardLayout = (
 	config: WidgetComponentConfig | MobileBottomComponentConfig,
 ) =>
 	(side === SIDEBAR_SIDE.LEFT && ["profile", "music"].includes(config.type)) ||
@@ -120,7 +119,7 @@ const homeDynamicConfig = sidebarLayoutConfig.rightComponents.find(
 const isComponentInitiallyVisible = (
 	config: WidgetComponentConfig | MobileBottomComponentConfig,
 ): boolean => {
-	if (isHome && !showOnHome(config)) return false;
+	if (useStandardLayout && !showOnStandardLayout(config)) return false;
 	if (
 		"showOnPostPage" in config &&
 		config.showOnPostPage === false &&
@@ -148,9 +147,9 @@ const getComponentProps = (
 		style: `animation-delay: ${getAnimationDelay(index)}`,
 		widgetConfig: config,
 	};
-	if (!showOnHome(config)) {
-		baseProps.class += " widget-hide-on-home";
-		if (isHome) baseProps.class += " hidden";
+	if (!showOnStandardLayout(config)) {
+		baseProps.class += " widget-post-only";
+		if (useStandardLayout) baseProps.class += " hidden";
 	}
 	if (config.type === "profile") {
 		baseProps.variant = isPostPage ? "compact" : "full";
@@ -213,7 +212,7 @@ const hasInitiallyVisibleTopComponents = topComponents.some(
 						const props = getComponentProps(comp, index) as any;
 						return <Component {...props} />;
 					})}
-					<Music class:list={["onload-animation widget-home-only", !isHome && "hidden"]} />
+					<Music class:list={["onload-animation widget-non-post-only", !useStandardLayout && "hidden"]} />
 				</div>
 			) : (
 				<>
@@ -230,7 +229,7 @@ const hasInitiallyVisibleTopComponents = topComponents.some(
 									<Component {...props} />
 									{side === SIDEBAR_SIDE.LEFT && comp.type === "profile" && (
 										<Dynamic id="home-latest-dynamics" widgetConfig={homeDynamicConfig}
-											class:list={["onload-animation widget-home-only", !isHome && "hidden"]} />
+											class:list={["onload-animation widget-non-post-only", !useStandardLayout && "hidden"]} />
 									)}
 								</>;
 							})}
