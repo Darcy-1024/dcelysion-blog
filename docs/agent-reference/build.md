@@ -71,6 +71,7 @@ pnpm new-dynamic ... # 新建动态
 
 - `EADDRINUSE`：端口已被占用；核对进程归属和响应，不直接重试同一启动命令。
 - 已监听但请求超时：保留服务日志和请求错误，分别检查进程是否响应、代理和沙箱访问边界。监听成功不等于 HTTP 服务可用，也不能仅凭一次超时断言是浏览器或沙箱缺陷。
+- Astro 开发监听保留源码热更新，跳过 `.tmp/` 和 `astro.config.mjs` 中列出的历史测试副本、源码快照与发布包；不是排除整个 `cache/`。临时预览副本放在 `.tmp/`，不要把开发源码放在这些已排除的目录中。首次页面请求还可能在编译模块：查阅同一次启动日志，以有总时限的实际页面及资源响应区分冷编译与服务无响应，不反复重启。
 - 服务退出或连接被拒绝：读取退出码与日志，检查启动错误和进程生命周期；不要只重新打开浏览器。
 - 具体证据指向沙箱限制时，仅对已授权的预览启动或检查申请必要的沙箱外执行，并复测；不为预览全局关闭沙箱或更改防火墙。审批拒绝时说明阻碍，不绕过限制。
 - 页面能访问但资源或样式错误：检查资源路径、响应内容和缓存，确认预览使用本次修改的文件；不要把服务重启当作所有样式问题的解决办法。
@@ -85,6 +86,8 @@ pnpm new-dynamic ... # 新建动态
 - GitHub Pages 的 `deploy.yml` 不再安装依赖或重建博客，使用 `node scripts/download-blog-release.mjs cloudflare` 下载并校验同一提交的公开包，添加 `.nojekyll` 后沿用 Pages 上传/部署步骤。最多等待 Release 10 分钟；构建失败、包缺失或校验失败时不部署。共享发布和 Pages 手动触发仅允许 master；Pages 重跑可复用已有同提交 Release。首次引入此流程时需要让该提交的共享构建成功发布 Release。
 - EdgeOne 根 `edgeone.json` 跳过依赖安装，仅运行 `scripts/download-blog-release.mjs edgeone` 下载同提交的云端包，校验压缩包、清单、版本再生成 dist；Cloudflare 默认分支的构建命令使用同一脚本的 cloudflare 模式，部署命令保留 Wrangler。Release 尚未生成时最多等待 10 分钟，失败不切换生产。两端不再分别执行 MDX 构建，以避免 EdgeOne 磁盘/内存不足及产物漂移。
 - 发布后必须核对 `/__route/version.json` 的完整提交和 `publicTreeSha256`，以及固定探针字节/头。未通过时继续禁用自动选路；旧演练包不得上传。自动发布包是公开站点内容，不得将源码、环境文件或后台包加入 Release。
+- 使用 `node scripts/verify-blog-route.mjs --expected-sha <完整40位提交SHA>` 做只读严格发布核验，显式指定本次发布目标。它核对 Cloudflare / EdgeOne 两站在两个首页 Origin 下的完整 `sourceRevision`、`blog-<SHA>` Release ID、`deploymentEligible: true`、`buildProvenance: github-actions`、一致的 `publicTreeSha256`，以及版本响应头、固定探针声明、实际字节和响应头。JSON 中 `passed: true` 且退出码为 `0` 才表示这些公开版本/探针检查通过；不匹配、网络错误或无法确认返回 `1`，参数错误返回 `2`。无参数命令及 `verifyBlogRoutes()` 保留逐项诊断结果，不作为发布门禁；合成用例可运行 `node --test scripts/verify-blog-route.test.mjs`。
+- 上述核验不改变路由资格或生产设置，也不替代平台工作流状态、目标页面内容与功能验收；后台、Memos 和 Sites 的发布及验证应分别记录。
 
 - 按实际发布平台、同一仓库和完整提交 SHA 核验。Cloudflare Workers 查看 [Check Runs](https://docs.github.com/en/rest/checks/runs#list-check-runs-for-a-git-reference) 中的 `Workers Builds: dcelysion-blog`（App：`cloudflare-workers-and-pages`），`completed` / `success` 表示构建通过。
 - GitHub Actions 为空不能据此判断 Cloudflare 部署异常；GitHub Pages 单独核对其部署工作流。

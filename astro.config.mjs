@@ -361,6 +361,14 @@ export default defineConfig({
 				ignored: [
 					// 项目内 pnpm store 文件很多；监听它会让 Windows 开发启动被目录扫描拖慢。
 					"**/.pnpm-store/**",
+					// 临时预览副本不参与开发监听，避免其 tsconfig 等变动触发无关重载。
+					"**/.tmp/**",
+					// 历史隔离测试库、源码副本和发布包会产生数万个监听；保留 build/admin-assets 等正常缓存。
+					"**/cache/{avatar-panel-tests,admin-loading-tests,admin-ui-preview,test-tmp}/dc-admin-stage*/**",
+					"**/cache/{avatar-panel-tests,admin-loading-tests,admin-ui-preview,test-tmp}/tsx-*/**",
+					"**/cache/{admin-launch-20261004,memos-stage2-*}/{source,build-input}/**",
+					"**/cache/{launch-stage*,release-*,stage8-routing-blog,blog-routing-stage-a-20261011}/**",
+					"**/cache/memos-emoji-{base,expand,verify}/**",
 					"**/package/**",
 					"**/Firefly-docs/**",
 				],

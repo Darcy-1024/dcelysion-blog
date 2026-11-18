@@ -28,8 +28,8 @@ async function boundedBody(response, limit) {
 	return Buffer.concat(chunks);
 }
 
-async function inspect(origin, pathname, homepageOrigin, limit) {
-	const response = await fetch(new URL(pathname, origin), {
+async function inspect(origin, pathname, homepageOrigin, limit, fetchImpl) {
+	const response = await fetchImpl(new URL(pathname, origin), {
 		method: "GET",
 		headers: { Origin: homepageOrigin },
 		credentials: "omit",
@@ -91,7 +91,7 @@ async function inspect(origin, pathname, homepageOrigin, limit) {
 }
 
 // Node confirms headers and bytes, not the browser's enforcement of CORS/CSP.
-export async function verifyBlogRoutes() {
+export async function verifyBlogRoutes({ fetchImpl = fetch } = {}) {
 	return Promise.all(
 		Object.entries(origins).map(async ([source, origin]) => ({
 			source,
@@ -110,6 +110,7 @@ export async function verifyBlogRoutes() {
 											pathname,
 											homepageOrigin,
 											pathname === probePath ? probeBytes : 8192,
+											fetchImpl,
 										)),
 									};
 								} catch (error) {
@@ -128,15 +129,93 @@ export async function verifyBlogRoutes() {
 	);
 }
 
+// Shared production releases are attested by the GitHub Actions packager.
+// This proves observed public metadata/probes, not page behavior or backend health.
+export async function verifyBlogRelease(expectedRevision, options = {}) {
+	if (
+		typeof expectedRevision !== "string" ||
+		!/^[a-fA-F0-9]{40}$/.test(expectedRevision)
+	) {
+		throw new Error("Full expected commit SHA required");
+	}
+	const revision = expectedRevision.toLowerCase();
+	const routes = await verifyBlogRoutes(options);
+	const errors = [];
+	const trees = new Set();
+	for (const route of routes) {
+		for (const check of route.checks) {
+			for (const result of check.results) {
+				const context = `${route.source} ${check.homepageOrigin} ${result.pathname}`;
+				if (!result.valid) errors.push(`${context}: invalid or unavailable`);
+				if (result.pathname !== versionPath) continue;
+				const version = result.version;
+				if (
+					version?.sourceRevision !== revision ||
+					version?.releaseId !== `blog-${revision}` ||
+					version?.deploymentEligible !== true ||
+					version?.buildProvenance !== "github-actions" ||
+					version?.probe?.path !== probePath ||
+					version?.probe?.bytes !== probeBytes
+				) {
+					errors.push(`${context}: expected release contract mismatch`);
+				}
+				if (
+					!result.headers?.["cache-control"]?.includes("no-store") ||
+					!result.headers?.["cache-control"]?.includes("no-transform") ||
+					result.headers?.["x-content-type-options"] !== "nosniff"
+				) {
+					errors.push(`${context}: version header contract mismatch`);
+				}
+				trees.add(version?.publicTreeSha256);
+			}
+		}
+	}
+	if (trees.size !== 1)
+		errors.push("Public tree digests differ across observations");
+	return {
+		expectedRevision: revision,
+		passed: errors.length === 0,
+		errors,
+		routes,
+	};
+}
+
+export async function runCli(
+	args,
+	{ stdout = console.log, stderr = console.error, ...options } = {},
+) {
+	if (
+		args.length !== 0 &&
+		(args.length !== 2 ||
+			args[0] !== "--expected-sha" ||
+			!/^[a-fA-F0-9]{40}$/.test(args[1]))
+	) {
+		stderr(
+			"Usage: node scripts/verify-blog-route.mjs [--expected-sha <full-SHA>]",
+		);
+		return 2;
+	}
+	try {
+		const result = args.length
+			? await verifyBlogRelease(args[1], options)
+			: { routes: await verifyBlogRoutes(options) };
+		stdout(
+			JSON.stringify(
+				{ checkedAt: new Date().toISOString(), ...result },
+				null,
+				2,
+			),
+		);
+		return result.passed === false ? 1 : 0;
+	} catch (error) {
+		stderr(error.message);
+		return 1;
+	}
+}
+
 if (
 	process.argv[1] &&
 	fileURLToPath(import.meta.url) === path.resolve(process.argv[1])
 ) {
-	console.log(
-		JSON.stringify(
-			{ checkedAt: new Date().toISOString(), routes: await verifyBlogRoutes() },
-			null,
-			2,
-		),
-	);
+	process.exitCode = await runCli(process.argv.slice(2));
 }

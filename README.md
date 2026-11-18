@@ -1,200 +1,188 @@
 <div align="center">
 
-# DcElysion
+<img src="public/assets/brand/dcelysion-portal-v3-dark.png" alt="DcElysion" width="260" />
 
-**Darcy 的个人博客 · 文章、生活记录与 ACGN 收藏**
+# DcElysion Blog
 
-唯有那份炫目，未曾忘却
+**Darcy 的个人博客 · 唯有那份炫目，未曾忘却**
 
-[访问博客](https://blog.dcelysion.cn/) · [关于我](https://blog.dcelysion.cn/about/) · [订阅更新](https://blog.dcelysion.cn/rss/) · [反馈问题](https://github.com/Darcy-1024/dcelysion-blog/issues)
+写下一些想法，收藏一些喜欢，也给平凡的日常留一个位置。
+
+[访问博客](https://blog.dcelysion.cn/) · [个人主页](https://dcelysion.cn/) · [订阅更新](https://blog.dcelysion.cn/rss/) · [反馈问题](https://github.com/Darcy-1024/dcelysion-blog/issues)
+
+![Astro](https://img.shields.io/badge/Astro-页面构建-BC52EE?logo=astro&logoColor=white)
+![Svelte](https://img.shields.io/badge/Svelte-交互组件-FF3E00?logo=svelte&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-类型支持-3178C6?logo=typescript&logoColor=white)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-样式系统-06B6D4?logo=tailwindcss&logoColor=white)
 
 </div>
 
----
+![DcElysion 博客首页](docs/images/dcelysion/home.webp)
 
-## 关于这个项目
+## 在这里，可以做什么
 
-DcElysion 是 Darcy 的个人博客，用来分享文章、记录日常，也收集喜欢的音乐、影像与 ACGN 作品。这个仓库保存博客源码及配套的内容管理工具，并围绕个人写作、阅读和内容发布持续维护。
+| | 体验 |
+| --- | --- |
+| 📖 读点文字 | 浏览文章，按分类与标签寻找内容，用目录跳转章节，打开沉浸阅读专心读长文。 |
+| 🌸 看看日常 | 翻阅图文动态，按关键词与年份回看，点赞、评论或分享一条记录。 |
+| 🖼️ 逛逛相册 | 从一张封面走进相册，在瀑布流里慢慢浏览照片。 |
+| 🎮 发现同好 | 浏览 Bangumi 与 VNDB 收藏，看看喜欢的 ACGN 作品。 |
+| 🎵 听一首歌 | 打开播放器，选择曲目、调整进度与音量，查看歌单和歌词。 |
+| ✨ 换个模样 | 切换浅深色、文章布局与壁纸，让页面更贴近自己的阅读习惯。 |
+| 💬 留句话 | 认识作者、逛逛友链，或者在留言板打个招呼。 |
 
-项目基于 [Firefly](https://github.com/CuteLeaf/Firefly) 二次开发，使用 Astro、Svelte、TypeScript 和 Tailwind CSS。
+## 读一篇文章，慢慢往下翻
 
-## 界面与设计
+从首页挑一篇感兴趣的文章，让文字陪你待一会儿。MiSans 正文与霞鹜文楷标题，搭配舒展的留白；开篇可以了解分类、标签和预计阅读时间，章节目录帮助快速找到想读的部分。
 
-从首页的第一眼，到读完一篇文章，再到随手翻阅动态和收藏，DcElysion 用紫色点缀、圆角卡片和统一的导航串起不同内容。下面的配图均来自本站实际页面，点击图片可查看大图。
+![文章页：标题、封面、正文与章节目录](docs/images/dcelysion/article.webp)
 
-### 首页 · 从一张横幅开始
+想专心一点，就打开沉浸阅读。导航、横幅和侧栏杂项收起，正文拥有更多空间，目录仍可随时开合。退出时回到进入前的阅读位置，阅读模式偏好也会被记住。
 
-![DcElysion 首页：横幅、导航、文章卡片与个人资料](docs/images/dcelysion/home.webp)
+![沉浸阅读模式](docs/images/dcelysion/reading.webp)
 
-大幅插画横幅承载欢迎语，半透明导航让背景延续到页面顶部。向下进入内容区后，文章与个人资料分别放在独立卡片中：封面带来直观印象，标题、摘要、日期与标签帮助读者决定下一篇读什么。
+读完后，可以沿着系列导航继续阅读，也可以点赞、分享或留下评论。
 
-- **分类入口靠近文章**：主页、归档和分类集中在内容上方，查找文章不用返回导航菜单。
-- **重要内容优先**：置顶文章带有明确标识，新访客可以先了解本站。
-- **个人气息留在侧边**：头像、签名和社交入口与文章并列，让博客也成为认识作者的入口。
+## 找回记忆中的那段文字
 
-### 文章 · 标题有层次，正文有留白
-
-![文章页：章节目录、文楷标题、正文封面与侧栏](docs/images/dcelysion/article.webp)
-
-文章页以正文卡片为中心，文楷标题与 MiSans 正文形成层次。日期、分类、标签、字数和预计阅读时间集中在开篇，封面与引文随后展开；章节目录帮助读者在长文中定位，页面边缘的章节标记提示阅读位置。
-
-文章还提供系列导航、点赞、分享和评论入口，从阅读到交流可以在同一页完成。
-
-### 沉浸阅读 · 给正文更多空间
-
-![沉浸阅读：简化界面并保留章节导航](docs/images/dcelysion/reading.webp)
-
-点击文章页的沉浸阅读按钮，导航、横幅和侧栏杂项会收起，正文获得更宽的阅读空间。目录仍可辅助跳转，读者也可以开合目录；退出后回到进入前的阅读位置。阅读模式偏好会被记住，适合连续阅读长文。
-
-### 归档与搜索 · 按时间回看，按关键词寻找
+记得时间，就沿着归档回看；只记得几个词，就交给全文搜索。分类、标签与搜索结果里的命中片段，帮助你重新找到那篇文章。
 
 <table>
   <tr>
     <td width="50%"><img src="docs/images/dcelysion/archive.webp" alt="按年份组织的文章归档" /></td>
-    <td width="50%"><img src="docs/images/dcelysion/search.webp" alt="输入关键词后的全文搜索结果" /></td>
+    <td width="50%"><img src="docs/images/dcelysion/search.webp" alt="全文搜索结果与命中片段" /></td>
   </tr>
   <tr>
-    <td align="center">年份时间线 · 日期、分类与标题并列</td>
-    <td align="center">全文搜索 · 标题与命中片段一起呈现</td>
+    <td align="center">沿着时间回看</td>
+    <td align="center">从几个关键词找起</td>
   </tr>
 </table>
 
-归档页将文章按年份和日期排列，轻量的时间线保留了写作顺序，也支持分类与标签筛选。搜索页则面向“记得一段内容，但不记得标题”的场景：输入关键词后，结果卡片显示标题与相关片段，点击即可继续阅读。
+## 日常不必很长，也值得留下
 
-### 动态 · 让日常有自己的位置
+短想法、开箱和生活片段，连同随手拍下的照片，都放在动态里。可以按关键词与年份翻找，也可以打开某一条的独立详情，分享链接或生成海报，把这一刻带给别人。
 
-![动态页：搜索、年份筛选、图文卡片与互动区](docs/images/dcelysion/dynamic.webp)
+![图文动态与互动入口](docs/images/dcelysion/dynamic.webp)
 
-短想法、开箱和生活片段以独立卡片排列。头像与时间标出记录的来源，多张照片组成紧凑图集，文字与图片之后才是点赞、分享和评论，让内容保持第一眼的重点。
-
-- 通过关键词与年份筛选回看旧动态。
-- 每条动态都有独立详情地址，可单独打开与分享。
-- 评论可在卡片内展开，分享支持生成海报。
-
-### 相册 · 从封面走进图片
+照片多一点，就收进相册。按封面挑选主题，用关键词与标签缩小范围，再让横图与竖图按各自的比例展开。
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/images/dcelysion/gallery.webp" alt="相册列表与标签筛选" /></td>
-    <td width="50%"><img src="docs/images/dcelysion/album.webp" alt="相册详情的瀑布流图片排列" /></td>
+    <td width="50%"><img src="docs/images/dcelysion/gallery.webp" alt="相册封面与标签筛选" /></td>
+    <td width="50%"><img src="docs/images/dcelysion/album.webp" alt="相册内的瀑布流照片" /></td>
   </tr>
   <tr>
-    <td align="center">相册入口 · 封面、数量与标签</td>
-    <td align="center">相册内页 · 保留图片比例的瀑布流</td>
+    <td align="center">从封面选一段回忆</td>
+    <td align="center">走进照片里的风景</td>
   </tr>
 </table>
 
-相册列表用封面卡片概括主题，将名称、简介、照片数量和标签放在一起；关键词与标签用于缩小范围。进入相册后，图片按不同长宽比例交错排列，让横图与竖图都拥有自然的展示空间。
+## 喜欢的作品，和此刻想听的歌
 
-### ACGN 收藏 · 把喜欢的作品摆出来
+这里也收藏着喜欢的 ACGN 作品。通过 Bangumi 与 VNDB 页面，按类别或收藏状态浏览，看看想玩、在玩与已玩的作品，也许能找到一点共同爱好。
 
-![VNDB 收藏：封面卡片、收藏状态与筛选](docs/images/dcelysion/vndb.webp)
+![VNDB 视觉小说收藏](docs/images/dcelysion/vndb.webp)
 
-VNDB 页面以封面网格展示视觉小说收藏，卡片上叠加名称、状态、评分与标签。上方的收藏分组和筛选把“想玩”“在玩”“已玩”等状态分开，便于从作品封面开始浏览，再进入感兴趣的条目。
+阅读时想听点音乐，可以点开导航栏的音符，或使用侧栏播放器。选曲、切歌、调整进度与音量，展开歌单与歌词，让音乐陪着页面一起往下翻。
 
-本站也提供 Bangumi 番组计划页面，按作品类别和收藏状态组织内容。两类收藏沿用统一的卡片语言；上图展示的是 VNDB 页面。
+![音乐播放器与歌单](docs/images/dcelysion/music.webp)
 
-### 音乐 · 浏览时随手打开
+## 换成自己喜欢的阅读模样
 
-![顶部展开的音乐播放器](docs/images/dcelysion/music.webp)
-
-导航栏的音符按钮展开小型播放器，封面、曲名、歌手、进度与音量集中在一个浮层中。侧栏也提供播放器卡片，读者可以切歌、调整播放模式，或展开列表与歌词，在浏览内容的同时选择想听的音乐。
-
-### 外观 · 浅深色与自己的阅读习惯
+浅色、深色，或跟随系统。显示设置里还可以切换文章列表与网格，调整卡片边框、阴影、壁纸与透明度，找到看着舒服的样子。
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/images/dcelysion/home-light.webp" alt="浅色模式首页及模式菜单" /></td>
-    <td width="50%"><img src="docs/images/dcelysion/settings.webp" alt="深色模式下的外观设置面板" /></td>
+    <td width="50%"><img src="docs/images/dcelysion/home-light.webp" alt="浅色模式首页" /></td>
+    <td width="50%"><img src="docs/images/dcelysion/settings.webp" alt="深色模式下的显示设置" /></td>
   </tr>
   <tr>
-    <td align="center">浅色、深色或跟随系统</td>
-    <td align="center">文章布局、卡片样式与壁纸设置</td>
+    <td align="center">明亮一点，或安静一点</td>
+    <td align="center">按自己的习惯调整</td>
   </tr>
 </table>
 
-浅色模式使用明亮底色与白色卡片，深色模式降低大面积背景亮度，两者都保留紫色强调。显示设置将外观、壁纸与特效分组，可选择文章列表或网格、调整卡片边框与阴影，以及壁纸模式、透明度等选项。
-
-### 移动端 · 把内容收进一列
+手机上也能继续逛。竖幅壁纸、单列文章卡片与紧凑导航，让内容顺着屏幕展开；菜单收进抽屉，常用入口仍然触手可及。
 
 <p align="center">
-  <img src="docs/images/dcelysion/mobile.webp" width="320" alt="移动端首页：紧凑导航、竖幅壁纸与单列文章卡片" />
+  <img src="docs/images/dcelysion/mobile.webp" alt="手机端博客首页" width="320" />
 </p>
 
-小屏幕上，导航收起为菜单与常用图标，文章卡片改为单列，封面放在标题上方。竖幅壁纸与欢迎语保留首页的视觉印象，分类入口仍紧贴文章列表，便于用手机继续浏览。
+## 串串门，也留句话
 
-### 友链与留言 · 留下交流的入口
+从[关于页](https://blog.dcelysion.cn/about/)认识作者和这个小站，也可以去友链看看其他人的世界。想交换链接，按页面说明留下站点信息；有建议、有想法，或者只是路过，都欢迎在留言板打个招呼。
 
 <table>
   <tr>
-    <td width="50%"><img src="docs/images/dcelysion/friends.webp" alt="友链页的本站信息与申请步骤" /></td>
-    <td width="50%"><img src="docs/images/dcelysion/guestbook.webp" alt="留言页的说明、输入框与评论" /></td>
+    <td width="50%"><img src="docs/images/dcelysion/friends.webp" alt="友链页与本站信息" /></td>
+    <td width="50%"><img src="docs/images/dcelysion/guestbook.webp" alt="留言板与评论区" /></td>
   </tr>
   <tr>
-    <td align="center">友链 · 站点信息与申请方式</td>
-    <td align="center">留言 · 想法、建议与访客交流</td>
+    <td align="center">认识更多个人站点</td>
+    <td align="center">留下一点来过的痕迹</td>
   </tr>
 </table>
 
-友链页将本站信息和申请步骤并排呈现，名称、描述、链接与头像地址可分别复制，方便交换链接。留言板把简短的交流说明放在评论区之前，提供一个不依附于某篇文章的公共交流空间。
+## 实现上的小细节
 
-### 关于 · 简单介绍这里与自己
-
-![关于页：个人简介与网站说明](docs/images/dcelysion/about.webp)
-
-关于页保留与文章一致的字体和留白，用简短正文介绍作者、分享方向和网站来源。侧栏的头像与签名延续个人身份，让访客从任何内容页来到这里，都能认出是同一个人的空间。
-
-
-## 仓库内容
-
-| 目录 | 内容 |
-| --- | --- |
-| `src/content/` | 文章、动态等内容 |
-| `src/pages/` | 博客页面与订阅入口 |
-| `src/components/` | 页面组件、侧边栏与播放器等功能 |
-| `src/config/` | 站点、导航、外观及功能配置 |
-| `admin/` | 配套内容管理后台 |
-| `scripts/` | 内容创建、媒体处理与构建脚本 |
-| `public/` | 静态资源 |
+- **围绕个人内容持续维护**：基于 [Firefly](https://github.com/CuteLeaf/Firefly) 二次开发，使用 Astro、Svelte、TypeScript 和 Tailwind CSS，承载文章、动态、相册与收藏。
+- **连贯的站内浏览**：使用 Swup 局部导航，串起不同页面的阅读体验。
+- **全文搜索**：使用 Pagefind 生成搜索索引，通过标题与命中片段定位内容。
+- **内容与工具放在一起**：仓库包含博客源码、配套内容管理后台，以及内容创建、媒体处理和构建脚本。
 
 ## 本地运行
 
-需要 **Node.js >= 22.23.0**，使用项目固定的 **pnpm 11.22.0**。具体版本以 [package.json](package.json) 为准。
+需要 **Node.js ≥ 22.23.0** 与 Corepack；包管理器固定为 **pnpm 11.22.0**，具体版本以 [package.json](package.json) 为准。
 
-```bash
+```sh
 git clone https://github.com/Darcy-1024/dcelysion-blog.git
 cd dcelysion-blog
-corepack pnpm install
+corepack pnpm install --frozen-lockfile
 corepack pnpm dev
 ```
 
-打开开发服务器输出的本地地址，默认是 `http://localhost:4321`。
+打开开发服务器输出的本地地址，默认是 [localhost:4321](http://localhost:4321/)。
 
 | 命令 | 用途 |
 | --- | --- |
 | `corepack pnpm dev` | 启动博客开发服务器 |
 | `corepack pnpm check` | 运行 Astro 检查 |
 | `corepack pnpm build` | 构建博客并生成搜索索引等资源 |
-| `corepack pnpm preview` | 预览已构建的博客 |
+| `corepack pnpm preview` | 预览构建结果 |
 | `corepack pnpm new-post <name>` | 创建文章 |
 | `corepack pnpm admin:dev` | 启动配套后台开发服务，需另行配置环境 |
 
-站点配置见 [配置文件说明](src/config/README.md)，构建所需的外部依赖与注意事项见 [构建参考](docs/agent-reference/build.md)。本仓库包含个人站点配置；复用时请替换站点信息、内容及服务配置。
+构建所需的外部依赖与注意事项见[构建与验证](docs/agent-reference/build.md)。
 
-## 致谢
+## 换成自己的博客
 
-- [CuteLeaf / Firefly](https://github.com/CuteLeaf/Firefly)：本项目的上游主题，提供了博客的界面与功能基础。
-- [saicaca / Fuwari](https://github.com/saicaca/fuwari)：Firefly 所基于的原始博客模板。
-- [Astro](https://astro.build/)、[Svelte](https://svelte.dev/)、[Tailwind CSS](https://tailwindcss.com/)、[Swup](https://swup.js.org/)、[Pagefind](https://pagefind.app/) 及其他开源项目。
-- [MiSans](https://hyperos.mi.com/font/faq) 与 [霞鹜文楷](https://github.com/lxgw/LxgwWenKai)：站点使用的字体。
+站点信息、导航、外观与功能设置集中在 [`src/config/`](src/config/README.md)，文章与动态等内容放在 `src/content/`。
 
-仓库内保留的其他语言 README 为上游主题说明，尚未改写为 DcElysion 项目介绍；本项目介绍以本页为准。
+```text
+src/
+├── components/     页面组件、侧边栏与播放器
+├── config/         站点、导航、外观与功能配置
+├── content/        文章、动态等内容
+└── pages/          博客页面与订阅入口
+admin/              配套内容管理后台
+public/             静态资源
+scripts/            内容创建、媒体处理与构建脚本
+docs/               项目文档与页面截图
+```
 
-## 许可与素材
+本仓库包含个人站点配置。复用时请替换站点资料、个人内容、媒体地址与服务配置，并使用自己有权发布的素材。配套后台需要单独配置和运行。
+
+配置方法见[配置文件说明](src/config/README.md)，内容维护见[工作流参考](docs/agent-reference/workflows.md)，音乐、相册与媒体配置见[媒体约定](docs/agent-reference/media.md)。
+
+## 致谢与素材说明
+
+感谢 [CuteLeaf / Firefly](https://github.com/CuteLeaf/Firefly) 提供主题基础，以及它所基于的 [saicaca / Fuwari](https://github.com/saicaca/fuwari)。也感谢 [Astro](https://astro.build/)、[Svelte](https://svelte.dev/)、[Tailwind CSS](https://tailwindcss.com/)、[Swup](https://swup.js.org/)、[Pagefind](https://pagefind.app/) 等开源项目。
+
+站点使用 [MiSans](https://hyperos.mi.com/font/faq) 与[霞鹜文楷](https://github.com/lxgw/LxgwWenKai)。文章、图片、音乐、字体及其他第三方素材的权利归各自权利人所有，使用时请遵循对应授权；流萤相关素材归《崩坏：星穹铁道》及其权利人所有。
 
 代码许可证见 [LICENSE](LICENSE)，保留原作者版权声明：
 
 - Copyright (c) 2024 saicaca
 - Copyright (c) 2025 CuteLeaf
 
-文章、图片、音乐、字体及其他第三方素材的权利归各自权利人所有，使用时请遵循对应授权。流萤相关素材归《崩坏：星穹铁道》及其权利人所有。
+仓库内其他语言的 README 保留上游主题说明，DcElysion 项目介绍以本页为准。
