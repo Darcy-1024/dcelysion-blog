@@ -4,9 +4,9 @@
 
 # DcElysion Blog
 
-**Darcy 的个人博客 · 唯有那份炫目，未曾忘却**
+**东方未晞的个人博客 · 唯有那份炫目，未曾忘却**
 
-写下一些想法，收藏一些喜欢，也给平凡的日常留一个位置。
+写长文，晒唱片，也记下最近喜欢的作品。第一次来，可以先读一篇文章，或去动态看看近况。
 
 [访问博客](https://blog.dcelysion.cn/) · [个人主页](https://dcelysion.cn/) · [订阅更新](https://blog.dcelysion.cn/rss/) · [反馈问题](https://github.com/Darcy-1024/dcelysion-blog/issues)
 
@@ -21,107 +21,107 @@
 
 ## 在这里，可以做什么
 
-| | 体验 |
+| 入口 | 可以做什么 |
 | --- | --- |
-| 📖 读点文字 | 浏览文章，按分类与标签寻找内容，用目录跳转章节，打开沉浸阅读专心读长文。 |
-| 🌸 看看日常 | 翻阅图文动态，按关键词与年份回看，点赞、评论或分享一条记录。 |
-| 🖼️ 逛逛相册 | 从一张封面走进相册，在瀑布流里慢慢浏览照片。 |
-| 🎮 发现同好 | 浏览 Bangumi 与 VNDB 收藏，看看喜欢的 ACGN 作品。 |
-| 🎵 听一首歌 | 打开播放器，选择曲目、调整进度与音量，查看歌单和歌词。 |
-| ✨ 换个模样 | 切换浅深色、文章布局与壁纸，让页面更贴近自己的阅读习惯。 |
-| 💬 留句话 | 认识作者、逛逛友链，或者在留言板打个招呼。 |
+| 📖 [读文章](https://blog.dcelysion.cn/archive/) | 看建站记录和随笔，按年份、分类或标签找旧文。 |
+| 🌸 [看动态](https://blog.dcelysion.cn/dynamic/) | 翻翻近况、开箱和随手拍下的照片。 |
+| 🖼️ [逛相册](https://blog.dcelysion.cn/gallery/) | 从封面挑一本感兴趣的相册，按主题看照片。 |
+| 🎮 [Bangumi](https://blog.dcelysion.cn/bangumi/) · [VNDB](https://blog.dcelysion.cn/vndb/) | 看看我的番组和视觉小说收藏。 |
+| 🎵 音乐与外观 | 点导航栏的音符选首歌，或在显示设置里换成习惯的配色和布局。 |
+| 💬 [友链](https://blog.dcelysion.cn/friends/) · [留言板](https://blog.dcelysion.cn/guestbook/) | 去朋友的小站串门，或者留下几句话。 |
 
-## 读一篇文章，慢慢往下翻
+## 文章，从这里读起
 
-从首页挑一篇感兴趣的文章，让文字陪你待一会儿。MiSans 正文与霞鹜文楷标题，搭配舒展的留白；开篇可以了解分类、标签和预计阅读时间，章节目录帮助快速找到想读的部分。
+[《AI 会让人更聪明，还是更愚蠢？》](https://blog.dcelysion.cn/posts/ai-smarter-or-dumber/)写在我第一次用 AI 搭完博客之后。[《博客 100 天纪念》](https://blog.dcelysion.cn/posts/博客100天纪念/)则回过头，讲这个站是怎么一点点变成现在这样的。
 
-![文章页：标题、封面、正文与章节目录](docs/images/dcelysion/article.webp)
+每篇文章开头都能看到预计阅读时间。读到一半想跳过某一节，可以点右侧目录；碰到成系列的文章，读完还能接着看下一篇。
 
-想专心一点，就打开沉浸阅读。导航、横幅和侧栏杂项收起，正文拥有更多空间，目录仍可随时开合。退出时回到进入前的阅读位置，阅读模式偏好也会被记住。
+![文章的封面、正文与右侧章节目录](docs/images/dcelysion/article.webp)
 
-![沉浸阅读模式](docs/images/dcelysion/reading.webp)
+### 沉浸阅读
 
-读完后，可以沿着系列导航继续阅读，也可以点赞、分享或留下评论。
+读长文时可以打开沉浸阅读，把横幅、导航和侧栏收起来。章节目录仍可按需展开；退出时会回到进入前的阅读位置。
 
-## 找回记忆中的那段文字
+![打开沉浸阅读后的文章页](docs/images/dcelysion/reading.webp)
 
-记得时间，就沿着归档回看；只记得几个词，就交给全文搜索。分类、标签与搜索结果里的命中片段，帮助你重新找到那篇文章。
+### 归档与搜索
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/images/dcelysion/archive.webp" alt="按年份组织的文章归档" /></td>
-    <td width="50%"><img src="docs/images/dcelysion/search.webp" alt="全文搜索结果与命中片段" /></td>
-  </tr>
-  <tr>
-    <td align="center">沿着时间回看</td>
-    <td align="center">从几个关键词找起</td>
-  </tr>
-</table>
+记得大概是哪一年写的，就从[归档](https://blog.dcelysion.cn/archive/)按时间翻；只记得正文里的一句话，就用[全文搜索](https://blog.dcelysion.cn/search/)。结果里会显示匹配到的片段，不必逐篇点开确认。
 
-## 日常不必很长，也值得留下
+<table><tr>
+<td width="50%"><img src="docs/images/dcelysion/archive.webp" alt="按年份排列的归档" /></td>
+<td width="50%"><img src="docs/images/dcelysion/search.webp" alt="全文搜索与命中片段" /></td>
+</tr></table>
 
-短想法、开箱和生活片段，连同随手拍下的照片，都放在动态里。可以按关键词与年份翻找，也可以打开某一条的独立详情，分享链接或生成海报，把这一刻带给别人。
+## 动态，最近在忙什么
+
+一张《绝区零》原声黑胶的开箱照，或是周末碰上台风的几句碎碎念，都放在[动态](https://blog.dcelysion.cn/dynamic/)里。每条都有自己的链接，可以单独打开、评论，也可以生成海报分享。
 
 ![图文动态与互动入口](docs/images/dcelysion/dynamic.webp)
 
-照片多一点，就收进相册。按封面挑选主题，用关键词与标签缩小范围，再让横图与竖图按各自的比例展开。
+## 相册，把照片放在一起
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/images/dcelysion/gallery.webp" alt="相册封面与标签筛选" /></td>
-    <td width="50%"><img src="docs/images/dcelysion/album.webp" alt="相册内的瀑布流照片" /></td>
-  </tr>
-  <tr>
-    <td align="center">从封面选一段回忆</td>
-    <td align="center">走进照片里的风景</td>
-  </tr>
-</table>
+[相册](https://blog.dcelysion.cn/gallery/)按主题整理。可以顺着封面慢慢挑，也可以用关键词或标签缩小范围。点进一本，横图和竖图就按各自的比例排开。
 
-## 喜欢的作品，和此刻想听的歌
+<table><tr>
+<td width="50%"><img src="docs/images/dcelysion/gallery.webp" alt="相册封面和标签" /></td>
+<td width="50%"><img src="docs/images/dcelysion/album.webp" alt="一本相册里的照片" /></td>
+</tr></table>
 
-这里也收藏着喜欢的 ACGN 作品。通过 Bangumi 与 VNDB 页面，按类别或收藏状态浏览，看看想玩、在玩与已玩的作品，也许能找到一点共同爱好。
+## 作品收藏
 
-![VNDB 视觉小说收藏](docs/images/dcelysion/vndb.webp)
+### Bangumi · 番组计划
 
-阅读时想听点音乐，可以点开导航栏的音符，或使用侧栏播放器。选曲、切歌、调整进度与音量，展开歌单与歌词，让音乐陪着页面一起往下翻。
+[番组计划](https://blog.dcelysion.cn/bangumi/)收着我关注的作品。先选感兴趣的类别，再按收藏状态翻，就能把已经看过的和还想补的分开。
 
-![音乐播放器与歌单](docs/images/dcelysion/music.webp)
+### VNDB · 视觉小说
 
-## 换成自己喜欢的阅读模样
+视觉小说单独放在 [VNDB 收藏](https://blog.dcelysion.cn/vndb/)里。可以按封面认作品，也可以只看想玩、在玩或已玩的条目。
 
-浅色、深色，或跟随系统。显示设置里还可以切换文章列表与网格，调整卡片边框、阴影、壁纸与透明度，找到看着舒服的样子。
+![VNDB 视觉小说收藏与作品封面](docs/images/dcelysion/vndb.webp)
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/images/dcelysion/home-light.webp" alt="浅色模式首页" /></td>
-    <td width="50%"><img src="docs/images/dcelysion/settings.webp" alt="深色模式下的显示设置" /></td>
-  </tr>
-  <tr>
-    <td align="center">明亮一点，或安静一点</td>
-    <td align="center">按自己的习惯调整</td>
-  </tr>
-</table>
+## 音乐，挑一首再往下读
 
-手机上也能继续逛。竖幅壁纸、单列文章卡片与紧凑导航，让内容顺着屏幕展开；菜单收进抽屉，常用入口仍然触手可及。
+点导航栏的音符，或从侧栏打开播放器，就能展开歌单。想重听刚才那一句，可以拖动进度条；想跟着唱，就看看歌词。
 
-<p align="center">
-  <img src="docs/images/dcelysion/mobile.webp" alt="手机端博客首页" width="320" />
-</p>
+![音乐播放器与展开的歌单](docs/images/dcelysion/music.webp)
 
-## 串串门，也留句话
+## 外观，按自己的习惯来
 
-从[关于页](https://blog.dcelysion.cn/about/)认识作者和这个小站，也可以去友链看看其他人的世界。想交换链接，按页面说明留下站点信息；有建议、有想法，或者只是路过，都欢迎在留言板打个招呼。
+首页文章可以一篇篇纵向排列，也可以换成网格。浅色、深色或跟随系统都在显示设置里；如果喜欢背景壁纸，还可以调整卡片透明度，让背景多露出一点。
 
-<table>
-  <tr>
-    <td width="50%"><img src="docs/images/dcelysion/friends.webp" alt="友链页与本站信息" /></td>
-    <td width="50%"><img src="docs/images/dcelysion/guestbook.webp" alt="留言板与评论区" /></td>
-  </tr>
-  <tr>
-    <td align="center">认识更多个人站点</td>
-    <td align="center">留下一点来过的痕迹</td>
-  </tr>
-</table>
+<table><tr>
+<td width="50%"><img src="docs/images/dcelysion/home-light.webp" alt="浅色模式首页" /></td>
+<td width="50%"><img src="docs/images/dcelysion/settings.webp" alt="显示设置中的外观选项" /></td>
+</tr></table>
+
+### 在手机上看
+
+到了小屏幕上，首页换用竖幅壁纸，文章卡片改为单列。想从文章跳去相册，展开导航菜单就能找到入口。
+
+<p align="center"><img src="docs/images/dcelysion/mobile.webp" alt="手机端博客首页" width="320" /></p>
+
+## 关于我，也关于这个站
+
+想知道屏幕另一边是谁，可以从[关于页](https://blog.dcelysion.cn/about/)认识我。博客之外，还有一个能换壁纸、听音乐的[个人主页](https://dcelysion.cn/)。
+
+![博客关于页](docs/images/dcelysion/about.webp)
+
+### 友链
+
+[友链](https://blog.dcelysion.cn/friends/)里是其他人的个人站点。挑一张卡片就能去串门；如果你也写博客，页面里有本站资料和交换链接的说明。
+
+![友链卡片与本站信息](docs/images/dcelysion/friends.webp)
+
+### 留言板
+
+和某篇文章有关的想法，可以直接写在文末。不知道该发在哪里的话，或者只是想打声招呼，就来[留言板](https://blog.dcelysion.cn/guestbook/)。
+
+![留言板与评论区](docs/images/dcelysion/guestbook.webp)
+
+### 订阅更新
+
+不想错过新文章，可以去[订阅页](https://blog.dcelysion.cn/rss/)复制 RSS 或 Atom 地址，加到自己常用的阅读器里。
 
 ## 实现上的小细节
 
