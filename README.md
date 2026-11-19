@@ -6,9 +6,11 @@
 
 **东方未晞的个人博客 · 唯有那份炫目，未曾忘却**
 
-写长文，晒唱片，也记下最近喜欢的作品。第一次来，可以先读一篇文章，或去动态看看近况。
+这里是我在互联网上的一处自留地。平时会在上面写写长文与漫评，晒晒刚到的黑胶唱片，也整理自己看过的番剧、推过的视觉小说和随手拍下的照片。
 
-[访问博客](https://blog.dcelysion.cn/) · [个人主页](https://dcelysion.cn/) · [订阅更新](https://blog.dcelysion.cn/rss/) · [反馈问题](https://github.com/Darcy-1024/dcelysion-blog/issues)
+[访问博客](https://blog.dcelysion.cn/) · [个人主页](https://dcelysion.cn/) · [订阅更新](https://blog.dcelysion.cn/rss/) · [本地运行与复用](#本地运行) · [反馈问题](https://github.com/Darcy-1024/dcelysion-blog/issues)
+
+**简体中文** · [English](README.en.md)
 
 ![Astro](https://img.shields.io/badge/Astro-页面构建-BC52EE?logo=astro&logoColor=white)
 ![Svelte](https://img.shields.io/badge/Svelte-交互组件-FF3E00?logo=svelte&logoColor=white)
@@ -19,120 +21,102 @@
 
 ![DcElysion 博客首页](docs/images/dcelysion/home.webp)
 
-## 在这里，可以做什么
+## 站点导览
 
-| 入口 | 可以做什么 |
+| 栏目 | 这里放了什么 |
 | --- | --- |
-| 📖 [读文章](https://blog.dcelysion.cn/archive/) | 看建站记录和随笔，按年份、分类或标签找旧文。 |
-| 🌸 [看动态](https://blog.dcelysion.cn/dynamic/) | 翻翻近况、开箱和随手拍下的照片。 |
-| 🖼️ [逛相册](https://blog.dcelysion.cn/gallery/) | 从封面挑一本感兴趣的相册，按主题看照片。 |
-| 🎮 [Bangumi](https://blog.dcelysion.cn/bangumi/) · [VNDB](https://blog.dcelysion.cn/vndb/) | 看看我的番组和视觉小说收藏。 |
-| 🎵 音乐与外观 | 点导航栏的音符选首歌，或在显示设置里换成习惯的配色和布局。 |
-| 💬 [友链](https://blog.dcelysion.cn/friends/) · [留言板](https://blog.dcelysion.cn/guestbook/) | 去朋友的小站串门，或者留下几句话。 |
+| 📖 [文章](https://blog.dcelysion.cn/archive/) | 深度漫评、建站记录与日常随笔，支持按年份、分类或标签检索。 |
+| 🌸 [动态](https://blog.dcelysion.cn/dynamic/) | 介于日记与朋友圈之间的日常碎片、唱片开箱与生活近况。 |
+| 🖼️ [相册](https://blog.dcelysion.cn/gallery/) | 按主题收纳的摄影与画面，点进封面即可按原图比例浏览。 |
+| 🎮 [Bangumi](https://blog.dcelysion.cn/bangumi/) · [VNDB](https://blog.dcelysion.cn/vndb/) | 我追过的动画番剧与推过的视觉小说，按观看与游玩状态归档。 |
+| 💬 [友链](https://blog.dcelysion.cn/friends/) · [留言板](https://blog.dcelysion.cn/guestbook/) | 去朋友的独立小站串门，或者在留言板打声招呼。 |
 
 ## 文章，从这里读起
 
-[《AI 会让人更聪明，还是更愚蠢？》](https://blog.dcelysion.cn/posts/ai-smarter-or-dumber/)写在我第一次用 AI 搭完博客之后。[《博客 100 天纪念》](https://blog.dcelysion.cn/posts/博客100天纪念/)则回过头，讲这个站是怎么一点点变成现在这样的。
+一些灵光一现的念头、折腾技术的记录，或是看完某部作品后不吐不快的长评，都会沉淀在这里。如果你是第一次来，不妨从这几篇读起：
 
-每篇文章开头都能看到预计阅读时间。读到一半想跳过某一节，可以点右侧目录；碰到成系列的文章，读完还能接着看下一篇。
+- 🎬 **[《从不喊“欧尼酱”的她，为何却成为十几年来无法超越的妹系经典？》](https://blog.dcelysion.cn/posts/yosuga-no-sora-kasugano-sora/)** —— 从《缘之空》与《悠之空》回看春日野穹，聊聊她身上那场关于依存、异化与重生的浪漫主义悲剧。
+- 🤔 **[《AI 会让人更聪明，还是更愚蠢？》](https://blog.dcelysion.cn/posts/ai-smarter-or-dumber/)** —— 第一次借助 AI 从零搭完博客之后，留下的一点思考。
+- 🎂 **[《博客 100 天纪念》](https://blog.dcelysion.cn/posts/博客100天纪念/)** —— 一篇迟来的百日回顾，记录这个小站是怎么从最初的“毛坯房”一点点打磨成现在这样的。
 
-![文章的封面、正文与右侧章节目录](docs/images/dcelysion/article.webp)
-
-### 沉浸阅读
-
-读长文时可以打开沉浸阅读，把横幅、导航和侧栏收起来。章节目录仍可按需展开；退出时会回到进入前的阅读位置。
-
-![打开沉浸阅读后的文章页](docs/images/dcelysion/reading.webp)
-
-### 归档与搜索
-
-记得大概是哪一年写的，就从[归档](https://blog.dcelysion.cn/archive/)按时间翻；只记得正文里的一句话，就用[全文搜索](https://blog.dcelysion.cn/search/)。结果里会显示匹配到的片段，不必逐篇点开确认。
+对于一个博客而言，最重要的终究还是阅读本身的体验。因此我在文章排版、本地字体与章节导航上做了不少减法——开启**沉浸阅读**后，可以一键收起顶部横幅、导航栏与两侧边栏，剥离多余的视觉干扰，让视线与注意力重新回到文字本身；退出时也会稳稳回到刚才读到的位置。
 
 <table><tr>
-<td width="50%"><img src="docs/images/dcelysion/archive.webp" alt="按年份排列的归档" /></td>
-<td width="50%"><img src="docs/images/dcelysion/search.webp" alt="全文搜索与命中片段" /></td>
+<td width="50%"><img src="docs/images/dcelysion/article.webp" alt="常规文章阅读页：封面、正文与右侧章节目录" /></td>
+<td width="50%"><img src="docs/images/dcelysion/reading.webp" alt="开启沉浸阅读后：收起横幅与侧栏，专注正文" /></td>
 </tr></table>
 
-## 动态，最近在忙什么
-
-一张《绝区零》原声黑胶的开箱照，或是周末碰上台风的几句碎碎念，都放在[动态](https://blog.dcelysion.cn/dynamic/)里。每条都有自己的链接，可以单独打开、评论，也可以生成海报分享。
-
-![图文动态与互动入口](docs/images/dcelysion/dynamic.webp)
-
-## 相册，把照片放在一起
-
-[相册](https://blog.dcelysion.cn/gallery/)按主题整理。可以顺着封面慢慢挑，也可以用关键词或标签缩小范围。点进一本，横图和竖图就按各自的比例排开。
+如果想翻看旧文，除了在 [归档](https://blog.dcelysion.cn/archive/) 里顺着时间线梳理，也可以直接用站内的 [全文搜索](https://blog.dcelysion.cn/search/)。哪怕只记得正文里的半句话，搜索结果也会直接高亮展示命中的上下文片段，省去逐篇点开确认的麻烦。
 
 <table><tr>
-<td width="50%"><img src="docs/images/dcelysion/gallery.webp" alt="相册封面和标签" /></td>
-<td width="50%"><img src="docs/images/dcelysion/album.webp" alt="一本相册里的照片" /></td>
+<td width="50%"><img src="docs/images/dcelysion/archive.webp" alt="按年份排列的归档时间线" /></td>
+<td width="50%"><img src="docs/images/dcelysion/search.webp" alt="全文搜索与命中片段预览" /></td>
 </tr></table>
 
-## 作品收藏
+## 动态与相册，收纳日常的碎片
 
-### Bangumi · 番组计划
+那些不足以铺陈成万字长文的转瞬即逝，都落在了这两个角落：
 
-[番组计划](https://blog.dcelysion.cn/bangumi/)收着我关注的作品。先选感兴趣的类别，再按收藏状态翻，就能把已经看过的和还想补的分开。
+我会把 **[动态](https://blog.dcelysion.cn/dynamic/)** 看作“日记与朋友圈的结合体”。无论是刚收到的《绝区零》原声黑胶开箱照，还是周末碰上台风时的几句碎碎念，都可以随手记录下来。每条动态都有独立的详情页与评论区，也能一键生成带配图的海报卡片方便分享。
 
-### VNDB · 视觉小说
+![图文动态与互动分享入口](docs/images/dcelysion/dynamic.webp)
 
-视觉小说单独放在 [VNDB 收藏](https://blog.dcelysion.cn/vndb/)里。可以按封面认作品，也可以只看想玩、在玩或已玩的条目。
+**[相册](https://blog.dcelysion.cn/gallery/)** 则按主题整理了平时拍下的照片与喜欢的视觉画面。可以顺着封面和标签慢慢挑；点进其中一本后，横图与竖图会按照各自的画幅比例自然排开。
 
-![VNDB 视觉小说收藏与作品封面](docs/images/dcelysion/vndb.webp)
+<table><tr>
+<td width="50%"><img src="docs/images/dcelysion/gallery.webp" alt="相册列表、封面与分类标签" /></td>
+<td width="50%"><img src="docs/images/dcelysion/album.webp" alt="单本相册内的自适应照片排版" /></td>
+</tr></table>
 
-## 音乐，挑一首再往下读
+## 番组与视觉小说收藏
 
-点导航栏的音符，或从侧栏打开播放器，就能展开歌单。想重听刚才那一句，可以拖动进度条；想跟着唱，就看看歌词。
+作为一个常年浸染在二次元里的玩家与观众，我也把自己的精神食粮搬到了博客上。
+
+看过的动画与番剧整理在 **[Bangumi 番组计划](https://blog.dcelysion.cn/bangumi/)**，推过的 Galgame 则单独收在 **[VNDB 视觉小说](https://blog.dcelysion.cn/vndb/)** 页。每一部作品都配有直观的封面墙，并按“想看 / 在看 / 看过（或已玩）”分好了状态——既是给自己留一份足迹归档，也方便路过的同好对对电波。
+
+![VNDB 视觉小说收藏与作品封面墙](docs/images/dcelysion/vndb.webp)
+
+## 音乐与外观：一点关于视听的执念
+
+我对站点的音乐和视觉呈现始终有些执念。导航栏和侧栏里的播放器塞满了我平时写字或发呆时常听的曲子，在保留高音质音频与动态视频壁纸的同时，也尽量兼顾了加载速度；得益于站内的无刷新局部跳转，翻看不同页面时音乐也不会中断，可以挑一首伴着慢慢逛。
 
 ![音乐播放器与展开的歌单](docs/images/dcelysion/music.webp)
 
-## 外观，按自己的习惯来
-
-首页文章可以一篇篇纵向排列，也可以换成网格。浅色、深色或跟随系统都在显示设置里；如果喜欢背景壁纸，还可以调整卡片透明度，让背景多露出一点。
+如果你对阅读界面有自己的偏好，可以在显示设置里把首页文章从单列切换为网格、调整深浅色主题，或是拉动卡片透明度，让底下的背景壁纸多透出来一点。到了小屏手机上，首页也会自动换用竖幅壁纸与单列卡片。
 
 <table><tr>
-<td width="50%"><img src="docs/images/dcelysion/home-light.webp" alt="浅色模式首页" /></td>
-<td width="50%"><img src="docs/images/dcelysion/settings.webp" alt="显示设置中的外观选项" /></td>
+<td width="50%"><img src="docs/images/dcelysion/home-light.webp" alt="浅色模式下的博客首页" /></td>
+<td width="50%"><img src="docs/images/dcelysion/settings.webp" alt="显示设置面板中的外观与透明度选项" /></td>
 </tr></table>
-
-### 在手机上看
-
-到了小屏幕上，首页换用竖幅壁纸，文章卡片改为单列。想从文章跳去相册，展开导航菜单就能找到入口。
 
 <p align="center"><img src="docs/images/dcelysion/mobile.webp" alt="手机端博客首页" width="320" /></p>
 
-## 关于我，也关于这个站
+## 认识我，或者留下脚印
 
-想知道屏幕另一边是谁，可以从[关于页](https://blog.dcelysion.cn/about/)认识我。博客之外，还有一个能换壁纸、听音乐的[个人主页](https://dcelysion.cn/)。
+想知道屏幕另一边是谁，可以从 **[关于页](https://blog.dcelysion.cn/about/)** 认识我。博客之外，我还搭了一个延续同套视觉风格、能换壁纸听歌的独立 **[个人主页](https://dcelysion.cn/)**，作为整张个人网络名片的门面。
 
 ![博客关于页](docs/images/dcelysion/about.webp)
 
-### 友链
+**[友链](https://blog.dcelysion.cn/friends/)** 里收集了许多朋友的独立小站，挑一张卡片就能去串门；如果你也维护着自己的博客，页面下方附有本站资料与交换链接的说明。
 
-[友链](https://blog.dcelysion.cn/friends/)里是其他人的个人站点。挑一张卡片就能去串门；如果你也写博客，页面里有本站资料和交换链接的说明。
+和某篇文章有关的想法可以直接写在文末；如果只是路过想打声招呼，或者有不知道该发在哪里的话，就来 **[留言板](https://blog.dcelysion.cn/guestbook/)** 坐坐——评论区支持注册登录与点赞互动，同时也完整保留了最低门槛的匿名留言。习惯用阅读器追更的朋友，则可以在 **[订阅页](https://blog.dcelysion.cn/rss/)** 直接复制 RSS 或 Atom 地址。
 
-![友链卡片与本站信息](docs/images/dcelysion/friends.webp)
+<table><tr>
+<td width="50%"><img src="docs/images/dcelysion/friends.webp" alt="友链卡片与交换说明" /></td>
+<td width="50%"><img src="docs/images/dcelysion/guestbook.webp" alt="留言板与评论互动区" /></td>
+</tr></table>
 
-### 留言板
+---
 
-和某篇文章有关的想法，可以直接写在文末。不知道该发在哪里的话，或者只是想打声招呼，就来[留言板](https://blog.dcelysion.cn/guestbook/)。
+## 幕后与技术细节
 
-![留言板与评论区](docs/images/dcelysion/guestbook.webp)
-
-### 订阅更新
-
-不想错过新文章，可以去[订阅页](https://blog.dcelysion.cn/rss/)复制 RSS 或 Atom 地址，加到自己常用的阅读器里。
-
-## 实现上的小细节
-
-- **围绕个人内容持续维护**：基于 [Firefly](https://github.com/CuteLeaf/Firefly) 二次开发，使用 Astro、Svelte、TypeScript 和 Tailwind CSS，承载文章、动态、相册与收藏。
-- **连贯的站内浏览**：使用 Swup 局部导航，串起不同页面的阅读体验。
-- **全文搜索**：使用 Pagefind 生成搜索索引，通过标题与命中片段定位内容。
-- **内容与工具放在一起**：仓库包含博客源码、配套内容管理后台，以及内容创建、媒体处理和构建脚本。
+- **围绕个人表达持续打磨**：基于 [Firefly](https://github.com/CuteLeaf/Firefly) 主题深度定制，底层采用 Astro、Svelte、TypeScript 与 Tailwind CSS 构建，逐步扩展出动态、相册、Bangumi / VNDB 收藏与沉浸式阅读模式。
+- **连贯的视听与浏览**：通过 Swup 实现站内局部导航，切换页面时音乐播放与阅读状态平滑衔接；配合 Pagefind 提供带命中片段预览的静态全文搜索。
+- **完整的互动与管理闭环**：接入自托管的 Waline 评论与账号体系，支持 Memos 动态联动；仓库内同时包含配套的可视化管理后台（`admin/`），以及内容创建、媒体处理与多线路资源分发脚本。
 
 ## 本地运行
 
-需要 **Node.js ≥ 22.23.0** 与 Corepack；包管理器固定为 **pnpm 11.22.0**，具体版本以 [package.json](package.json) 为准。
+本地开发需要 **Node.js ≥ 22.23.0** 与 Corepack；包管理器固定为 **pnpm 11.22.0**，具体依赖版本以 [package.json](package.json) 为准。
 
 ```sh
 git clone https://github.com/Darcy-1024/dcelysion-blog.git
@@ -141,48 +125,82 @@ corepack pnpm install --frozen-lockfile
 corepack pnpm dev
 ```
 
-打开开发服务器输出的本地地址，默认是 [localhost:4321](http://localhost:4321/)。
+启动后访问终端输出的本地地址（默认为 [localhost:4321](http://localhost:4321/)）。
 
-| 命令 | 用途 |
+| 常用命令 | 说明 |
 | --- | --- |
-| `corepack pnpm dev` | 启动博客开发服务器 |
-| `corepack pnpm check` | 运行 Astro 检查 |
-| `corepack pnpm build` | 构建博客并生成搜索索引等资源 |
-| `corepack pnpm preview` | 预览构建结果 |
-| `corepack pnpm new-post <name>` | 创建文章 |
-| `corepack pnpm admin:dev` | 启动配套后台开发服务，需另行配置环境 |
+| `corepack pnpm dev` | 启动博客本地开发服务器 |
+| `corepack pnpm check` | 运行 Astro 类型与语法检查 |
+| `corepack pnpm build` | 构建静态站点并生成 Pagefind 搜索索引等资源 |
+| `corepack pnpm preview` | 在本地预览构建后的静态产物 |
+| `corepack pnpm new-post <name>` | 使用模板创建一篇新文章 |
+| `corepack pnpm admin:dev` | 启动配套内容管理后台（需单独配置环境） |
 
-构建所需的外部依赖与注意事项见[构建与验证](docs/agent-reference/build.md)。
+构建所需的外部依赖与排障方法见 [构建与验证](docs/agent-reference/build.md)。
 
 ## 换成自己的博客
 
-站点信息、导航、外观与功能设置集中在 [`src/config/`](src/config/README.md)，文章与动态等内容放在 `src/content/`。
+站点资料、导航栏、外观与功能开关集中在 [`src/config/`](src/config/README.md)，文章与动态等 Markdown 内容放在 `src/content/`。
 
 ```text
 src/
-├── components/     页面组件、侧边栏与播放器
-├── config/         站点、导航、外观与功能配置
-├── content/        文章、动态等内容
-└── pages/          博客页面与订阅入口
-admin/              配套内容管理后台
-public/             静态资源
-scripts/            内容创建、媒体处理与构建脚本
-docs/               项目文档与页面截图
+├── components/     页面组件、侧边栏与音乐播放器
+├── config/         站点信息、导航、外观与功能配置
+├── content/        文章与动态内容
+└── pages/          页面路由与 RSS / Atom 订阅入口
+admin/              配套可视化内容管理后台
+public/             字体、图标等静态资源
+scripts/            内容创建、媒体处理与构建辅助脚本
+docs/               项目参考文档与页面截图
 ```
 
-本仓库包含个人站点配置。复用时请替换站点资料、个人内容、媒体地址与服务配置，并使用自己有权发布的素材。配套后台需要单独配置和运行。
+本仓库保存着我自己的线上站点配置。如果你想基于它搭建自己的博客，请先替换站点资料、个人文章与动态、媒体域名及第三方服务配置，并仅使用你有权发布的素材。
 
-配置方法见[配置文件说明](src/config/README.md)，内容维护见[工作流参考](docs/agent-reference/workflows.md)，音乐、相册与媒体配置见[媒体约定](docs/agent-reference/media.md)。
+详细配置项见 [配置文件说明](src/config/README.md)，日常内容维护见 [工作流参考](docs/agent-reference/workflows.md)，音乐、相册与存储配置见 [媒体约定](docs/agent-reference/media.md)。
+
+## 部署
+
+`corepack pnpm build` 会将整个博客编译为纯静态文件输出到 `dist/`，任何支持静态托管的平台都可以直接部署。仓库内已附带以下平台的配置：
+
+| 平台 | 配置文件 | 说明 |
+| --- | --- | --- |
+| Vercel | [`vercel.json`](vercel.json) | 导入仓库后通过 `pnpm build` 构建并发布 `dist/`，内置安全响应头与静态资源长缓存。 |
+| Cloudflare Workers | [`wrangler.jsonc`](wrangler.jsonc) | 将 `dist/` 作为静态资源托管发布。 |
+| GitHub Pages | [`deploy.yml`](.github/workflows/deploy.yml) | 推送到 `master` 分支后自动完成部署。 |
+| EdgeOne Pages | [`edgeone.json`](edgeone.json) | 发布 `dist/`，并为多线路探测文件配置响应头。 |
+
+本站线上采用**“单次构建、多端分发”**流程：推送到 `master` 后，[`public-blog.yml`](.github/workflows/public-blog.yml) 会在 GitHub Actions 中执行一次完整构建，并将公开静态产物打包发布为 `blog-<提交 SHA>` Release；随后 GitHub Pages、Cloudflare 与 EdgeOne 直接拉取并校验同一份 Release 产物上线，避免多平台重复构建。Release 产物仅包含公开站点文件，不包含管理后台与任何私有数据。
+
+<details>
+<summary><strong>Fork 部署提示与可选环境变量（点击展开）</strong></summary>
+
+<br />
+
+> [!NOTE]
+> 如果你 Fork 本仓库后自行部署，请注意 `deploy.yml` 与 `edgeone.json` 默认会从本仓库的 Release 下载构建产物（地址定义在 [`scripts/download-blog-release.mjs`](scripts/download-blog-release.mjs)）。建议在你的托管平台将构建命令改为 `pnpm build`、输出目录设为 `dist`；或者修改下载地址，让 `public-blog.yml` 在你自己的仓库里发布 Release。
+
+构建时支持通过以下环境变量覆盖默认配置（均为可选）：
+
+| 变量名 | 作用 |
+| --- | --- |
+| `PUBLIC_SITE_LANG` | 覆盖站点语言（如 `en`）；未设置时读取配置文件中的语言。 |
+| `PUBLIC_DISPLAY_SETTINGS` | 覆盖显示设置面板的开关状态（`true` / `false`）。 |
+| `GITHUB_TOKEN` | 构建文章内的 GitHub 仓库卡片时用于拉取仓库元数据，避免触发 API 匿名限流。 |
+| `CF_WORKERS` | 在 Cloudflare Workers 环境构建时启用 `@astrojs/cloudflare` 适配器。 |
+
+配套管理后台需要独立部署，所需环境变量见 [`admin/.env.example`](admin/.env.example)。
+
+</details>
 
 ## 致谢与素材说明
 
-感谢 [CuteLeaf / Firefly](https://github.com/CuteLeaf/Firefly) 提供主题基础，以及它所基于的 [saicaca / Fuwari](https://github.com/saicaca/fuwari)。也感谢 [Astro](https://astro.build/)、[Svelte](https://svelte.dev/)、[Tailwind CSS](https://tailwindcss.com/)、[Swup](https://swup.js.org/)、[Pagefind](https://pagefind.app/) 等开源项目。
+感谢 [CuteLeaf / Firefly](https://github.com/CuteLeaf/Firefly) 提供主题基础，以及它所源自的 [saicaca / Fuwari](https://github.com/saicaca/fuwari)。同时也感谢 [Astro](https://astro.build/)、[Svelte](https://svelte.dev/)、[Tailwind CSS](https://tailwindcss.com/)、[Swup](https://swup.js.org/)、[Pagefind](https://pagefind.app/) 等开源项目。
 
-站点使用 [MiSans](https://hyperos.mi.com/font/faq) 与[霞鹜文楷](https://github.com/lxgw/LxgwWenKai)。文章、图片、音乐、字体及其他第三方素材的权利归各自权利人所有，使用时请遵循对应授权；流萤相关素材归《崩坏：星穹铁道》及其权利人所有。
+站点正文字体采用 [MiSans](https://hyperos.mi.com/font/faq) 与 [霞鹜文楷](https://github.com/lxgw/LxgwWenKai)。博客内的文章、图片、音乐、字体及其他第三方素材权利归各自权利人所有，复用代码时请遵循对应授权协议；流萤相关视觉素材归《崩坏：星穹铁道》及其权利人所有。
 
-代码许可证见 [LICENSE](LICENSE)，保留原作者版权声明：
+项目代码基于 [LICENSE](LICENSE) 开源，保留原作者版权声明：
 
 - Copyright (c) 2024 saicaca
 - Copyright (c) 2025 CuteLeaf
 
-仓库内其他语言的 README 保留上游主题说明，DcElysion 项目介绍以本页为准。
+[English README](README.en.md) 为本页的英文版本；`docs/` 目录下的繁体中文、日文与韩文文档保留上游 Firefly 主题说明，DcElysion 项目的介绍以本页为准。
