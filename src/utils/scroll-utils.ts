@@ -10,6 +10,7 @@ import { updateSidebarStickySpacing } from "@/utils/grid-layout-utils";
 const backToTopBtn = document.getElementById("back-to-top-btn");
 const toc = document.getElementById("toc-wrapper");
 const navbar = document.getElementById("navbar-wrapper");
+const touchPrimaryInput = window.matchMedia("(pointer: coarse)");
 
 // 动态导航栏：记录上一次滚动位置，用于判断滚动方向（下滑隐藏 / 上滑显示）
 let lastScrollTop = 0;
@@ -26,10 +27,11 @@ export function scrollFunction(): void {
 	const bannerHeight = window.innerHeight * (BANNER_HEIGHT / 100);
 	const navbarElement = document.getElementById("navbar");
 	const postContainer = document.getElementById("post-container");
-	// 普通文章页复用动态导航；其他页面及沉浸阅读遵循全站配置。
+	// 仅在非触屏主输入的普通文章页自动启用动态导航。
 	const effectiveNavbarMode =
 		navbarMode === "fixed" &&
 		postContainer &&
+		!touchPrimaryInput.matches &&
 		!document.body.classList.contains("immersive-reading")
 			? "dynamic"
 			: navbarMode;
@@ -151,9 +153,10 @@ export function scrollFunction(): void {
 
 let scrollTimeout: number;
 
-/** 注册滚动 / 窗口尺寸监听并初始化滚动状态（从 Layout.astro 迁出） */
+/** 注册滚动、输入方式及阅读模式监听，并初始化滚动状态。 */
 export function initScroll(): void {
 	window.addEventListener("immersiveReadingChange", scrollFunction);
+	touchPrimaryInput.addEventListener("change", scrollFunction);
 	// 使用优化的滚动性能处理
 	window.addEventListener(
 		"scroll",
