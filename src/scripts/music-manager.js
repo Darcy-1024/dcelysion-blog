@@ -52,7 +52,7 @@ export function ensureMusicManager() {
 		navigator.webkitConnection;
 	var backgroundPreloadEnabled = connection?.saveData !== true;
 	var audio = document.createElement("audio");
-	audio.crossOrigin = "anonymous";
+	// Native playback can use cached audio responses without CORS headers.
 	audio.style.display = "none";
 	audio.preload = backgroundPreloadEnabled ? "auto" : "none";
 	document.body.appendChild(audio);
