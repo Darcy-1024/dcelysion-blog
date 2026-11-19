@@ -60,7 +60,7 @@ Firefly 提供了灵活的布局系统，允许您根据内容需求和个人喜
 - 内容为主，辅助信息次之的场景
 
 :::tip
-文章详情页显示哪几侧，由**各组件的 `showOnPostPage`（以及 `hideOnNonPostPage`）**决定：某一侧在当前页型下没有任何可见组件时，该列会自动收起，把空间让给内容栏。
+文章详情页显示哪几侧，由<strong>各组件的 `showOnPostPage`（以及 `hideOnNonPostPage`）</strong>决定：某一侧在当前页型下没有任何可见组件时，该列会自动收起，把空间让给内容栏。
 
 如果首页等非文章页只需要单侧栏，但文章页想临时显示双侧栏，请保留 `position: "left"` 或 `position: "right"`，并开启 `showBothSidebarsOnPostPage`。这与 `position: "both"` 不同：后者会让非文章页也使用双侧栏。两种方式都需要给文章页两侧的组件配置 `showOnPostPage: true`。
 :::
