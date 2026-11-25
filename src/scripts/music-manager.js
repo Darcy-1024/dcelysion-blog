@@ -16,7 +16,7 @@ export function ensureMusicManager() {
 
 	// ── Helpers ──────────────────────────────────────────────
 	function formatTime(seconds) {
-		if (!seconds || Number.isNaN(seconds)) return "0:00";
+		if (!Number.isFinite(seconds) || seconds < 0) return "--:--";
 		var min = Math.floor(seconds / 60);
 		var sec = Math.floor(seconds % 60);
 		return `${min}:${sec < 10 ? "0" : ""}${sec}`;
@@ -328,8 +328,8 @@ export function ensureMusicManager() {
 	}
 
 	// ── Audio events → broadcast ─────────────────────────────
-	audio.addEventListener("timeupdate", () => {
-		if (Number.isNaN(audio.duration)) return;
+	function emitAudioTime() {
+		if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
 		var ct = audio.currentTime;
 		var dur = audio.duration;
 		var pct = (ct / dur) * 100;
@@ -341,6 +341,14 @@ export function ensureMusicManager() {
 			currentTimeStr: formatTime(ct),
 			durationStr: formatTime(dur),
 		});
+	}
+
+	audio.addEventListener("loadedmetadata", emitAudioTime);
+
+	audio.addEventListener("timeupdate", () => {
+		if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
+		emitAudioTime();
+		var ct = audio.currentTime;
 
 		// Lyrics sync
 		if (state.lyrics.length > 0) {

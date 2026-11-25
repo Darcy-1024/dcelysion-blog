@@ -205,7 +205,10 @@ const wallpaperPosition = state.isFullscreenMode
             var effect = container.dataset.carouselEffect || 'fade';
             var transitioning = false;
 
+            var reducedMotionQuery = window.matchMedia ? window.matchMedia('(prefers-reduced-motion: reduce)') : null;
+
             function isCarouselEnabled() {
+                if (reducedMotionQuery && reducedMotionQuery.matches) return false;
                 if (!switchable) return defaultEnabled;
                 var stored = localStorage.getItem('bannerCarouselEnabled');
                 if (stored === null) return defaultEnabled;
@@ -467,6 +470,18 @@ const wallpaperPosition = state.isFullscreenMode
             // 启动
             if (isCarouselEnabled() && isBannerWallpaperMode()) {
                 startAutoPlay();
+            }
+
+            if (reducedMotionQuery) {
+                var onReducedMotionChange = function (e) {
+                    if (e.matches) {
+                        stopAutoPlay();
+                    } else if (isCarouselEnabled() && isBannerWallpaperMode()) {
+                        startAutoPlay();
+                    }
+                };
+                if (reducedMotionQuery.addEventListener) reducedMotionQuery.addEventListener('change', onReducedMotionChange);
+                else if (reducedMotionQuery.addListener) reducedMotionQuery.addListener(onReducedMotionChange);
             }
         })();
     </script>

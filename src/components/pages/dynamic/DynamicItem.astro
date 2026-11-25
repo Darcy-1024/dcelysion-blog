@@ -9,7 +9,7 @@ import DynamicInlineComments from "@/components/pages/dynamic/DynamicInlineComme
 import { dynamicConfig, profileConfig, siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
-import { formatDynamicDate, formatTimezoneOffset } from "@/utils/date-utils";
+import { formatDynamicDate, formatDynamicDateFull } from "@/utils/date-utils";
 import { url } from "@/utils/url-utils";
 import DynamicShareButton from "./DynamicShareButton.svelte";
 
@@ -31,10 +31,9 @@ const {
 const { Content } = await render(entry);
 const anchorId = `dynamic-${encodeURIComponent(entry.id)}`;
 const published = formatDynamicDate(entry.data.published);
-const timezone = formatTimezoneOffset(
-	siteConfig.timezone || "UTC",
-	entry.data.published,
-);
+const publishedFull = formatDynamicDateFull(entry.data.published, {
+	timezone: siteConfig.timezone || "UTC",
+});
 const permalink = detailUrl || `#${anchorId}`;
 const location = entry.data.location.trim();
 const profileLabel = i18n(I18nKey.dynamicProfile).replace(
@@ -71,8 +70,8 @@ const profileUrl = url(dynamicConfig.profileUrl || "/about/");
 				</a>
 				<div class="page-meta">
 					<a class="page-time" href={permalink}>
-						<time datetime={entry.data.published.toISOString()}>
-							{published} {timezone}
+						<time datetime={entry.data.published.toISOString()} title={publishedFull}>
+							{published}
 						</time>
 					</a>
 					{location && (

@@ -5,7 +5,7 @@ import { profileConfig, siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import type { DynamicEntry, DynamicImage } from "@/types/dynamic";
-import { formatTimezoneOffset } from "@/utils/date-utils";
+import { formatDynamicDate, formatDynamicDateFull } from "@/utils/date-utils";
 import { dynamicPermalink, findDynamicTarget } from "@/utils/dynamic-share";
 import { assignMedia, backupMedia, mediaRouter } from "@/utils/media-client";
 import { fetchMemos } from "@/utils/memos-adapter";
@@ -323,31 +323,14 @@ function createItem(entry: DynamicEntry) {
 	const time = root.querySelector<HTMLTimeElement>("[data-dynamic-time]");
 	if (time) {
 		const date = new Date(entry.published);
+		const useLocalTimeZone =
+			source.startsWith("http") || Boolean(memos?.enable);
 		time.dateTime = date.toISOString();
-		// 第三方 API 和 Memos 使用浏览器本地时区，不做额外时区转换
-		if (source.startsWith("http") || memos?.enable) {
-			time.textContent = date.toLocaleDateString("zh-CN", {
-				year: "numeric",
-				month: "2-digit",
-				day: "2-digit",
-				hour: "2-digit",
-				minute: "2-digit",
-			});
-		} else {
-			time.textContent = new Intl.DateTimeFormat(
-				document.documentElement.lang || undefined,
-				{
-					timeZone: "UTC",
-					year: "numeric",
-					month: "2-digit",
-					day: "2-digit",
-					hour: "2-digit",
-					minute: "2-digit",
-					second: "2-digit",
-				},
-			).format(date);
-			time.textContent += ` ${formatTimezoneOffset(timezone, date)}`;
-		}
+		time.textContent = formatDynamicDate(date, { useLocalTimeZone });
+		time.title = formatDynamicDateFull(date, {
+			timezone,
+			useLocalTimeZone,
+		});
 	}
 	const location = root.querySelector<HTMLElement>("[data-dynamic-location]");
 	if (location) {

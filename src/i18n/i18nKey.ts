@@ -9,6 +9,7 @@ enum I18nKey {
 	contentLike = "contentLike",
 	contentLiked = "contentLiked",
 	contentLikeError = "contentLikeError",
+	mediaRouteToggle = "mediaRouteToggle",
 	mediaReroute = "mediaReroute",
 	mediaManualRoute = "mediaManualRoute",
 	mediaSourceR2 = "mediaSourceR2",

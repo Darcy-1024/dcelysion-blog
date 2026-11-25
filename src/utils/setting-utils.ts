@@ -763,8 +763,17 @@ export function applyGradientEnabledToDocument(enabled: boolean): void {
 	}
 }
 
+function prefersReducedMotion(): boolean {
+	return (
+		typeof window !== "undefined" &&
+		typeof window.matchMedia === "function" &&
+		window.matchMedia("(prefers-reduced-motion: reduce)").matches
+	);
+}
+
 // Sakura effect functions
 export function getDefaultSakuraEnabled(): boolean {
+	if (prefersReducedMotion()) return false;
 	return sakuraConfig?.enable ?? false;
 }
 
@@ -800,6 +809,7 @@ export function getDefaultBannerTitleEnabled(): boolean {
 }
 
 export function getDefaultBannerCarouselEnabled(): boolean {
+	if (prefersReducedMotion()) return false;
 	return backgroundWallpaper.common?.carousel?.enable ?? false;
 }
 

@@ -53,9 +53,9 @@ const widgetId =
         <!-- Time Display & Volume -->
         <div class="flex items-center gap-3 text-neutral-400 h-5">
             <div class="text-[10px] flex items-center gap-1 shrink-0 h-full" aria-live="polite">
-                <span class="current-time">0:00</span>
+                <span class="current-time">--:--</span>
                 <span class="opacity-50" aria-hidden="true">/</span>
-                <span class="total-time">0:00</span>
+                <span class="total-time">--:--</span>
             </div>
 
             <!-- Volume (Always visible) -->
@@ -157,5 +157,10 @@ const widgetId =
     }
     .animate-spin-slow {
         animation: spin-slow 10s linear infinite;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .animate-spin-slow {
+            animation: none;
+        }
     }
 </style>

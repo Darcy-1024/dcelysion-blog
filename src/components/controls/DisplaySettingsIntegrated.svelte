@@ -89,6 +89,12 @@ let routePending = $state(false);
 let routeSource = $state("r2");
 let routeStorage = $state(true);
 let routeUnavailable = $state(false);
+let routeExpanded = $state(false);
+$effect(() => {
+	if (routeUnavailable || !routeStorage) {
+		routeExpanded = true;
+	}
+});
 async function rerouteMedia() {
 	if (routePending) return;
 	routePending = true;
@@ -707,23 +713,6 @@ $effect(() => {
 
 {#if hasAnyContent}
 <div id="display-setting" class="float-panel float-panel-closed absolute transition-all w-80 right-4 px-3 pt-0 pb-3 max-h-[80vh] overflow-y-auto custom-scrollbar" data-floating-panel data-floating-panel-trigger="display-settings-switch" inert aria-hidden="true">
-	<div class="media-routing pt-3 pb-2 text-xs">
-		<div class="flex flex-wrap items-center gap-2">
-			<div role="group" aria-label={i18n(I18nKey.mediaManualRoute)} class="flex flex-1 gap-1 rounded-xl bg-(--btn-plain-bg-hover) p-1">
-				<button type="button" class="media-source btn-plain flex-1 rounded-lg px-3 py-2 focus-ring" disabled={routePending} aria-pressed={routeSource === "r2"} onclick={() => chooseMediaSource("r2")}>{i18n(I18nKey.mediaSourceR2)}</button>
-				<button type="button" class="media-source btn-plain flex-1 rounded-lg px-3 py-2 focus-ring" disabled={routePending} aria-pressed={routeSource === "tencent"} onclick={() => chooseMediaSource("tencent")}>{i18n(I18nKey.mediaSourceTencent)}</button>
-			</div>
-			<button type="button" class="btn-plain gap-1.5 rounded-lg px-2 py-2 focus-ring" disabled={routePending} onclick={rerouteMedia}>
-				<span class:animate-spin={routePending} class="flex motion-reduce:animate-none" aria-hidden="true"><Icon icon="fa7-solid:arrow-rotate-left" class="text-xs" /></span>
-				{i18n(I18nKey.mediaReroute)}
-			</button>
-		</div>
-		<div role="status" class="text-black/60 dark:text-white/60 leading-relaxed">
-			{#if routePending}<span class="sr-only">{i18n(I18nKey.mediaRoutePending)}</span>{/if}
-			{#if routeUnavailable}<p class="mt-2 px-1">{i18n(I18nKey.mediaTencentUnavailable)}</p>{/if}
-			{#if !routeStorage}<p class="mt-2 px-1">{i18n(I18nKey.mediaStorageLimited)}</p>{/if}
-		</div>
-	</div>
 	<!-- Tab Bar -->
 	{#if showTabBar}
 	<div class="flex gap-1 border-b border-black/5 dark:border-white/10 pt-3 pb-1 mb-3">
@@ -1121,6 +1110,44 @@ $effect(() => {
 		</div>
 		{/if}
 	{/if}
+
+	<div class="media-routing mt-3 border-t border-black/5 dark:border-white/10 pt-2 text-xs">
+		<button
+			type="button"
+			class="w-full flex items-center justify-between gap-2 rounded-lg px-2 py-1.5 text-left text-neutral-500 dark:text-neutral-400 hover:bg-(--btn-plain-bg-hover) hover:text-neutral-700 dark:hover:text-neutral-200 transition-colors focus-ring"
+			aria-expanded={routeExpanded}
+			aria-controls="media-routing-panel"
+			onclick={() => {
+				routeExpanded = !routeExpanded;
+			}}
+		>
+			<span>{i18n(I18nKey.mediaRouteToggle)}</span>
+			<span class="inline-flex items-center gap-1.5 text-[0.7rem] font-medium text-neutral-600 dark:text-neutral-300">
+				<span>{routeSource === "tencent" ? i18n(I18nKey.mediaSourceTencent) : i18n(I18nKey.mediaSourceR2)}</span>
+				<Icon icon="fa7-solid:chevron-right" class="text-[0.65rem] opacity-70 transition-transform duration-200 {routeExpanded ? 'rotate-90' : ''}" />
+			</span>
+		</button>
+		{#if routeExpanded}
+		<div id="media-routing-panel" class="pt-2">
+			<div class="flex flex-wrap items-center gap-2">
+				<div role="group" aria-label={i18n(I18nKey.mediaManualRoute)} class="flex flex-1 gap-1 rounded-xl bg-(--btn-plain-bg-hover) p-1">
+					<button type="button" class="media-source btn-plain flex-1 rounded-lg px-2.5 py-1.5 focus-ring" disabled={routePending} aria-pressed={routeSource === "r2"} onclick={() => chooseMediaSource("r2")}>{i18n(I18nKey.mediaSourceR2)}</button>
+					<button type="button" class="media-source btn-plain flex-1 rounded-lg px-2.5 py-1.5 focus-ring" disabled={routePending} aria-pressed={routeSource === "tencent"} onclick={() => chooseMediaSource("tencent")}>{i18n(I18nKey.mediaSourceTencent)}</button>
+				</div>
+				<button type="button" class="btn-plain gap-1.5 rounded-lg px-2 py-1.5 focus-ring" disabled={routePending} onclick={rerouteMedia}>
+					<span class:animate-spin={routePending} class="flex motion-reduce:animate-none" aria-hidden="true"><Icon icon="fa7-solid:arrow-rotate-left" class="text-xs" /></span>
+					{i18n(I18nKey.mediaReroute)}
+				</button>
+			</div>
+			<p class="mt-1.5 px-1 text-[0.7rem] text-black/50 dark:text-white/50 leading-relaxed">{i18n(I18nKey.mediaRouteFuture)}</p>
+			<div role="status" class="text-black/60 dark:text-white/60 leading-relaxed">
+				{#if routePending}<span class="sr-only">{i18n(I18nKey.mediaRoutePending)}</span>{/if}
+				{#if routeUnavailable}<p class="mt-1.5 px-1">{i18n(I18nKey.mediaTencentUnavailable)}</p>{/if}
+				{#if !routeStorage}<p class="mt-1.5 px-1">{i18n(I18nKey.mediaStorageLimited)}</p>{/if}
+			</div>
+		</div>
+		{/if}
+	</div>
 </div>
 {/if}
 

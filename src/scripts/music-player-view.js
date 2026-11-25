@@ -242,8 +242,8 @@ import { ensureMusicManager } from "./music-manager.js";
 			ui.progressBar.style.width = "0%";
 			ui.progressThumb.style.left = "0%";
 			ui.progressContainer.setAttribute("aria-valuenow", "0");
-			ui.currentTime.innerText = "0:00";
-			ui.totalTime.innerText = "0:00";
+			ui.currentTime.innerText = "--:--";
+			ui.totalTime.innerText = "--:--";
 		}
 
 		// ── Virtual scroll helpers (absolute-position based) ──────

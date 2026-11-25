@@ -543,14 +543,38 @@
 		}
 		window.sakuraInitialized = true;
 
-		// 读取用户设置(localStorage 优先,缺省回退到配置默认值)
-		const storedEnabled = localStorage.getItem("sakuraEnabled");
-		const isEnabled =
-			storedEnabled !== null ? storedEnabled === "true" : sakuraConfig.enable;
+		const reducedMotionQuery = window.matchMedia?.(
+			"(prefers-reduced-motion: reduce)",
+		);
+		const resolveSakuraEnabled = () => {
+			const storedEnabled = localStorage.getItem("sakuraEnabled");
+			if (storedEnabled !== null) {
+				return storedEnabled === "true";
+			}
+			if (reducedMotionQuery?.matches) {
+				return false;
+			}
+			return sakuraConfig.enable;
+		};
+
 		const cfg: SakuraConfig = Object.assign({}, sakuraConfig, {
-			enable: isEnabled,
+			enable: resolveSakuraEnabled(),
 		});
 		initSakura(cfg);
+
+		// 响应系统“减少动态效果”切换：开启时停止飘落，关闭时恢复用户或默认偏好
+		reducedMotionQuery?.addEventListener?.("change", (e: MediaQueryListEvent) => {
+			const mgr = window.sakuraManager;
+			if (!mgr) return;
+			if (e.matches) {
+				if (mgr.getIsRunning()) {
+					mgr.stop();
+				}
+			} else if (resolveSakuraEnabled() && !mgr.getIsRunning()) {
+				mgr.config.enable = true;
+				void mgr.init();
+			}
+		});
 
 		// 监听设置面板的樱花特效切换事件(放在守卫内,避免重复注册)
 		window.addEventListener("sakuraToggle", (e: Event) => {

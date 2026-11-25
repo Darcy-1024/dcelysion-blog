@@ -59,10 +59,50 @@ export function formatDateI18nWithTime(dateInput: Date | string): string {
 	return formatDateI18n(dateInput, true);
 }
 
-export function formatDynamicDate(dateInput: Date | string): string {
-	const date = typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+function getCurrentYearInTimezone(timezone?: string): string {
+	const options: Intl.DateTimeFormatOptions = { year: "numeric" };
+	if (timezone) {
+		options.timeZone = timezone;
+	}
+	return new Intl.DateTimeFormat("en-CA", options).format(new Date());
+}
+
+export function formatDynamicDate(
+	dateInput: Date | string | number,
+	options?: { useLocalTimeZone?: boolean },
+): string {
+	const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+	const useLocal = options?.useLocalTimeZone ?? false;
 	const parts = new Intl.DateTimeFormat("en-CA", {
-		timeZone: "UTC",
+		...(useLocal ? {} : { timeZone: "UTC" }),
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+		hour: "2-digit",
+		minute: "2-digit",
+		hourCycle: "h23",
+	}).formatToParts(date);
+	const get = (type: Intl.DateTimeFormatPartTypes) =>
+		parts.find((part) => part.type === type)?.value || "";
+	const year = get("year");
+	const currentYear = getCurrentYearInTimezone(
+		useLocal ? undefined : siteConfig.timezone || "UTC",
+	);
+	const datePart =
+		year === currentYear
+			? `${get("month")}-${get("day")}`
+			: `${year}-${get("month")}-${get("day")}`;
+	return `${datePart} ${get("hour")}:${get("minute")}`;
+}
+
+export function formatDynamicDateFull(
+	dateInput: Date | string | number,
+	options?: { timezone?: string; useLocalTimeZone?: boolean },
+): string {
+	const date = dateInput instanceof Date ? dateInput : new Date(dateInput);
+	const useLocal = options?.useLocalTimeZone ?? false;
+	const parts = new Intl.DateTimeFormat("en-CA", {
+		...(useLocal ? {} : { timeZone: "UTC" }),
 		year: "numeric",
 		month: "2-digit",
 		day: "2-digit",
@@ -73,7 +113,10 @@ export function formatDynamicDate(dateInput: Date | string): string {
 	}).formatToParts(date);
 	const get = (type: Intl.DateTimeFormatPartTypes) =>
 		parts.find((part) => part.type === type)?.value || "";
-	return `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}:${get("second")}`;
+	const base = `${get("year")}-${get("month")}-${get("day")} ${get("hour")}:${get("minute")}:${get("second")}`;
+	if (useLocal) return base;
+	const tz = options?.timezone || siteConfig.timezone || "UTC";
+	return `${base} ${formatTimezoneOffset(tz, date)}`;
 }
 
 export function formatTimezoneOffset(

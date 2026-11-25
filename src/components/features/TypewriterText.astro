@@ -25,6 +25,16 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
   data-pause-time={pauseTime}></span>
 
 <script>
+  function prefersReducedMotion(): boolean {
+    return (
+      typeof window !== "undefined" &&
+      typeof window.matchMedia === "function" &&
+      window.matchMedia("(prefers-reduced-motion: reduce)").matches
+    );
+  }
+
+  const activeInstances = new Set<TypewriterEffect>();
+
   class TypewriterEffect {
     private element: HTMLElement;
     private texts: string[];
@@ -52,9 +62,14 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
       this.deleteSpeed = parseInt(element.dataset.deleteSpeed || "50");
       this.pauseTime = parseInt(element.dataset.pauseTime || "2000");
 
-      // 如果有多条文本且未启用打字机效果，随机显示一条
-      if (this.texts.length > 1 && !this.isTypewriterEnabled()) {
-        this.showRandomText();
+      activeInstances.add(this);
+
+      // 开启“减少动态效果”或未启用打字机时，直接展示完整静态文本
+      if (
+        prefersReducedMotion() ||
+        (this.texts.length > 1 && !this.isTypewriterEnabled())
+      ) {
+        this.showStaticText();
       } else {
         this.start();
       }
@@ -69,9 +84,13 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
       );
     }
 
-    private showRandomText() {
-      const randomIndex = Math.floor(Math.random() * this.texts.length);
-      this.element.textContent = this.texts[randomIndex];
+    private showStaticText() {
+      if (this.texts.length === 0) return;
+      const index =
+        this.texts.length > 1
+          ? Math.floor(Math.random() * this.texts.length)
+          : 0;
+      this.element.textContent = this.texts[index];
     }
 
     private start() {
@@ -84,6 +103,11 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
     }
 
     private type() {
+      if (!this.element.isConnected) {
+        this.destroy();
+        return;
+      }
+
       const currentText = this.getCurrentText();
       const segments = this.segmentText(currentText);
 
@@ -129,9 +153,15 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
     }
 
     public destroy() {
-      if (this.timeoutId) {
+      if (this.timeoutId !== null) {
         clearTimeout(this.timeoutId);
+        this.timeoutId = null;
       }
+      activeInstances.delete(this);
+    }
+
+    public getElement(): HTMLElement {
+      return this.element;
     }
 
     private segmentText(text: string): string[] {
@@ -141,11 +171,19 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
 
   }
 
-  function initTypewriterElements() {
+  function initTypewriterElements(forceReset = false) {
+    // 清理已脱离 DOM 的旧实例，避免切页后后台定时器泄漏
+    for (const instance of Array.from(activeInstances)) {
+      if (!instance.getElement().isConnected) {
+        instance.destroy();
+      }
+    }
+
     const typewriterElements = document.querySelectorAll(".typewriter");
     typewriterElements.forEach((element) => {
       const el = element as HTMLElement & { __typewriterInstance?: TypewriterEffect };
       if (el.__typewriterInstance) {
+        if (!forceReset) return;
         el.__typewriterInstance.destroy();
       }
       el.textContent = "";
@@ -153,32 +191,26 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
     });
   }
 
-  // 初始化所有打字机效果
-  function runInitWithDelay() {
-    initTypewriterElements();
-    // 兼容 banner 显隐晚于内容替换的场景
-    setTimeout(initTypewriterElements, 220);
-  }
-
-  // 防止 Swup 切页重跑脚本时重复注册监听器/hooks（runInitWithDelay 由下方一次性监听器在切页时触发）
+  // 防止 Swup 切页重跑脚本时重复注册监听器/hooks
   if (!window.__typewriterTextInit) {
     window.__typewriterTextInit = true;
     if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", runInitWithDelay);
+      document.addEventListener("DOMContentLoaded", () => initTypewriterElements(), { once: true });
     } else {
-      runInitWithDelay();
+      initTypewriterElements();
     }
 
-    // 支持页面切换时重新初始化（兼容不同 swup 事件名）
-    document.addEventListener("swup:contentReplaced", runInitWithDelay);
-    document.addEventListener("swup:content:replace", runInitWithDelay);
-    document.addEventListener("swup:page:view", runInitWithDelay);
-
-    // swup hooks（若可用）
-    if (typeof window !== "undefined" && window.swup?.hooks) {
-      window.swup.hooks.on("content:replace", runInitWithDelay);
-      window.swup.hooks.on("page:view", runInitWithDelay);
+    const bindSwupPageView = () => {
+      window.swup?.hooks?.on("page:view", () => initTypewriterElements());
+    };
+    if (window.swup?.hooks) {
+      bindSwupPageView();
+    } else {
+      document.addEventListener("swup:enable", bindSwupPageView, { once: true });
     }
+
+    const motionQuery = window.matchMedia?.("(prefers-reduced-motion: reduce)");
+    motionQuery?.addEventListener?.("change", () => initTypewriterElements(true));
   }
 </script>
 
@@ -191,6 +223,13 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
     content: "|";
     animation: blink 1s infinite;
     margin-left: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .typewriter::after {
+      animation: none;
+      content: none;
+    }
   }
 
   @keyframes blink {
