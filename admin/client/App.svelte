@@ -1,17 +1,17 @@
 <script lang="ts">
 import Icon from "@iconify/svelte";
-import logoLight from "../../cache/admin-assets/logo-light.webp";
-import logoDark from "../../cache/admin-assets/logo-dark.webp";
 import { onMount } from "svelte";
+import logoDark from "../../cache/admin-assets/logo-dark.webp";
+import logoLight from "../../cache/admin-assets/logo-light.webp";
 import type { ConfigurationKind } from "../shared/configuration.js";
 import type { Draft, DraftDetail } from "../shared/contracts";
 import { words as analyticsWords } from "./analytics-words.js";
 import Dashboard from "./Dashboard.svelte";
-import LazyPage from "./LazyPage.svelte";
 import { apiMessage, connectionMessage } from "./i18n";
-import UserAvatar from "./UserAvatar.svelte";
-import { memosWords } from "./memos-words.js";
+import LazyPage from "./LazyPage.svelte";
 import { words as managementWords } from "./management-words.js";
+import { memosWords } from "./memos-words.js";
+import UserAvatar from "./UserAvatar.svelte";
 
 type Entry = {
 	id: string;
@@ -94,13 +94,61 @@ let creating = false;
 let editorBusy = false;
 let editorRequestVersion = 0;
 let createRequest: Record<string, unknown> | null = null;
+type ParsedRoute =
+	| { view: "overview" | "analytics"; hash: "#overview" | "#analytics" }
+	| { view: Kind; hash: "#posts" | "#dynamic" }
+	| { view: "memos"; hash: "#memos" }
+	| { view: "media"; hash: "#media" }
+	| { view: "publishing"; hash: "#publishing" }
+	| {
+			view: "comments" | "users" | "account";
+			hash: "#comments" | "#users" | "#account";
+	  }
+	| {
+			view: "config";
+			kind: ConfigurationKind;
+			hash: `#config/${ConfigurationKind}`;
+	  };
+function parseViewHash(raw: string): ParsedRoute | null {
+	const cleaned = raw.replace(/^#\/?/u, "").trim().toLowerCase();
+	if (!cleaned || cleaned === "overview")
+		return { view: "overview", hash: "#overview" };
+	if (cleaned === "analytics") return { view: "analytics", hash: "#analytics" };
+	if (cleaned === "posts" || cleaned === "dynamic")
+		return { view: cleaned, hash: `#${cleaned}` };
+	if (cleaned === "memos") return { view: "memos", hash: "#memos" };
+	if (cleaned === "media") return { view: "media", hash: "#media" };
+	if (cleaned === "publishing")
+		return { view: "publishing", hash: "#publishing" };
+	if (cleaned === "comments" || cleaned === "users" || cleaned === "account")
+		return { view: cleaned, hash: `#${cleaned}` };
+	if (
+		cleaned === "config/music" ||
+		cleaned === "config/gallery" ||
+		cleaned === "config/settings"
+	) {
+		const cfgKind = cleaned.slice("config/".length) as ConfigurationKind;
+		return { view: "config", kind: cfgKind, hash: `#config/${cfgKind}` };
+	}
+	return null;
+}
+function sameRouteHash(a: string, b: string): boolean {
+	const pa = parseViewHash(a);
+	const pb = parseViewHash(b);
+	if (!pa || !pb) return a === b;
+	return pa.hash === pb.hash;
+}
+let hashReady = false;
+let syncingFromHash = false;
+let lastCommittedHash = "";
+let currentHash = "#overview";
 function leaveEditor() {
 	if (memosMode && memosRef && !memosRef.canLeave()) return false;
 	if (managementRef && !managementRef.canLeave()) return false;
-	managementMode = null;
-	managementRef = undefined;
 	if (editorRef && !editorRef.canLeave()) return false;
 	if (configurationRef && !configurationRef.canLeave()) return false;
+	managementMode = null;
+	managementRef = undefined;
 	dashboardMode = null;
 	overviewCommentStatus = "all";
 	overviewJobId = null;
@@ -112,6 +160,49 @@ function leaveEditor() {
 	memosMode = false;
 	editorRequestVersion++;
 	editorBusy = false;
+	return true;
+}
+function applyRouteFromHash(raw: string, initial = false): boolean {
+	const target = parseViewHash(raw);
+	if (!target) return true;
+	if (!initial && !editor && sameRouteHash(raw, currentHash)) return true;
+	if (!initial && !leaveEditor()) return false;
+	if (initial) {
+		dashboardMode = null;
+		managementMode = null;
+		configurationKind = null;
+		memosMode = false;
+	}
+	publishing = false;
+	mediaLibrary = false;
+	if (drawer) closeDrawer();
+	if (target.view === "overview" || target.view === "analytics") {
+		dashboardMode = target.view;
+	} else if (target.view === "memos") {
+		memosMode = true;
+	} else if (target.view === "media") {
+		mediaLibrary = true;
+	} else if (target.view === "publishing") {
+		publishing = true;
+	} else if (
+		target.view === "comments" ||
+		target.view === "users" ||
+		target.view === "account"
+	) {
+		managementMode = target.view;
+	} else if (target.view === "config") {
+		configurationKind = target.kind;
+	} else {
+		creating = false;
+		createRequest = null;
+		draftPage = null;
+		kind = target.view;
+		status = "all";
+		search = "";
+		page = 1;
+		data = null;
+		if (!initial) void load();
+	}
 	return true;
 }
 function changeMemos() {
@@ -236,13 +327,15 @@ $: if (!owner) memosVisited = false;
 $: if (owner && memosMode) memosVisited = true;
 let ownerAvatar = "";
 async function loadOwnerAvatar() {
- const current = owner;
- ownerAvatar = "";
- if (!current) return;
- try {
-  const result = await request<{avatar: string}>("/api/manage/account");
-  if (owner === current && result.ok) ownerAvatar = result.data.avatar || "";
- } catch { /* Keep the initials when the profile service is unavailable. */ }
+	const current = owner;
+	ownerAvatar = "";
+	if (!current) return;
+	try {
+		const result = await request<{ avatar: string }>("/api/manage/account");
+		if (owner === current && result.ok) ownerAvatar = result.data.avatar || "";
+	} catch {
+		/* Keep the initials when the profile service is unavailable. */
+	}
 }
 $: if (!owner) ownerAvatar = "";
 let identity = "";
@@ -262,26 +355,98 @@ let dark = false;
 let themeOverride: boolean | null = null;
 let navigation: HTMLElement;
 function toggleTheme() {
- dark = !dark;
- themeOverride = dark;
- document.documentElement.dataset.theme = dark ? 'dark' : 'light';
- try { localStorage.setItem('dc-admin-theme', dark ? 'dark' : 'light'); } catch {}
+	dark = !dark;
+	themeOverride = dark;
+	document.documentElement.dataset.theme = dark ? "dark" : "light";
+	try {
+		localStorage.setItem("dc-admin-theme", dark ? "dark" : "light");
+	} catch {}
 }
 let drawerTrigger: HTMLElement | null = null;
 function openDrawer(event?: MouseEvent) {
- drawerTrigger = event?.currentTarget instanceof HTMLElement ? event.currentTarget : menuButton;
- drawer = true;
- requestAnimationFrame(() => navigation?.querySelector<HTMLButtonElement>('button')?.focus());
+	drawerTrigger =
+		event?.currentTarget instanceof HTMLElement
+			? event.currentTarget
+			: menuButton;
+	drawer = true;
+	requestAnimationFrame(() =>
+		navigation?.querySelector<HTMLButtonElement>("button")?.focus(),
+	);
 }
 function trapDrawer(event: KeyboardEvent) {
- if (!drawer || event.key !== 'Tab') return;
- const buttons = Array.from(navigation.querySelectorAll<HTMLButtonElement>('button:not(:disabled), a[href]'));
- const first = buttons[0], last = buttons[buttons.length - 1];
- if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last?.focus(); }
- else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first?.focus(); }
+	if (!drawer || event.key !== "Tab") return;
+	const buttons = Array.from(
+		navigation.querySelectorAll<HTMLButtonElement>(
+			"button:not(:disabled), a[href]",
+		),
+	);
+	const first = buttons[0];
+	const last = buttons[buttons.length - 1];
+	if (event.shiftKey && document.activeElement === first) {
+		event.preventDefault();
+		last?.focus();
+	} else if (!event.shiftKey && document.activeElement === last) {
+		event.preventDefault();
+		first?.focus();
+	}
 }
-$: pageTitle = memosMode ? memosWords.nav : dashboardMode ? analyticsWords[dashboardMode] : managementMode ? managementWords[managementMode] : configurationKind === 'music' ? 'BGM 歌单' : configurationKind === 'gallery' ? '相册' : configurationKind === 'settings' ? '站点设置' : mediaLibrary ? '统一媒体库' : publishing ? '改动与发布' : kind === 'posts' ? words.posts : words.dynamic;
-$: sectionTitle = dashboardMode ? '概览与数据' : managementMode ? '评论与账号' : configurationKind || mediaLibrary ? '媒体与站点' : '内容创作';
+$: pageTitle = memosMode
+	? memosWords.nav
+	: dashboardMode
+		? analyticsWords[dashboardMode]
+		: managementMode
+			? managementWords[managementMode]
+			: configurationKind === "music"
+				? "BGM 歌单"
+				: configurationKind === "gallery"
+					? "相册"
+					: configurationKind === "settings"
+						? "站点设置"
+						: mediaLibrary
+							? "统一媒体库"
+							: publishing
+								? "改动与发布"
+								: kind === "posts"
+									? words.posts
+									: words.dynamic;
+$: sectionTitle = dashboardMode
+	? "概览与数据"
+	: managementMode
+		? "评论与账号"
+		: configurationKind || mediaLibrary
+			? "媒体与站点"
+			: "内容创作";
+$: currentHash = memosMode
+	? "#memos"
+	: dashboardMode === "analytics"
+		? "#analytics"
+		: dashboardMode === "overview"
+			? "#overview"
+			: managementMode
+				? `#${managementMode}`
+				: configurationKind
+					? `#config/${configurationKind}`
+					: mediaLibrary
+						? "#media"
+						: publishing
+							? "#publishing"
+							: editor?.draft.kind === "dynamic"
+								? "#dynamic"
+								: editor?.draft.kind === "posts"
+									? "#posts"
+									: editor?.draft.kind
+										? `#config/${editor.draft.kind}`
+										: kind === "dynamic"
+											? "#dynamic"
+											: "#posts";
+$: if (hashReady && !syncingFromHash) {
+	if (!sameRouteHash(window.location.hash, currentHash)) {
+		history.pushState(null, "", currentHash);
+		lastCommittedHash = currentHash;
+	} else {
+		lastCommittedHash = window.location.hash;
+	}
+}
 let menuButton: HTMLButtonElement;
 let requestVersion = 0;
 let timer: ReturnType<typeof setTimeout> | undefined;
@@ -329,20 +494,65 @@ async function initialize() {
 	}
 }
 onMount(() => {
+	if (parseViewHash(window.location.hash)) {
+		applyRouteFromHash(window.location.hash, true);
+		lastCommittedHash = window.location.hash;
+	} else {
+		history.replaceState(
+			null,
+			"",
+			`${window.location.pathname}${window.location.search}`,
+		);
+		lastCommittedHash = "";
+	}
+	hashReady = true;
+	const onHashChange = () => {
+		if (syncingFromHash) return;
+		const incoming = window.location.hash;
+		if (!parseViewHash(incoming)) return;
+		syncingFromHash = true;
+		try {
+			if (applyRouteFromHash(incoming, false)) {
+				lastCommittedHash = incoming;
+			} else {
+				history.pushState(
+					null,
+					"",
+					lastCommittedHash ||
+						`${window.location.pathname}${window.location.search}`,
+				);
+			}
+		} finally {
+			syncingFromHash = false;
+		}
+	};
+	window.addEventListener("hashchange", onHashChange);
 	void initialize();
- const colorQuery = matchMedia('(prefers-color-scheme: dark)');
- const mobileQuery = matchMedia('(max-width: 760px)');
- try { const saved = localStorage.getItem('dc-admin-theme'); if (saved === 'dark' || saved === 'light') themeOverride = saved === 'dark'; } catch {}
- const syncColor = () => { if (themeOverride === null) { dark = colorQuery.matches; document.documentElement.dataset.theme = dark ? 'dark' : 'light'; } };
- dark = themeOverride ?? colorQuery.matches;
- document.documentElement.dataset.theme = dark ? 'dark' : 'light';
- const syncMobile = () => { mobile = mobileQuery.matches; if (!mobile) drawer = false; };
- syncMobile();
- colorQuery.addEventListener('change', syncColor);
- mobileQuery.addEventListener('change', syncMobile);
- return () => {
- colorQuery.removeEventListener('change', syncColor);
- mobileQuery.removeEventListener('change', syncMobile);
+	const colorQuery = matchMedia("(prefers-color-scheme: dark)");
+	const mobileQuery = matchMedia("(max-width: 760px)");
+	try {
+		const saved = localStorage.getItem("dc-admin-theme");
+		if (saved === "dark" || saved === "light") themeOverride = saved === "dark";
+	} catch {}
+	const syncColor = () => {
+		if (themeOverride === null) {
+			dark = colorQuery.matches;
+			document.documentElement.dataset.theme = dark ? "dark" : "light";
+		}
+	};
+	dark = themeOverride ?? colorQuery.matches;
+	document.documentElement.dataset.theme = dark ? "dark" : "light";
+	const syncMobile = () => {
+		mobile = mobileQuery.matches;
+		if (!mobile) drawer = false;
+	};
+	syncMobile();
+	colorQuery.addEventListener("change", syncColor);
+	mobileQuery.addEventListener("change", syncMobile);
+	return () => {
+		window.removeEventListener("hashchange", onHashChange);
+		colorQuery.removeEventListener("change", syncColor);
+		mobileQuery.removeEventListener("change", syncMobile);
 		clearTimeout(timer);
 	};
 });
@@ -373,6 +583,9 @@ async function login() {
 }
 async function logout() {
 	if (!leaveEditor()) return;
+	publishing = false;
+	mediaLibrary = false;
+	dashboardMode = "overview";
 	try {
 		const result = await request<null>("/api/logout", {
 			method: "POST",
@@ -392,7 +605,15 @@ async function logout() {
 	}
 }
 function isContentView() {
- return !memosMode && !dashboardMode && !managementMode && !configurationKind && !mediaLibrary && !publishing && !editor;
+	return (
+		!memosMode &&
+		!dashboardMode &&
+		!managementMode &&
+		!configurationKind &&
+		!mediaLibrary &&
+		!publishing &&
+		!editor
+	);
 }
 async function load() {
 	if (!owner || !isContentView()) return;

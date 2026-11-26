@@ -107,6 +107,20 @@ const initialYears = localEntries
 						</select>
 						<Icon name="material-symbols:arrow-drop-down-rounded" />
 					</label>
+					<button
+						type="button"
+						class="page-filter-reset"
+						data-dynamic-filter-reset
+						aria-label={i18n(I18nKey.announcementClose)}
+						title={i18n(I18nKey.announcementClose)}
+						hidden
+					>
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+							<path d="M18 6 6 18" />
+							<path d="m6 6 12 12" />
+						</svg>
+						<span>{i18n(I18nKey.all)}</span>
+					</button>
 				</div>
 			</header>
 

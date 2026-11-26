@@ -10,6 +10,9 @@ interface Props {
 	isLast?: boolean;
 	class?: string;
 	onclick?: string;
+	"data-nav-href"?: string;
+	"data-active"?: "true" | "false";
+	"aria-current"?: "page";
 }
 
 const {
@@ -19,6 +22,7 @@ const {
 	isLast = false,
 	class: className,
 	onclick,
+	...rest
 } = Astro.props;
 
 const baseClasses =
@@ -31,11 +35,12 @@ const allClasses =
 const Tag = href ? "a" : "button";
 ---
 
-<Tag 
+<Tag
 	href={href}
 	target={target}
 	class={allClasses}
 	onclick={onclick}
+	{...rest}
 >
 	<slot />
 </Tag>

@@ -54,6 +54,17 @@ const isCurrentPagePost = (): boolean =>
 	document.getElementById("swup-container")?.getAttribute("data-page-kind") ===
 	"post";
 
+/** 判断当前路径是否为动态流列表页（/dynamic/），用于在列表页隐藏重复的侧栏最新动态卡片 */
+export function isDynamicFeedPage(pathname: string): boolean {
+	const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
+	const stripped =
+		baseUrl && pathname.startsWith(baseUrl)
+			? pathname.slice(baseUrl.length) || "/"
+			: pathname;
+	const normalized = stripped.replace(/\/+$/, "") || "/";
+	return normalized === "/dynamic";
+}
+
 /** Swup 薄适配：解析 SSR 数据并更新同一份普通网格变量。 */
 export function updateMainGridCols(): void {
 	const mainGrid = document.getElementById("main-grid");
@@ -68,6 +79,9 @@ export function updateMainGridCols(): void {
 // 更新侧边栏组件的可见性
 export function updateSidebarComponentsVisibility(): void {
 	const isPostPage = isCurrentPagePost();
+	const isDynamicListPage =
+		typeof window !== "undefined" &&
+		isDynamicFeedPage(window.location.pathname);
 
 	// 处理侧边栏级别的 hideSidebarOnPostPage 配置
 	document
@@ -85,14 +99,16 @@ export function updateSidebarComponentsVisibility(): void {
 	// 合并页面规则，避免不同规则相互移除 hidden。
 	document
 		.querySelectorAll(
-			".widget-hide-on-post, .widget-hide-on-non-post, .widget-post-only, .widget-non-post-only",
+			".widget-hide-on-post, .widget-hide-on-non-post, .widget-post-only, .widget-non-post-only, .widget-hide-on-dynamic",
 		)
 		.forEach((widget) => {
 			const hidden =
 				(isPostPage && widget.classList.contains("widget-hide-on-post")) ||
 				(!isPostPage && widget.classList.contains("widget-hide-on-non-post")) ||
 				(!isPostPage && widget.classList.contains("widget-post-only")) ||
-				(isPostPage && widget.classList.contains("widget-non-post-only"));
+				(isPostPage && widget.classList.contains("widget-non-post-only")) ||
+				(isDynamicListPage &&
+					widget.classList.contains("widget-hide-on-dynamic"));
 			widget.classList.toggle("hidden", hidden);
 		});
 	const useFullProfile =

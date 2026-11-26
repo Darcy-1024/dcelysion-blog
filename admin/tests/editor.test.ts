@@ -66,6 +66,38 @@ test("无损字段补丁与源码保存边界：BOM、CRLF、注释、未知嵌�
 		0,
 	);
 });
+test("文章 frontmatter 校验 outdated 与 outdatedThreshold", () => {
+	assert.deepEqual(
+		inspect(
+			"---\ntitle: 时效测试\npublished: 2026-09-30\noutdated: true\noutdatedThreshold: 0\n---\n",
+			"posts",
+		).errors,
+		[],
+	);
+	assert.deepEqual(
+		inspect(
+			"---\ntitle: 时效测试\npublished: 2026-09-30\noutdated: false\noutdatedThreshold: 180\n---\n",
+			"posts",
+		).errors,
+		[],
+	);
+	for (const bad of ["'yes'", "1", "null"]) {
+		assert.ok(
+			inspect(
+				`---\ntitle: 时效测试\npublished: 2026-09-30\noutdated: ${bad}\n---\n`,
+				"posts",
+			).errors.includes("outdated 需要布尔值"),
+		);
+	}
+	for (const bad of ["-1", "1.5", "'30'", "null", ".nan"]) {
+		assert.ok(
+			inspect(
+				`---\ntitle: 时效测试\npublished: 2026-09-30\noutdatedThreshold: ${bad}\n---\n`,
+				"posts",
+			).errors.includes("outdatedThreshold 需要非负整数"),
+		);
+	}
+});
 test("动态仅交换完整图片引用，重复、alt、标题、空白与标识不变", () => {
 	const result = moveImage(dynamic, 0, 2);
 	const refs = images(dynamic).items;

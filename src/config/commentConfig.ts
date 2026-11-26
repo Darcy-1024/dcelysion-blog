@@ -35,9 +35,9 @@ export const commentConfig: CommentConfig = {
 		locale: { anonymous: "匿名用户" },
 		// 设置 Waline 评论系统表情地址
 		emoji: [
-			"https://unpkg.com/@waline/emojis@1.4.0/weibo",
-			"https://unpkg.com/@waline/emojis@1.4.0/bilibili",
-			"https://unpkg.com/@waline/emojis@1.4.0/bmoji",
+			"https://s4.zstatic.net/npm/@waline/emojis@1.4.0/weibo",
+			"https://s4.zstatic.net/npm/@waline/emojis@1.4.0/bilibili",
+			"https://s4.zstatic.net/npm/@waline/emojis@1.4.0/bmoji",
 		],
 		// 允许注册登录，也允许访客直接评论。默认显示昵称、邮箱和网址，均非必填。
 		login: "enable",

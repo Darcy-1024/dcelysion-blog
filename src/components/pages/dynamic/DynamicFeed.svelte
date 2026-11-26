@@ -68,6 +68,8 @@ let missingEl: HTMLElement | null = null;
 let template: HTMLTemplateElement | null = null;
 let searchInput: HTMLInputElement | null = null;
 let yearSelect: HTMLSelectElement | null = null;
+let resetButton: HTMLButtonElement | null = null;
+let countEl: HTMLElement | null = null;
 let restoreAnchorAfterRender = false;
 let targetMissing = $state(false);
 let selected = $state<{
@@ -302,6 +304,7 @@ function locateSharedEntry() {
 	if (yearSelect) yearSelect.value = "all";
 	ssrPageActive = false;
 	filtered = [...entries];
+	syncFilterUi();
 	currentPage = Math.floor(target / itemsPerPage) + 1;
 	restoreAnchorAfterRender = true;
 	updateUrl();
@@ -330,6 +333,20 @@ function updateUrl(clearHash = false) {
 	history.replaceState(history.state, "", current);
 }
 
+function syncFilterUi() {
+	const query = searchInput?.value.toLocaleLowerCase().trim() || "";
+	const year = yearSelect?.value || "all";
+	const isFiltered = query !== "" || year !== "all";
+	if (resetButton) {
+		resetButton.hidden = !isFiltered;
+	}
+	if (entriesLoaded && countEl) {
+		countEl.textContent = isFiltered
+			? `${filtered.length} / ${entries.length}`
+			: String(entries.length);
+	}
+}
+
 function applyFilters(resetPage = true) {
 	const query = searchInput?.value.toLocaleLowerCase().trim() || "";
 	const year = yearSelect?.value || "all";
@@ -340,6 +357,7 @@ function applyFilters(resetPage = true) {
 				String(new Date(entry.published).getUTCFullYear()) === year) &&
 			(!query || entry.searchText.includes(query)),
 	);
+	syncFilterUi();
 	if (resetPage) currentPage = 1;
 	const totalPages = Math.max(1, Math.ceil(filtered.length / itemsPerPage));
 	currentPage = Math.min(currentPage, totalPages);
@@ -473,6 +491,26 @@ function createItem(entry: DynamicEntry) {
 		}
 	}
 
+	const detailLink = root.querySelector<HTMLAnchorElement>(
+		"[data-dynamic-detail-link]",
+	);
+	const decoration = root.querySelector<HTMLElement>(
+		"[data-dynamic-decoration]",
+	);
+	if (entry.detailUrl) {
+		if (detailLink) {
+			detailLink.href = permalink;
+			detailLink.removeAttribute("hidden");
+		}
+		decoration?.setAttribute("hidden", "");
+	} else {
+		if (detailLink) {
+			detailLink.removeAttribute("href");
+			detailLink.setAttribute("hidden", "");
+		}
+		decoration?.removeAttribute("hidden");
+	}
+
 	const like = root.querySelector<HTMLElement>("content-like");
 	if (like) like.dataset.path = `/dynamic/${entry.id}`;
 
@@ -532,9 +570,8 @@ async function ensureEntriesLoaded(showSpinner = false): Promise<boolean> {
 			filtered = [...fetched];
 			entriesLoaded = true;
 			failed = false;
-			const countEl = document.querySelector("[data-dynamic-page-count]");
-			if (countEl) countEl.textContent = String(fetched.length);
 			populateYears();
+			syncFilterUi();
 			return true;
 		} catch (error) {
 			console.error("Failed to load dynamics", error);
@@ -582,6 +619,11 @@ onMount(() => {
 		page?.querySelector<HTMLInputElement>("[data-dynamic-search]") ?? null;
 	yearSelect =
 		page?.querySelector<HTMLSelectElement>("[data-year-select]") ?? null;
+	resetButton =
+		page?.querySelector<HTMLButtonElement>("[data-dynamic-filter-reset]") ??
+		null;
+	countEl =
+		page?.querySelector<HTMLElement>("[data-dynamic-page-count]") ?? null;
 
 	if (ssrPageActive && list) {
 		list
@@ -598,11 +640,19 @@ onMount(() => {
 		const ok = await ensureEntriesLoaded();
 		if (ok && alive) applyFilters();
 	};
+	const resetFilters = async () => {
+		if (searchInput) searchInput.value = "";
+		if (yearSelect) yearSelect.value = "all";
+		const ok = await ensureEntriesLoaded();
+		if (ok && alive) applyFilters();
+		else syncFilterUi();
+	};
 	searchInput?.addEventListener("focus", prewarm, { passive: true });
 	yearSelect?.addEventListener("focus", prewarm, { passive: true });
 	yearSelect?.addEventListener("pointerenter", prewarm, { passive: true });
 	searchInput?.addEventListener("input", filter);
 	yearSelect?.addEventListener("change", filter);
+	resetButton?.addEventListener("click", resetFilters);
 
 	const handleNavigationTarget = async () => {
 		const currentUrl = new URL(window.location.href);
@@ -665,6 +715,7 @@ onMount(() => {
 		yearSelect?.removeEventListener("pointerenter", prewarm);
 		searchInput?.removeEventListener("input", filter);
 		yearSelect?.removeEventListener("change", filter);
+		resetButton?.removeEventListener("click", resetFilters);
 	};
 });
 </script>

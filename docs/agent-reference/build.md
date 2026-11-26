@@ -80,6 +80,7 @@ pnpm new-dynamic ... # 新建动态
 
 ## 部署状态核验
 
+- 仅 master 的共享构建跨运行复用 Astro 转换图片和字体子集。图片缓存只保留与本次公开输出一致的转换结果；字体通过 `BLOG_FONT_SUBSET_CACHE=1` 开启，缓存位于 `cache/build/font-subsets/`。每次仍扫描页面字符、重写字体引用并校验公开产物。源图、转换参数或字体子集输入变化时重新生成受影响的产物；冷缓存也能构建。两类缓存都不以提交 SHA 作为唯一标识，未变化的产物集不会为每次提交重复保存。
 - `.github/workflows/public-blog.yml` 在 GitHub 云端完整构建一次；成功后 `scripts/finalize-blog-release.mjs` 筛选公开文件、生成固定探针及提交/公开树摘要。双端包按完整提交发布到 `blog-<SHA>` Release，并附压缩包 SHA-256；不含后台或私有文件。本地普通构建跳过正式打包，不启动腾讯后台 builder。
 - 共享构建及 PR 完整构建缓存 `cache/build/lqip-meta.json` 与 `cache/build/github-card-meta.json`，按运行系统、锁文件及生成脚本隔离，并跨提交恢复最近可用缓存；图片内容指纹和 GitHub 卡片 TTL 仍决定各条目是否可复用。依赖安装任务另外缓存 `.pnpm-store/v11`，按系统、架构、锁文件、workspace 和 package 配置隔离，仍执行 `pnpm install --frozen-lockfile`。后台生成资源单独缓存 `cache/admin-assets`，按字体、品牌图、后台源码、生成器和锁文件失效；生成器仍校验自身内容签名。不缓存整个 `cache/`、`node_modules`、源码生成 JSON 或正式发布包。
 - master 推送只由 `public-blog.yml` 执行一次完整博客构建，并在发布 Release 前检查首页、Pagefind、字体、公开探针及原始 Sites 入口。`build.yml` 在 master 保留后台检查/测试/构建和 Node 22/24 类型检查；完整构建及 Astro 兼容构建矩阵仅在 PR 运行。代码组浏览器测试在 `.tmp/code-group-test` 单独构建，仅额外生成代码组草稿的测试路由，不进入公开构建。

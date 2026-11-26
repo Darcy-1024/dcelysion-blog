@@ -1,4 +1,6 @@
 ---
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
 import { getLqipProps } from "@/utils/lqip-utils";
 import { mediaImageProps } from "@/utils/media-image-props";
 
@@ -8,12 +10,26 @@ interface Props {
 	lqipSrc?: string;
 	albumId: string;
 	alt?: string;
+	index?: number;
 }
 
-const { src, previewSrc = src, lqipSrc, albumId, alt = "" } = Astro.props;
+const {
+	src,
+	previewSrc = src,
+	lqipSrc,
+	albumId,
+	alt = "",
+	index,
+} = Astro.props;
 
 // LQIP 渐变占位
 const lqipProps = getLqipProps(lqipSrc || src, undefined, true);
+const imageMediaProps = mediaImageProps(previewSrc);
+const ariaLabel =
+	alt ||
+	(index !== undefined
+		? `${i18n(I18nKey.gallery)} #${index}`
+		: i18n(I18nKey.gallery));
 ---
 
 <div class="gallery-photo-card break-inside-avoid mb-3">
@@ -21,16 +37,38 @@ const lqipProps = getLqipProps(lqipSrc || src, undefined, true);
     data-fancybox={`gallery-${albumId}`}
     data-src={src}
     data-type="image"
-    class="block rounded-xl overflow-hidden relative group cursor-pointer"
+    role="button"
+    tabindex="0"
+    aria-label={ariaLabel}
+    class="block rounded-xl overflow-hidden relative group cursor-pointer focus-visible:outline-2 focus-visible:outline-(--primary) focus-visible:outline-offset-2"
   >
     <div class="lqip-placeholder absolute inset-0 pointer-events-none" style={lqipProps.style} aria-hidden="true"></div>
     <img
-      {...mediaImageProps(previewSrc)}
+      {...imageMediaProps}
       alt={alt}
       loading="lazy"
       decoding="async"
       class="w-full h-auto object-cover opacity-0 transition-all duration-500 ease-out group-hover:scale-105"
     />
-    {mediaImageProps(previewSrc)["data-media-src"] && <noscript><img src={previewSrc} alt={alt} /></noscript>}
+    {imageMediaProps["data-media-src"] && <noscript><img src={previewSrc} alt={alt} /></noscript>}
   </div>
 </div>
+
+<script>
+  const w = window as Window & { __galleryPhotoKeydownBound?: boolean };
+  if (!w.__galleryPhotoKeydownBound) {
+    w.__galleryPhotoKeydownBound = true;
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      const target = event.target;
+      if (
+        !(target instanceof HTMLElement) ||
+        !target.matches(".gallery-photo-card [data-fancybox][role='button']")
+      ) {
+        return;
+      }
+      event.preventDefault();
+      target.click();
+    });
+  }
+</script>

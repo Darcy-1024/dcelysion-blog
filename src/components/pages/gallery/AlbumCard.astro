@@ -2,6 +2,7 @@
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import { getLqipProps } from "@/utils/lqip-utils";
+import { mediaImageProps } from "@/utils/media-image-props";
 import { url } from "@/utils/url-utils";
 
 interface Props {
@@ -38,6 +39,7 @@ const {
 const lqipProps = cover
 	? getLqipProps(lqipSrc || cover, undefined, true)
 	: { style: "" };
+const coverMediaProps = cover ? mediaImageProps(previewSrc) : {};
 ---
 
 <a
@@ -51,13 +53,14 @@ const lqipProps = cover
       <>
         <div class="lqip-placeholder absolute inset-0 pointer-events-none" style={lqipProps.style} aria-hidden="true"></div>
         <img
-          src={previewSrc}
+          {...coverMediaProps}
           alt={name}
           class="w-full h-full object-cover pointer-events-none opacity-0 transition-all duration-500 ease-out group-hover:scale-105"
           loading={priority ? "eager" : "lazy"}
           fetchpriority={priority ? "high" : undefined}
           decoding="async"
         />
+        {coverMediaProps["data-media-src"] && <noscript><img src={previewSrc} alt={name} /></noscript>}
       </>
     ) : (
       <div class="w-full h-full bg-gray-200 dark:bg-gray-700 flex items-center justify-center">

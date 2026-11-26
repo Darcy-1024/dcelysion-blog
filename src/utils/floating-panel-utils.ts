@@ -1,6 +1,12 @@
 const CLOSED_CLASS = "float-panel-closed";
 const PANEL_SELECTOR = "[data-floating-panel]";
 const FOCUS_RETURN_ATTRIBUTE = "data-floating-panel-focus-return";
+const NAVBAR_DROPDOWN_PANELS = [
+	"display-setting",
+	"music-nav-panel",
+	"theme-mode-panel",
+	"search-panel",
+] as const;
 export const FLOATING_PANEL_CLOSE_EVENT = "floating-panel:close";
 
 const panelObservers = new Map<HTMLElement, MutationObserver>();
@@ -85,6 +91,13 @@ function syncFloatingPanelState(panel: HTMLElement): void {
 	}
 
 	panelOpenStates.set(panel, isOpen);
+	if (
+		isOpen &&
+		wasOpen !== true &&
+		(NAVBAR_DROPDOWN_PANELS as readonly string[]).includes(panel.id)
+	) {
+		closeNavbarPanelsExcept(panel.id);
+	}
 	if (wasOpen === true && !isOpen) {
 		panel.dispatchEvent(new Event(FLOATING_PANEL_CLOSE_EVENT));
 	}
@@ -143,6 +156,28 @@ function syncFloatingPanelState(panel: HTMLElement): void {
 function setFloatingPanelOpen(panel: HTMLElement, isOpen: boolean): void {
 	panel.classList.toggle(CLOSED_CLASS, !isOpen);
 	syncFloatingPanelState(panel);
+}
+
+/** 关闭除指定面板外的其余导航栏浮动面板，确保不会多个面板同时叠放 */
+export function closeNavbarPanelsExcept(exceptPanelId?: string): void {
+	for (const id of NAVBAR_DROPDOWN_PANELS) {
+		if (id === exceptPanelId) continue;
+		const other = document.getElementById(id);
+		if (other && !other.classList.contains(CLOSED_CLASS)) {
+			setFloatingPanelOpen(other, false);
+		}
+	}
+}
+
+/** 切换指定导航栏浮动面板，并在打开时自动收起其余导航栏浮动面板 */
+export function toggleNavbarPanel(panelId: string): void {
+	const panel = document.getElementById(panelId);
+	if (!panel) return;
+	const willOpen = panel.classList.contains(CLOSED_CLASS);
+	if (willOpen) {
+		closeNavbarPanelsExcept(panelId);
+	}
+	setFloatingPanelOpen(panel, willOpen);
 }
 
 function handleEscape(event: KeyboardEvent): void {

@@ -55,6 +55,7 @@ import { ensureMusicManager } from "./music-manager.js";
 			btnPlay: widget.querySelector(".btn-play"),
 			iconPlay: widget.querySelector(".icon-play"),
 			iconPause: widget.querySelector(".icon-pause"),
+			iconBuffering: widget.querySelector(".icon-buffering"),
 			btnPrev: widget.querySelector(".btn-prev"),
 			btnNext: widget.querySelector(".btn-next"),
 			btnRepeat: widget.querySelector(".btn-repeat"),
@@ -103,6 +104,8 @@ import { ensureMusicManager } from "./music-manager.js";
 		var ITEM_H = 42;
 		var OVERSCAN = 8;
 		var local = {
+			isPlaying: false,
+			isBuffering: false,
 			isUserScrolling: false,
 			scrollTimeout: null,
 			currentLrcIndex: -1,
@@ -126,8 +129,11 @@ import { ensureMusicManager } from "./music-manager.js";
 			}
 		}
 
-		function updatePlayStateUI(isPlaying) {
-			if (isPlaying) {
+		function syncPlaybackVisuals() {
+			var isPlaying = local.isPlaying;
+			var isBuffering = local.isBuffering;
+			var isActive = isPlaying || isBuffering;
+			if (isActive) {
 				ui.btnPlay.classList.add(
 					"bg-(--primary)",
 					"text-white",
@@ -139,11 +145,6 @@ import { ensureMusicManager } from "./music-manager.js";
 					"active:bg-(--btn-regular-bg-active)",
 					"text-(--primary)",
 				);
-				ui.iconPlay.classList.add("hidden");
-				ui.iconPause.classList.remove("hidden");
-				ui.cover.style.animationPlayState = "running";
-				ui.btnPlay.setAttribute("aria-label", cfg.i18n.pause);
-				ui.btnPlay.title = cfg.i18n.pause;
 			} else {
 				ui.btnPlay.classList.remove(
 					"bg-(--primary)",
@@ -156,12 +157,31 @@ import { ensureMusicManager } from "./music-manager.js";
 					"active:bg-(--btn-regular-bg-active)",
 					"text-(--primary)",
 				);
-				ui.iconPlay.classList.remove("hidden");
-				ui.iconPause.classList.add("hidden");
-				ui.cover.style.animationPlayState = "paused";
-				ui.btnPlay.setAttribute("aria-label", cfg.i18n.play);
-				ui.btnPlay.title = cfg.i18n.play;
 			}
+
+			ui.btnPlay.dataset.buffering = isBuffering ? "true" : "false";
+			if (isBuffering && ui.iconBuffering) {
+				ui.iconBuffering.classList.remove("hidden");
+				ui.iconPlay.classList.add("hidden");
+				ui.iconPause.classList.add("hidden");
+				ui.btnPlay.setAttribute("aria-busy", "true");
+			} else {
+				if (ui.iconBuffering) ui.iconBuffering.classList.add("hidden");
+				ui.btnPlay.removeAttribute("aria-busy");
+				ui.iconPlay.classList.toggle("hidden", isPlaying);
+				ui.iconPause.classList.toggle("hidden", !isPlaying);
+			}
+
+			var isAudiblyPlaying = isPlaying && !isBuffering;
+			ui.cover.style.animationPlayState = isAudiblyPlaying
+				? "running"
+				: "paused";
+			ui.btnPlay.setAttribute(
+				"aria-label",
+				isPlaying ? cfg.i18n.pause : cfg.i18n.play,
+			);
+			ui.btnPlay.title = isPlaying ? cfg.i18n.pause : cfg.i18n.play;
+
 			// Toggle eq-bars / play icon in playlist
 			var activeItems = ui.playlistContainer.querySelectorAll(
 				'.playlist-item[aria-current="true"]',
@@ -169,7 +189,7 @@ import { ensureMusicManager } from "./music-manager.js";
 			activeItems.forEach((item) => {
 				var eqBars = item.querySelector(".eq-bars");
 				var playIcon = item.querySelector(".eq-play-icon");
-				if (isPlaying) {
+				if (isAudiblyPlaying) {
 					eqBars.classList.remove("hidden");
 					eqBars.classList.add("flex");
 					playIcon.classList.add("hidden");
@@ -179,6 +199,16 @@ import { ensureMusicManager } from "./music-manager.js";
 					playIcon.classList.remove("hidden");
 				}
 			});
+		}
+
+		function updatePlayStateUI(isPlaying) {
+			local.isPlaying = Boolean(isPlaying);
+			syncPlaybackVisuals();
+		}
+
+		function updateBufferingUI(isBuffering) {
+			local.isBuffering = Boolean(isBuffering);
+			syncPlaybackVisuals();
 		}
 
 		function updateModeUI(playMode) {
@@ -257,14 +287,15 @@ import { ensureMusicManager } from "./music-manager.js";
 			var title = el.querySelector(".item-title");
 			var eqBars = el.querySelector(".eq-bars");
 			var playIcon = el.querySelector(".eq-play-icon");
-			var isPlaying = mgr.getState().isPlaying;
+			var mgrState = mgr.getState();
+			var isAudiblyPlaying = mgrState.isPlaying && !mgrState.isBuffering;
 			if (isActive) {
 				el.classList.add("bg-neutral-100", "dark:bg-white/10");
 				el.setAttribute("aria-current", "true");
 				overlay.classList.remove("hidden");
 				overlay.classList.add("flex");
 				title.style.color = PRIMARY_COLOR;
-				if (isPlaying) {
+				if (isAudiblyPlaying) {
 					eqBars.classList.remove("hidden");
 					eqBars.classList.add("flex");
 					playIcon.classList.add("hidden");
@@ -510,7 +541,9 @@ import { ensureMusicManager } from "./music-manager.js";
 
 			renderPlaylist(s.playlist, s.currentIndex);
 			if (s.track) updateTrackUI(s.track);
-			updatePlayStateUI(s.isPlaying);
+			local.isPlaying = Boolean(s.isPlaying);
+			local.isBuffering = Boolean(s.isBuffering);
+			syncPlaybackVisuals();
 			updateModeUI(s.playMode);
 			updateVolumeUI(s.volume, s.isMuted);
 
@@ -539,8 +572,9 @@ import { ensureMusicManager } from "./music-manager.js";
 			) {
 				ui.cover.classList.remove("opacity-0");
 			}
-			// Update cover animation state to match play state
-			ui.cover.style.animationPlayState = s.isPlaying ? "running" : "paused";
+			// Update cover animation state to match play & buffering state
+			ui.cover.style.animationPlayState =
+				s.isPlaying && !s.isBuffering ? "running" : "paused";
 		}
 
 		// ── Event listeners (fm:* from manager) ──────────────────
@@ -571,6 +605,10 @@ import { ensureMusicManager } from "./music-manager.js";
 
 		on("fm:play-state", (e) => {
 			updatePlayStateUI(e.detail.isPlaying);
+		});
+
+		on("fm:buffering", (e) => {
+			updateBufferingUI(e.detail.isBuffering);
 		});
 
 		on("fm:time", (e) => {

@@ -12,9 +12,10 @@ import { url as formatUrl, getSearchUrl } from "@/utils/url-utils";
 let keywordDesktop = "";
 let keywordMobile = "";
 let result: SearchResult[] = [];
+let activeIndex = -1;
 let isSearching = false;
 let initialized = false;
-let debounceTimer: NodeJS.Timeout;
+let debounceTimer: ReturnType<typeof setTimeout> | undefined;
 let searchRequestId = 0;
 
 // --- Mocks for Dev Mode ---
@@ -67,28 +68,82 @@ const setPanelVisibility = (show: boolean, isDesktop: boolean): void => {
 		(!isDesktop && !keywordMobile)
 	)
 		return;
-	show
-		? panel.classList.remove("float-panel-closed")
-		: panel.classList.add("float-panel-closed");
-};
-
-const closeSearchPanel = (): void => {
-	document.getElementById("search-panel")?.classList.add("float-panel-closed");
-	keywordDesktop = "";
-	keywordMobile = "";
-	result = [];
+	if (show) {
+		panel.classList.remove("float-panel-closed");
+	} else {
+		panel.classList.add("float-panel-closed");
+	}
 };
 
 const cancelPendingSearch = (): void => {
 	clearTimeout(debounceTimer);
 	searchRequestId += 1;
 	isSearching = false;
+	activeIndex = -1;
+};
+
+const closeSearchPanel = (): void => {
+	cancelPendingSearch();
+	document.getElementById("search-panel")?.classList.add("float-panel-closed");
+	keywordDesktop = "";
+	keywordMobile = "";
+	result = [];
+	activeIndex = -1;
 };
 
 const handleResultClick = (event: Event, url: string): void => {
 	event.preventDefault();
 	closeSearchPanel();
 	navigateToPage(url);
+};
+
+const scrollActiveItemIntoView = (index: number): void => {
+	const panel = document.getElementById("search-panel");
+	const items = panel?.querySelectorAll<HTMLElement>("[data-search-nav-item]");
+	items?.[index]?.scrollIntoView({ block: "nearest" });
+};
+
+const handleKeydown = (event: KeyboardEvent, isDesktop: boolean): void => {
+	if (event.isComposing || event.keyCode === 229) return;
+
+	const currentKeyword = (isDesktop ? keywordDesktop : keywordMobile).trim();
+	const panel = document.getElementById("search-panel");
+	const isPanelOpen = Boolean(
+		panel && !panel.classList.contains("float-panel-closed"),
+	);
+
+	if (event.key === "ArrowDown") {
+		if (navUrls.length === 0) return;
+		event.preventDefault();
+		if (!isPanelOpen) setPanelVisibility(true, isDesktop);
+		activeIndex = activeIndex < navUrls.length - 1 ? activeIndex + 1 : 0;
+		scrollActiveItemIntoView(activeIndex);
+		return;
+	}
+
+	if (event.key === "ArrowUp") {
+		if (navUrls.length === 0) return;
+		event.preventDefault();
+		if (!isPanelOpen) setPanelVisibility(true, isDesktop);
+		activeIndex = activeIndex > 0 ? activeIndex - 1 : navUrls.length - 1;
+		scrollActiveItemIntoView(activeIndex);
+		return;
+	}
+
+	if (event.key === "Enter") {
+		if (isPanelOpen && activeIndex >= 0 && activeIndex < navUrls.length) {
+			event.preventDefault();
+			const targetUrl = navUrls[activeIndex];
+			closeSearchPanel();
+			navigateToPage(targetUrl);
+			return;
+		}
+		if (currentKeyword) {
+			event.preventDefault();
+			closeSearchPanel();
+			navigateToPage(getSearchUrl(currentKeyword));
+		}
+	}
 };
 
 // --- Core Search Logic ---
@@ -104,6 +159,7 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 	clearTimeout(debounceTimer);
 	const requestId = ++searchRequestId;
 	isSearching = true;
+	activeIndex = -1;
 
 	debounceTimer = setTimeout(async () => {
 		try {
@@ -121,12 +177,14 @@ const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
 			if (requestId !== searchRequestId) return;
 
 			result = searchResults;
+			activeIndex = -1;
 			setPanelVisibility(true, isDesktop);
 		} catch (error) {
 			if (requestId !== searchRequestId) return;
 
 			console.error("Search error:", error);
 			result = [];
+			activeIndex = -1;
 			setPanelVisibility(false, isDesktop);
 		} finally {
 			if (requestId === searchRequestId) {
@@ -174,6 +232,15 @@ onMount(() => {
 });
 
 // --- Reactive Statements ---
+$: visibleResults = result.slice(0, 5);
+$: hasViewMore = result.length > 5;
+$: navUrls = isSearching
+	? []
+	: [
+			...visibleResults.map((item) => item.url),
+			...(hasViewMore ? [getSearchUrl(keywordDesktop || keywordMobile)] : []),
+		];
+
 $: if (initialized && (keywordDesktop || keywordDesktop === "")) {
 	search(keywordDesktop, true);
 }
@@ -187,105 +254,149 @@ $: if (initialized && (keywordMobile || keywordMobile === "")) {
       bg-black/4 hover:bg-black/6 focus-within:bg-black/6
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
 ">
-    <Icon icon="material-symbols:search"
-          class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-    <input id="search-input-desktop" placeholder="{i18n(I18nKey.search)}" bind:value={keywordDesktop}
-           aria-controls="search-panel" data-floating-panel-no-expanded
-           on:focus={handleDesktopFocus}
-           class="transition-all pl-10 text-sm bg-transparent outline-0
+	<Icon
+		icon="material-symbols:search"
+		class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"
+	/>
+	<input
+		id="search-input-desktop"
+		placeholder={i18n(I18nKey.search)}
+		bind:value={keywordDesktop}
+		aria-controls="search-panel"
+		data-floating-panel-no-expanded
+		on:focus={handleDesktopFocus}
+		on:keydown={(e) => handleKeydown(e, true)}
+		class="transition-all pl-10 text-sm bg-transparent outline-0
          h-full w-40 active:w-60 focus:w-60 text-black/50 dark:text-white/50"
-    >
+	/>
 </div>
 
 <!-- toggle btn for phone/tablet view -->
-<button on:click={togglePanel} aria-label="Search Panel" aria-controls="search-panel" aria-expanded="false" id="search-switch"
-		class="btn-plain scale-animation lg:hidden rounded-lg w-11 h-11 active:scale-90">
-    <Icon icon="material-symbols:search" class="text-[1.25rem]"></Icon>
+<button
+	on:click={togglePanel}
+	aria-label="Search Panel"
+	aria-controls="search-panel"
+	aria-expanded="false"
+	id="search-switch"
+	class="btn-plain scale-animation lg:hidden rounded-lg w-11 h-11 active:scale-90"
+>
+	<Icon icon="material-symbols:search" class="text-[1.25rem]" />
 </button>
 
 <!-- search panel -->
-<div id="search-panel" class="float-panel float-panel-closed search-panel absolute md:w-120
+<div
+	id="search-panel"
+	class="float-panel float-panel-closed search-panel absolute md:w-120
 top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2"
-     data-floating-panel data-floating-panel-trigger="search-switch search-input-desktop" inert aria-hidden="true">
-
-    <!-- search bar inside panel for phone/tablet -->
-    <div id="search-bar-inside" class="flex relative lg:hidden transition-all items-center h-11 rounded-xl
+	data-floating-panel
+	data-floating-panel-trigger="search-switch search-input-desktop"
+	inert
+	aria-hidden="true"
+>
+	<!-- search bar inside panel for phone/tablet -->
+	<div
+		id="search-bar-inside"
+		class="flex relative lg:hidden transition-all items-center h-11 rounded-xl
       bg-black/4 hover:bg-black/6 focus-within:bg-black/6
       dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
-  ">
-        <Icon icon="material-symbols:search"
-              class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-        <input placeholder={i18n(I18nKey.search)} bind:value={keywordMobile}
-               on:focus={requestPagefind}
-               class="pl-10 absolute inset-0 text-sm bg-transparent outline-0
+  "
+	>
+		<Icon
+			icon="material-symbols:search"
+			class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"
+		/>
+		<input
+			placeholder={i18n(I18nKey.search)}
+			bind:value={keywordMobile}
+			on:focus={requestPagefind}
+			on:keydown={(e) => handleKeydown(e, false)}
+			class="pl-10 absolute inset-0 text-sm bg-transparent outline-0
                focus:w-60 text-black/50 dark:text-white/50"
-        >
-    </div>
+		/>
+	</div>
 
-    <!-- search results -->
-    {#if isSearching}
-        <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-50">
-            {i18n(I18nKey.searchLoading)}
-        </div>
-    {:else if result.length > 0}
-        {#each result.slice(0, 5) as item}
-            <a href={item.url}
-               on:click={(e) => handleResultClick(e, item.url)}
-               class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block
-           rounded-xl text-lg px-3 py-2 hover:bg-(--btn-plain-bg-hover) active:bg-(--btn-plain-bg-active)">
-                <div class="transition text-90 inline-flex font-bold group-hover:text-(--primary)">
-                    {@html item.meta.title}
-                    <Icon icon="fa7-solid:chevron-right"
-                          class="transition text-[0.75rem] translate-x-1 my-auto text-(--primary)"></Icon>
-                </div>
-                {#if item.excerpt.includes('<mark>')}
-                    <div class="transition text-sm text-50" style="display: flex; align-items: flex-start; margin-top: 0.1rem">
-                        <div>
-                            {@html item.excerpt}
-                        </div>
-                    </div>
-                {/if}
+	<!-- search results -->
+	{#if isSearching}
+		<div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-50">
+			{i18n(I18nKey.searchLoading)}
+		</div>
+	{:else if result.length > 0}
+		{#each visibleResults as item, index}
+			<a
+				href={item.url}
+				data-search-nav-item
+				on:click={(e) => handleResultClick(e, item.url)}
+				class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block
+           rounded-xl text-lg px-3 py-2 hover:bg-(--btn-plain-bg-hover) active:bg-(--btn-plain-bg-active)"
+				class:search-result-active={activeIndex === index}
+			>
+				<div
+					class="transition text-90 inline-flex font-bold group-hover:text-(--primary)"
+					class:text-(--primary)={activeIndex === index}
+				>
+					{@html item.meta.title}
+					<Icon
+						icon="fa7-solid:chevron-right"
+						class="transition text-[0.75rem] translate-x-1 my-auto text-(--primary)"
+					/>
+				</div>
+				{#if item.excerpt.includes("<mark>")}
+					<div class="transition text-sm text-50" style="display: flex; align-items: flex-start; margin-top: 0.1rem">
+						<div>
+							{@html item.excerpt}
+						</div>
+					</div>
+				{/if}
 
-                {#if item.content && item.content.includes('<mark>')}
-                    <div class="transition text-sm text-30" style="display: flex; align-items: flex-start; margin-top: 0.1rem">
-                        <span style="display: inline-block; background-color: var(--btn-plain-bg-active); color: var(--primary); padding: 0.1em 0.4em; border-radius: 5px; font-size: 0.75em; font-weight: 600; margin-right: 0.5em; shrink: 0;">
-                            {i18n(I18nKey.searchContent)}
-                        </span>
-                        <div>
-                            {@html item.content}
-                        </div>
-                    </div>
-                {/if}
-            </a>
-        {/each}
-        {#if result.length > 5}
-            <a href={getSearchUrl(keywordDesktop || keywordMobile)}
-               on:click={(e) => handleResultClick(e, getSearchUrl(keywordDesktop || keywordMobile))}
-               class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block rounded-xl text-lg px-3 py-2 hover:bg-(--btn-plain-bg-hover) active:bg-(--btn-plain-bg-active) text-(--primary) font-bold text-center">
-                <span class="inline-flex items-center">
-                    {i18n(I18nKey.searchViewMore).replace('{count}', (result.length - 5).toString())}
-                    <Icon icon="fa7-solid:arrow-right" class="transition text-[0.75rem] ml-1"></Icon>
-                </span>
-            </a>
-        {/if}
-    {:else if result.length === 0}
-        <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-50">
-            {i18n(I18nKey.searchNoResults)}
-        </div>
-    {:else if keywordDesktop || keywordMobile}
-        <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-50">
-            {i18n(I18nKey.searchTypeSomething)}
-        </div>
-    {/if}
+				{#if item.content && item.content.includes("<mark>")}
+					<div class="transition text-sm text-30" style="display: flex; align-items: flex-start; margin-top: 0.1rem">
+						<span style="display: inline-block; background-color: var(--btn-plain-bg-active); color: var(--primary); padding: 0.1em 0.4em; border-radius: 5px; font-size: 0.75em; font-weight: 600; margin-right: 0.5em; shrink: 0;">
+							{i18n(I18nKey.searchContent)}
+						</span>
+						<div>
+							{@html item.content}
+						</div>
+					</div>
+				{/if}
+			</a>
+		{/each}
+		{#if hasViewMore}
+			<a
+				href={getSearchUrl(keywordDesktop || keywordMobile)}
+				data-search-nav-item
+				on:click={(e) => handleResultClick(e, getSearchUrl(keywordDesktop || keywordMobile))}
+				class="transition first-of-type:mt-2 lg:first-of-type:mt-0 group block rounded-xl text-lg px-3 py-2 hover:bg-(--btn-plain-bg-hover) active:bg-(--btn-plain-bg-active) text-(--primary) font-bold text-center"
+				class:search-result-active={activeIndex === visibleResults.length}
+			>
+				<span class="inline-flex items-center">
+					{i18n(I18nKey.searchViewMore).replace("{count}", (result.length - 5).toString())}
+					<Icon icon="fa7-solid:arrow-right" class="transition text-[0.75rem] ml-1" />
+				</span>
+			</a>
+		{/if}
+	{:else if result.length === 0}
+		<div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-50">
+			{i18n(I18nKey.searchNoResults)}
+		</div>
+	{:else if keywordDesktop || keywordMobile}
+		<div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-50">
+			{i18n(I18nKey.searchTypeSomething)}
+		</div>
+	{/if}
 </div>
 
 <style>
-    input:focus {
-        outline: 0;
-    }
+	input:focus {
+		outline: 0;
+	}
 
-    .search-panel {
-        max-height: calc(100vh - 100px);
-        overflow-y: auto;
-    }
+	.search-panel {
+		max-height: calc(100vh - 100px);
+		overflow-y: auto;
+	}
+
+	.search-result-active {
+		background-color: var(--btn-plain-bg-hover);
+		box-shadow: inset 0 0 0 1px color-mix(in oklch, var(--primary) 45%, transparent);
+	}
 </style>

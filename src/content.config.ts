@@ -20,6 +20,8 @@ type PostData = {
 	licenseUrl: string;
 	comment: boolean;
 	typography: boolean;
+	outdated: boolean;
+	outdatedThreshold?: number;
 	password: string;
 	passwordHint: string;
 	series: string;
@@ -80,6 +82,8 @@ const postsCollection: ContentCollection<PostData> = defineCollection({
 		licenseUrl: z.string().optional().default(""),
 		comment: z.boolean().optional().default(true),
 		typography: z.boolean().optional().default(true),
+		outdated: z.boolean().optional().default(false),
+		outdatedThreshold: z.number().int().nonnegative().optional(),
 		password: z.string().optional().default(""),
 		passwordHint: z.string().optional().default(""),
 		series: z.string().optional().default(""),

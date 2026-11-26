@@ -117,6 +117,7 @@ export function buildVndbTabs(items: VndbUlistEntry[]): VndbTab[] {
 	for (const item of items) {
 		for (const label of item.labels || []) {
 			const key = normalizeVndbLabel(label.label);
+			if (key === "voted") continue;
 			if (!labelMap.has(key)) {
 				labelMap.set(key, label.label);
 			}

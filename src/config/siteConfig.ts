@@ -190,7 +190,7 @@ export const siteConfig: SiteConfig = {
 			// 是否显示字数
 			showWords: false,
 			// 是否显示阅读时间
-			showReadingTime: false,
+			showReadingTime: true,
 		},
 		// 底部 PostStats 统计信息显示控制
 		// 如果tagsPosition设置为"bottom"，则stats将不显示
@@ -231,9 +231,9 @@ export const siteConfig: SiteConfig = {
 			// 注意：只有 theme 配置成 obsidian 主题才能基本支持这些语法，其他主题会有样式问题或不兼容的情况
 			enablePythonMarkdownAdmonitions: false,
 		},
-		// 文章页底部的"上次编辑时间"卡片开关
+		// 文章页底部的"上次编辑 / 过时提醒"总开关（默认不触发，仅当文章 frontmatter 显式设置 outdated: true 或 outdatedThreshold 时生效）
 		showLastModified: true,
-		// 文章过期阈值（天数），超过此天数才显示"上次编辑"卡片
+		// 当文章设置了 outdatedThreshold 时的默认参考阈值（天数）
 		outdatedThreshold: 30,
 		// 是否显示文章页的分享按钮
 		share: true,
@@ -276,7 +276,7 @@ export const siteConfig: SiteConfig = {
 		// Bangumi API 地址
 		apiUrl: "https://api.bangumi.pro",
 		// 详情页地址
-		subjectBaseUrl: "https://api.bangumi.pro/subject/",
+		subjectBaseUrl: "https://bgm.tv/subject/",
 		// 条目类型排序，数组中的类型将按顺序优先展示
 		// 可选值: "anime" | "book" | "music" | "game" | "real" (暂不支持"real"类型)
 		// 未列出的类型将按默认顺序排在后面

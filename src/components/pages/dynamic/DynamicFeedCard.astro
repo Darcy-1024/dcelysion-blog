@@ -98,7 +98,22 @@ const commentSrc =
 				<Icon name="material-symbols:push-pin" class="size-3" />
 				{i18n(I18nKey.pinned)}
 			</span>
-			<span class="page-entry-decoration" aria-hidden="true">
+			<a
+				href={entry?.detailUrl || undefined}
+				class="page-detail-link"
+				data-dynamic-detail-link
+				aria-label={i18n(I18nKey.projectDetails)}
+				hidden={!entry?.detailUrl}
+			>
+				<span>{i18n(I18nKey.projectDetails)}</span>
+				<Icon name="material-symbols:chevron-right-rounded" />
+			</a>
+			<span
+				class="page-entry-decoration"
+				data-dynamic-decoration
+				aria-hidden="true"
+				hidden={Boolean(entry?.detailUrl)}
+			>
 				<Icon name="material-symbols:format-quote-rounded" />
 			</span>
 		</header>

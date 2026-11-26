@@ -78,7 +78,10 @@ const categoryMap: Record<string, { name: string; subjectType: number }> = {
 	real: { name: i18n(I18nKey.bangumiCategoryReal), subjectType: 6 },
 };
 
+let userSelectedTab = false;
+
 function handleTabChange(tabId: string) {
+	userSelectedTab = true;
 	activeTab = tabId;
 }
 
@@ -111,6 +114,17 @@ async function fetchCategory(
 	return allItems;
 }
 
+function getHashTab(): string {
+	if (typeof window === "undefined") return "";
+	const raw = window.location.hash.replace(/^#/, "");
+	if (!raw) return "";
+	try {
+		return decodeURIComponent(raw);
+	} catch {
+		return "";
+	}
+}
+
 async function loadDynamicData() {
 	if (!fetchConfig) return;
 	const { username, apiUrl, categories, categoryOrder, pagination } =
@@ -131,34 +145,8 @@ async function loadDynamicData() {
 		});
 	}
 
-	const newTabs: Array<{ id: string; name: string; count: number }> = [];
-	const newData: Record<string, UserSubjectCollection[]> = {};
-
-	for (const catKey of enabled) {
-		const info = categoryMap[catKey];
-		if (!info) continue;
-		try {
-			const data = await fetchCategory(
-				apiUrl,
-				username,
-				info.subjectType,
-				pagination,
-			);
-			// NSFW 拦截：hide 模式下过滤掉 NSFW 条目，保持标签页计数一致
-			const filtered = filterNsfw(data, nsfwMode, isBangumiNsfw);
-			newData[catKey] = filtered;
-			newTabs.push({ id: catKey, name: info.name, count: filtered.length });
-		} catch (e) {
-			console.error(`[Bangumi] Failed to fetch ${catKey} data:`, e);
-			fetchLoading = false;
-			error = true;
-			errorTitle = i18n(I18nKey.bangumiFetchError);
-			errorDesc = i18n(I18nKey.bangumiFetchErrorDesc);
-			return;
-		}
-	}
-
-	if (newTabs.length === 0 || newTabs.every((t) => t.count === 0)) {
+	const validEnabled = enabled.filter((catKey) => Boolean(categoryMap[catKey]));
+	if (validEnabled.length === 0) {
 		fetchLoading = false;
 		error = true;
 		errorTitle = i18n(I18nKey.bangumiNoData);
@@ -166,9 +154,88 @@ async function loadDynamicData() {
 		return;
 	}
 
-	dynamicTabs = newTabs;
-	dynamicData = newData;
-	activeTab = newTabs[0].id;
+	const hashTab = getHashTab();
+	const loadedMap = new Map<string, UserSubjectCollection[]>();
+
+	const syncDynamicState = () => {
+		const orderedTabs: Array<{ id: string; name: string; count: number }> = [];
+		const orderedData: Record<string, UserSubjectCollection[]> = {};
+		for (const key of validEnabled) {
+			const items = loadedMap.get(key);
+			if (!items) continue;
+			orderedData[key] = items;
+			orderedTabs.push({
+				id: key,
+				name: categoryMap[key].name,
+				count: items.length,
+			});
+		}
+		dynamicData = orderedData;
+		dynamicTabs = orderedTabs;
+		if (!userSelectedTab) {
+			if (hashTab && orderedTabs.some((t) => t.id === hashTab)) {
+				activeTab = hashTab;
+			} else if (!activeTab && orderedTabs.length > 0) {
+				activeTab = orderedTabs[0].id;
+			}
+		}
+	};
+
+	const loadOneCategory = async (catKey: string): Promise<void> => {
+		const info = categoryMap[catKey];
+		const data = await fetchCategory(
+			apiUrl,
+			username,
+			info.subjectType,
+			pagination,
+		);
+		// NSFW 拦截：hide 模式下过滤掉 NSFW 条目，保持标签页计数一致
+		const filtered = filterNsfw(data, nsfwMode, isBangumiNsfw);
+		loadedMap.set(catKey, filtered);
+	};
+
+	const [firstKey, ...restKeys] = validEnabled;
+	try {
+		await loadOneCategory(firstKey);
+		syncDynamicState();
+		fetchLoading = false;
+	} catch (e) {
+		console.error(`[Bangumi] Failed to fetch ${firstKey} data:`, e);
+	}
+
+	if (restKeys.length > 0) {
+		await Promise.allSettled(
+			restKeys.map(async (catKey) => {
+				try {
+					await loadOneCategory(catKey);
+					syncDynamicState();
+					if (fetchLoading) {
+						fetchLoading = false;
+					}
+				} catch (e) {
+					console.error(`[Bangumi] Failed to fetch ${catKey} data:`, e);
+					throw e;
+				}
+			}),
+		);
+	}
+
+	if (loadedMap.size === 0) {
+		fetchLoading = false;
+		error = true;
+		errorTitle = i18n(I18nKey.bangumiFetchError);
+		errorDesc = i18n(I18nKey.bangumiFetchErrorDesc);
+		return;
+	}
+
+	if (dynamicTabs.every((t) => t.count === 0)) {
+		fetchLoading = false;
+		error = true;
+		errorTitle = i18n(I18nKey.bangumiNoData);
+		errorDesc = i18n(I18nKey.bangumiNoDataDescription);
+		return;
+	}
+
 	fetchLoading = false;
 
 	const now = new Date();

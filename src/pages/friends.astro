@@ -102,9 +102,33 @@ const description =
       <div class="friends-grid my-4">
         {
           items.length === 0 && (
-            <div class="col-span-full flex flex-col items-center justify-center py-12 text-neutral-400 dark:text-neutral-500">
-              <Icon name="material-symbols:group-off-outline" class="text-4xl mb-3" />
-              <div class="text-sm">{i18n(I18nKey.friendsEmpty)}</div>
+            <div class="col-span-full rounded-2xl border border-dashed border-(--line-divider) bg-black/[0.015] dark:bg-white/[0.02] px-6 py-10 flex flex-col items-center justify-center text-center">
+              <div
+                class="w-12 h-12 rounded-2xl bg-(--primary)/10 text-(--primary) flex items-center justify-center mb-3.5"
+                aria-hidden="true"
+              >
+                <Icon name="material-symbols:handshake-outline" class="text-2xl" />
+              </div>
+              <p class="text-base font-semibold text-neutral-800 dark:text-neutral-200">
+                {i18n(I18nKey.friendsEmpty)}
+              </p>
+              <p class="mt-1.5 text-sm text-neutral-500 dark:text-neutral-400 max-w-md leading-relaxed">
+                期待与更多同好相遇，欢迎互换友链、彼此串门交流。
+              </p>
+              {friendsPageConfig.showCustomContent !== false && (
+                <a
+                  href="#friends-apply"
+                  data-no-swup
+                  class="mt-4 inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-(--primary)/10 hover:bg-(--primary)/15 text-(--primary) text-sm font-medium transition-colors duration-200"
+                >
+                  <span>查看申请说明</span>
+                  <Icon
+                    name="material-symbols:arrow-downward-rounded"
+                    class="text-base"
+                    aria-hidden="true"
+                  />
+                </a>
+              )}
             </div>
           )
         }
@@ -175,11 +199,11 @@ const description =
   </div>
 
   {friendsPageConfig.showCustomContent !== false && (
-    <div class="mt-4 card-base z-10 px-9 py-6 relative w-full">
+    <friend-apply-card id="friends-apply" class="block mt-4 scroll-mt-24 card-base z-10 px-9 py-6 relative w-full">
       <Markdown class="">
         <Content />
       </Markdown>
-    </div>
+    </friend-apply-card>
   )}
 
   <!-- 评论区 -->
@@ -190,6 +214,87 @@ const description =
   )}
 
   <script slot="head" is:inline>
+    if (!customElements.get("friend-apply-card")) {
+      class FriendApplyCard extends HTMLElement {
+        timers = new Map();
+
+        onClick = async (e) => {
+          const target = e.target;
+          if (!(target instanceof Element)) return;
+          const button = target.closest("button[data-copy-value]");
+          if (!button) return;
+          const value = button.dataset.copyValue;
+          if (!value) return;
+
+          const copied = await this.copyText(value);
+          if (!copied || !this.isConnected) return;
+
+          const prevTimer = this.timers.get(button);
+          if (prevTimer) clearTimeout(prevTimer);
+
+          this.setCopiedState(button, true);
+          const timerId = setTimeout(() => {
+            this.timers.delete(button);
+            this.setCopiedState(button, false);
+          }, 1500);
+          this.timers.set(button, timerId);
+        };
+
+        connectedCallback() {
+          this.addEventListener("click", this.onClick);
+        }
+
+        disconnectedCallback() {
+          this.removeEventListener("click", this.onClick);
+          this.timers.forEach((timerId, button) => {
+            clearTimeout(timerId);
+            this.setCopiedState(button, false);
+          });
+          this.timers.clear();
+        }
+
+        setCopiedState(button, copied) {
+          const icons = button.querySelectorAll("svg");
+          if (icons[0]) icons[0].classList.toggle("hidden", copied);
+          if (icons[1]) icons[1].classList.toggle("hidden", !copied);
+          button.dataset.copied = copied ? "true" : "false";
+        }
+
+        fallbackCopy(text) {
+          const textarea = document.createElement("textarea");
+          textarea.value = text;
+          textarea.setAttribute("readonly", "");
+          textarea.style.position = "fixed";
+          textarea.style.top = "-9999px";
+          textarea.style.opacity = "0";
+          document.body.appendChild(textarea);
+          textarea.select();
+          let ok = false;
+          try {
+            ok = document.execCommand("copy");
+          } catch {
+            ok = false;
+          } finally {
+            textarea.remove();
+          }
+          return ok;
+        }
+
+        async copyText(text) {
+          try {
+            if (navigator.clipboard && typeof navigator.clipboard.writeText === "function") {
+              await navigator.clipboard.writeText(text);
+              return true;
+            }
+          } catch {
+            // Fall back to execCommand on restricted clipboard contexts
+          }
+          return this.fallbackCopy(text);
+        }
+      }
+      customElements.define("friend-apply-card", FriendApplyCard);
+    }
+
     if (!customElements.get("friend-filter")) {
       class FriendFilter extends HTMLElement {
         selectedTag = "all";

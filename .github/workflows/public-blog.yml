@@ -16,6 +16,8 @@ jobs:
   build:
     if: github.ref == 'refs/heads/master'
     runs-on: ubuntu-latest
+    env:
+      BLOG_FONT_SUBSET_CACHE: '1'
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -32,6 +34,17 @@ jobs:
           key: pnpm-store-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json') }}
 
       - run: pnpm install --frozen-lockfile
+      - name: Restore generated font subsets
+        id: font-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: |
+            cache/build/font-subsets/????????????????????????????????????????????????????????????????.bin
+            cache/build/font-subsets/manifest.json
+          # The final set of glyphs is known only after Astro renders the site.
+          key: public-fonts-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'scripts/subset-fonts.ts', 'scripts/font-subsets.ts', 'scripts/font-subset-cache.ts') }}
+          restore-keys: |
+            public-fonts-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'scripts/subset-fonts.ts', 'scripts/font-subsets.ts', 'scripts/font-subset-cache.ts') }}-
       - name: Restore public build metadata
         uses: actions/cache@v4
         with:
@@ -41,6 +54,15 @@ jobs:
           key: public-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'scripts/generate-lqips.ts', 'scripts/generate-github-card-data.ts') }}-${{ github.sha }}
           restore-keys: |
             public-build-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'scripts/generate-lqips.ts', 'scripts/generate-github-card-data.ts') }}-
+      - name: Restore Astro image transforms
+        id: astro-images-restore
+        uses: actions/cache/restore@v4
+        continue-on-error: true
+        with:
+          path: node_modules/.astro/assets
+          key: astro-images-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json', 'astro.config.mjs') }}-lookup
+          restore-keys: |
+            astro-images-v1-${{ runner.os }}-${{ runner.arch }}-${{ hashFiles('pnpm-lock.yaml', 'pnpm-workspace.yaml', 'package.json', 'astro.config.mjs') }}-
       - run: pnpm run build
         env:
           PUBLIC_BUILD_REVISION: ${{ github.sha }}
@@ -55,6 +77,58 @@ jobs:
           test -s dist/__route/version.json
           find dist/_astro/fonts -type f -name '*.woff2' -print -quit | grep -q .
           test -z "$(find dist/_astro/fonts -type f -name '*.ttf' -print -quit)"
+
+      - name: Save changed font subsets
+        if: hashFiles('cache/build/font-subsets/manifest.json') != '' && steps.font-cache.outputs.cache-matched-key != format('{0}-{1}', steps.font-cache.outputs.cache-primary-key, hashFiles('cache/build/font-subsets/manifest.json'))
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          path: |
+            cache/build/font-subsets/????????????????????????????????????????????????????????????????.bin
+            cache/build/font-subsets/manifest.json
+          key: ${{ steps.font-cache.outputs.cache-primary-key }}-${{ hashFiles('cache/build/font-subsets/manifest.json') }}
+
+      - name: Select public Astro image transforms for caching
+        id: astro-images-snapshot
+        continue-on-error: true
+        shell: bash
+        env:
+          CACHE_KEY: ${{ steps.astro-images-restore.outputs.cache-primary-key }}
+          RESTORED_KEY: ${{ steps.astro-images-restore.outputs.cache-matched-key }}
+          LC_ALL: C
+        run: |
+          cache_dir=node_modules/.astro/assets
+          [[ -n "$CACHE_KEY" && -d "$cache_dir" ]] || exit 0
+          [[ ! -L node_modules && ! -L node_modules/.astro && ! -L "$cache_dir" ]]
+          shopt -s nullglob dotglob
+          assets=()
+          # dist is the reviewed public output after finalize-blog-release.
+          for asset in "$cache_dir"/*; do
+            public="dist/_astro/${asset##*/}"
+            case "$asset" in
+              *.avif|*.webp|*.png|*.jpg|*.jpeg|*.gif|*.svg)
+                if [[ -f "$asset" && ! -L "$asset" && -f "$public" ]] && cmp -s -- "$asset" "$public"; then
+                  assets+=("$asset")
+                  continue
+                fi
+                ;;
+            esac
+            rm -f -- "$asset"
+          done
+          echo "Public image transforms: ${#assets[@]}"
+          (( ${#assets[@]} > 0 )) || exit 0
+          fingerprint=$(sha256sum --zero -- "${assets[@]}" | sha256sum)
+          key="${CACHE_KEY%-lookup}-${fingerprint%% *}"
+          if [[ "$key" != "$RESTORED_KEY" ]]; then
+            echo "key=$key" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Save Astro image transforms
+        if: steps.astro-images-snapshot.outputs.key != ''
+        uses: actions/cache/save@v4
+        continue-on-error: true
+        with:
+          path: node_modules/.astro/assets
+          key: ${{ steps.astro-images-snapshot.outputs.key }}
 
       - name: Archive reviewed public output
         run: |

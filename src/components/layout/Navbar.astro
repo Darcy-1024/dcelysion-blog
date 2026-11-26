@@ -184,6 +184,58 @@ const logoVariants = await Promise.all(
             transform: none;
         }
     }
+
+    #music-player-switch[data-playing="true"],
+    #music-player-switch[data-buffering="true"] {
+        color: var(--primary);
+    }
+
+    #music-player-switch .music-switch-ring {
+        opacity: 0;
+        transition: opacity 180ms ease;
+    }
+
+    #music-player-switch[data-buffering="true"] .music-switch-ring {
+        opacity: 1;
+        animation: navbar-music-spin 0.9s linear infinite;
+    }
+
+    #music-player-switch .music-switch-dot {
+        opacity: 0;
+        transform: scale(0.6);
+        transition: opacity 180ms ease, transform 180ms ease;
+    }
+
+    #music-player-switch[data-playing="true"]:not([data-buffering="true"]) .music-switch-dot {
+        opacity: 1;
+        transform: scale(1);
+        animation: navbar-music-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes navbar-music-spin {
+        from {
+            transform: rotate(0deg);
+        }
+        to {
+            transform: rotate(360deg);
+        }
+    }
+
+    @keyframes navbar-music-pulse {
+        0%, 100% {
+            opacity: 0.95;
+        }
+        50% {
+            opacity: 0.45;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        #music-player-switch[data-buffering="true"] .music-switch-ring,
+        #music-player-switch[data-playing="true"]:not([data-buffering="true"]) .music-switch-dot {
+            animation: none;
+        }
+    }
 </style>
 <div id="navbar" class="z-50" style={`--navbar-glass-blur: ${navbarBlur}px;`} data-transparent-mode={navbarTransparentMode} data-is-home={isHomePageCheck} data-full-width={navbarWidthFull}>
     <script is:inline define:vars={{
@@ -275,8 +327,13 @@ const logoVariants = await Promise.all(
                     client:load
                 />
                 {musicPlayerConfig.showInNavbar && (
-                    <button aria-label={i18n(I18nKey.music)} aria-controls="music-nav-panel" aria-expanded="false" class="btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90" id="music-player-switch">
+                    <button aria-label={i18n(I18nKey.music)} aria-controls="music-nav-panel" aria-expanded="false" class="btn-plain scale-animation rounded-lg h-11 w-11 active:scale-90 relative" id="music-player-switch" data-playing="false" data-buffering="false">
                         <Icon name="material-symbols:music-note-rounded" class="text-[1.25rem]"></Icon>
+                        <svg class="music-switch-ring pointer-events-none absolute w-7 h-7" viewBox="0 0 28 28" fill="none" aria-hidden="true">
+                            <circle cx="14" cy="14" r="11.5" stroke="currentColor" stroke-opacity="0.2" stroke-width="1.75" />
+                            <path d="M14 2.5a11.5 11.5 0 0 1 11.5 11.5" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" />
+                        </svg>
+                        <span class="music-switch-dot pointer-events-none absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-(--primary)" aria-hidden="true"></span>
                     </button>
                 )}
                 {backgroundWallpaper.playerEnable && backgroundWallpaper.mode !== "none" && (
@@ -313,14 +370,20 @@ const logoVariants = await Promise.all(
 </div>
 
 <script>
+import {
+    closeNavbarPanelsExcept,
+    toggleNavbarPanel,
+} from "@/utils/floating-panel-utils";
+
+type NavbarMusicWindow = Window & {
+    __navbarMusicSwitchInit?: boolean;
+};
+
 function loadButtonScript() {
     let settingBtn = document.getElementById("display-settings-switch");
     if (settingBtn) {
         settingBtn.onclick = function () {
-            let settingPanel = document.getElementById("display-setting");
-            if (settingPanel) {
-                settingPanel.classList.toggle("float-panel-closed");
-            }
+            toggleNavbarPanel("display-setting");
         };
     }
 
@@ -329,7 +392,11 @@ function loadButtonScript() {
         menuBtn.onclick = function () {
             let menuPanel = document.getElementById("nav-menu-panel");
             if (menuPanel) {
-                menuPanel.classList.toggle("float-panel-closed");
+                const willOpen = menuPanel.classList.contains("float-panel-closed");
+                if (willOpen) {
+                    closeNavbarPanelsExcept();
+                }
+                menuPanel.classList.toggle("float-panel-closed", !willOpen);
             }
         };
     }
@@ -337,11 +404,49 @@ function loadButtonScript() {
     let musicBtn = document.getElementById("music-player-switch");
     if (musicBtn) {
         musicBtn.onclick = function () {
-            let musicPanel = document.getElementById("music-nav-panel");
-            if (musicPanel) {
-                musicPanel.classList.toggle("float-panel-closed");
-            }
+            toggleNavbarPanel("music-nav-panel");
         };
+
+        const syncMusicSwitchState = (playing: boolean, buffering: boolean) => {
+            musicBtn!.dataset.playing = playing ? "true" : "false";
+            musicBtn!.dataset.buffering = buffering ? "true" : "false";
+            musicBtn!.toggleAttribute("aria-busy", buffering);
+        };
+
+        const initialMusicState = window.__fireflyMusic?.getState() as
+            | { isPlaying?: boolean; isBuffering?: boolean }
+            | undefined;
+        if (initialMusicState) {
+            syncMusicSwitchState(
+                Boolean(initialMusicState.isPlaying),
+                Boolean(initialMusicState.isBuffering),
+            );
+        }
+
+        const navWin = window as NavbarMusicWindow;
+        if (!navWin.__navbarMusicSwitchInit) {
+            navWin.__navbarMusicSwitchInit = true;
+            window.addEventListener("fm:play-state", (e) => {
+                const detail = (e as CustomEvent<{ isPlaying?: boolean }>).detail;
+                const current = window.__fireflyMusic?.getState() as
+                    | { isBuffering?: boolean }
+                    | undefined;
+                syncMusicSwitchState(
+                    Boolean(detail?.isPlaying),
+                    Boolean(current?.isBuffering),
+                );
+            });
+            window.addEventListener("fm:buffering", (e) => {
+                const detail = (e as CustomEvent<{ isBuffering?: boolean }>).detail;
+                const current = window.__fireflyMusic?.getState() as
+                    | { isPlaying?: boolean }
+                    | undefined;
+                syncMusicSwitchState(
+                    Boolean(current?.isPlaying),
+                    Boolean(detail?.isBuffering),
+                );
+            });
+        }
     }
 
     // 背景视频播放器控制按钮
@@ -391,29 +496,9 @@ function loadButtonScript() {
     let themeSwitchBtn = document.getElementById("scheme-switch");
     if (themeSwitchBtn) {
         themeSwitchBtn.onclick = function () {
-            let themePanel = document.getElementById("theme-mode-panel");
-            if (themePanel) {
-                themePanel.classList.toggle("float-panel-closed");
-            }
+            toggleNavbarPanel("theme-mode-panel");
         };
     }
-
-    document.addEventListener("click", function(event) {
-        // nav-menu-panel 不再走点击外部关闭：面板现在覆盖全屏（inset-0），任意点击都在面板内，
-        // 该监听永不触发；关闭由抽屉自己的遮罩点击/Document 委托负责。
-        const panels = ["display-setting", "music-nav-panel", "theme-mode-panel"];
-        const buttons = ["display-settings-switch", "music-player-switch", "scheme-switch"];
-
-        panels.forEach((id, index) => {
-            const panel = document.getElementById(id);
-            const button = document.getElementById(buttons[index]);
-            if (panel && button && !panel.classList.contains("float-panel-closed")) {
-                if (event.target instanceof Node && !panel.contains(event.target) && !button.contains(event.target)) {
-                    panel.classList.add("float-panel-closed");
-                }
-            }
-        });
-    });
 }
 
 loadButtonScript();

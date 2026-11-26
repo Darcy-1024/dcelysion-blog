@@ -295,17 +295,6 @@ $effect(() => {
 	}
 });
 
-// Auto-switch to wallpaper tab when entering overlay/fullscreen mode
-$effect(() => {
-	if (
-		(wallpaperMode === WALLPAPER_OVERLAY ||
-			wallpaperMode === WALLPAPER_FULLSCREEN) &&
-		hasOverlaySettings
-	) {
-		activeTab = "wallpaper";
-	}
-});
-
 let overlaySliderItems = $derived<OverlaySliderItem[]>([
 	{
 		key: "opacity",

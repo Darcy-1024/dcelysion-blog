@@ -100,9 +100,13 @@ const widgetId =
     </button>
 
     <!-- Play/Pause (Feature) -->
-    <button class="btn-play w-12 h-12 bg-(--btn-regular-bg) hover:bg-(--btn-regular-bg-hover) active:bg-(--btn-regular-bg-active) text-(--primary) rounded-full flex items-center justify-center transition-all duration-300" title={i18n(I18nKey.musicPlay)} aria-label={i18n(I18nKey.musicPlay)}>
+    <button class="btn-play relative w-12 h-12 bg-(--btn-regular-bg) hover:bg-(--btn-regular-bg-hover) active:bg-(--btn-regular-bg-active) text-(--primary) rounded-full flex items-center justify-center transition-all duration-300" title={i18n(I18nKey.musicPlay)} aria-label={i18n(I18nKey.musicPlay)}>
         <Icon name="material-symbols:play-arrow-rounded" class="icon-play text-3xl ml-0.5" aria-hidden="true" />
         <Icon name="material-symbols:pause-rounded" class="icon-pause text-3xl hidden" aria-hidden="true" />
+        <svg class="icon-buffering w-6 h-6 hidden animate-spin" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <circle class="opacity-25" cx="12" cy="12" r="9" stroke="currentColor" stroke-width="2.5" />
+            <path class="opacity-95" fill="currentColor" d="M12 3a9 9 0 0 1 9 9h-2.5a6.5 6.5 0 0 0-6.5-6.5V3Z" />
+        </svg>
     </button>
 
     <!-- Next -->
@@ -161,7 +165,8 @@ const widgetId =
         animation: spin-slow 10s linear infinite;
     }
     @media (prefers-reduced-motion: reduce) {
-        .animate-spin-slow {
+        .animate-spin-slow,
+        .icon-buffering {
             animation: none;
         }
     }

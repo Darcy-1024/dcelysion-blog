@@ -64,6 +64,7 @@ export function ensureMusicManager() {
 		playlist: [],
 		currentIndex: 0,
 		isPlaying: false,
+		isBuffering: false,
 		playMode: 0, // 0: list, 1: one, 2: random
 		volume:
 			localStorage.getItem("music-player-volume") !== null
@@ -123,6 +124,13 @@ export function ensureMusicManager() {
 		state.isPlaying = isPlaying;
 		if (isPlaying) state.error = null;
 		emit("fm:play-state", { isPlaying });
+	}
+
+	function setBuffering(isBuffering) {
+		var next = Boolean(isBuffering);
+		if (state.isBuffering === next) return;
+		state.isBuffering = next;
+		emit("fm:buffering", { isBuffering: next });
 	}
 
 	function registerMediaActions() {
@@ -251,12 +259,19 @@ export function ensureMusicManager() {
 		}
 
 		if (autoPlay) {
+			if (audio.readyState < 3) {
+				setBuffering(true);
+			}
 			audio.play().catch((e) => {
 				if (ver !== loadVersion) return; // stale, discard
 				if (e.name === "AbortError") return; // interrupted by new load
+				playbackRequested = false;
+				setBuffering(false);
+				setPlaying(false);
 				console.warn("Autoplay blocked:", e);
 			});
 		} else {
+			setBuffering(false);
 			setPlaying(false);
 		}
 	}
@@ -268,6 +283,7 @@ export function ensureMusicManager() {
 		var track = state.playlist[index];
 		var ver = ++loadVersion;
 		playbackRequested = !!autoPlay;
+		setBuffering(Boolean(autoPlay));
 
 		if (errorSkipTimeout) {
 			clearTimeout(errorSkipTimeout);
@@ -308,12 +324,19 @@ export function ensureMusicManager() {
 				loadTrack(state.currentIndex, true);
 				return;
 			}
+			if (audio.readyState < 3) {
+				setBuffering(true);
+			}
 			audio.play().catch((e) => {
 				if (e.name === "AbortError") return;
+				playbackRequested = false;
+				setBuffering(false);
+				setPlaying(false);
 				console.warn("Playback failed:", e);
 			});
 		} else {
 			playbackRequested = false;
+			setBuffering(false);
 			audio.pause();
 		}
 	}
@@ -406,8 +429,24 @@ export function ensureMusicManager() {
 
 	audio.addEventListener("loadedmetadata", emitAudioTime);
 	audio.addEventListener("loadedmetadata", syncMediaPosition);
-	audio.addEventListener("play", () => setPlaying(true));
-	audio.addEventListener("pause", () => setPlaying(false));
+	audio.addEventListener("play", () => {
+		if (audio.readyState < 3) {
+			setBuffering(true);
+		}
+		setPlaying(true);
+	});
+	audio.addEventListener("pause", () => {
+		setBuffering(false);
+		setPlaying(false);
+	});
+	audio.addEventListener("waiting", () => {
+		if (playbackRequested || !audio.paused) {
+			setBuffering(true);
+		}
+	});
+	audio.addEventListener("canplay", () => {
+		setBuffering(false);
+	});
 
 	audio.addEventListener("timeupdate", () => {
 		if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
@@ -429,20 +468,26 @@ export function ensureMusicManager() {
 	});
 
 	audio.addEventListener("ended", () => {
+		setBuffering(false);
 		setPlaying(false);
 		playNext(true);
 	});
 
-	audio.addEventListener("playing", () => markMediaPlayed(audio));
+	audio.addEventListener("playing", () => {
+		setBuffering(false);
+		markMediaPlayed(audio);
+	});
 	audio.addEventListener("error", () => {
 		if (managedMedia(audio)) {
 			if (backupMedia(audio)) {
+				if (playbackRequested) setBuffering(true);
 				audio.load();
 				if (playbackRequested) void audio.play().catch(() => {});
 				return;
 			}
 			state.error = "Audio playback error";
 			emit("fm:error", { message: config.i18n.error });
+			setBuffering(false);
 			setPlaying(false);
 			return;
 		}
@@ -455,11 +500,13 @@ export function ensureMusicManager() {
 			);
 			tryPlayCurrentTrackUrl(playbackRequested, ver);
 		} else if (!playbackRequested) {
+			setBuffering(false);
 			console.warn(
 				"Audio preload failed; playback will retry after user interaction.",
 			);
 		} else {
 			state.error = "Audio playback error";
+			setBuffering(false);
 			emit("fm:error", { message: "播放失败，即将自动跳过..." });
 
 			if (errorSkipTimeout) clearTimeout(errorSkipTimeout);
@@ -538,6 +585,7 @@ export function ensureMusicManager() {
 				currentIndex: state.currentIndex,
 				track: track,
 				isPlaying: state.isPlaying,
+				isBuffering: state.isBuffering,
 				playMode: state.playMode,
 				volume: state.volume,
 				isMuted: state.isMuted,

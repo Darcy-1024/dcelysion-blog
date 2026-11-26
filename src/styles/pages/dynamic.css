@@ -92,6 +92,45 @@ dynamic-feed {
 	box-shadow: 0 0 0 1px var(--primary);
 }
 
+.page-filter-reset {
+	display: inline-flex;
+	flex: 0 0 auto;
+	align-items: center;
+	justify-content: center;
+	gap: 0.35rem;
+	min-height: 2.75rem;
+	padding: 0 0.875rem;
+	border: 1px solid var(--line-divider);
+	border-radius: var(--radius-large);
+	background: var(--btn-regular-bg);
+	color: var(--btn-content);
+	font-size: 0.85rem;
+	font-weight: 500;
+	cursor: pointer;
+	transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+}
+
+.page-filter-reset[hidden] {
+	display: none;
+}
+
+.page-filter-reset svg {
+	width: 1rem;
+	height: 1rem;
+	flex: 0 0 auto;
+}
+
+.page-filter-reset:hover {
+	border-color: color-mix(in srgb, var(--primary) 45%, var(--line-divider));
+	background: var(--btn-regular-bg-hover);
+	color: var(--primary);
+}
+
+.page-filter-reset:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 2px;
+}
+
 .page-feed {
 	display: grid;
 	gap: 0.875rem;
@@ -230,6 +269,55 @@ dynamic-feed {
 	color: var(--primary);
 	opacity: 0.55;
 	pointer-events: none;
+}
+
+.page-entry-decoration[hidden] {
+	display: none;
+}
+
+.page-detail-link {
+	display: inline-flex;
+	flex: 0 0 auto;
+	align-items: center;
+	gap: 0.125rem;
+	min-height: 1.875rem;
+	padding: 0.25rem 0.5rem 0.25rem 0.65rem;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--primary) 8%, transparent);
+	color: var(--content-meta);
+	font-size: 0.76rem;
+	font-weight: 500;
+	line-height: 1;
+	text-decoration: none;
+	transition: background-color 150ms ease, color 150ms ease;
+}
+
+.page-detail-link[hidden] {
+	display: none;
+}
+
+.page-detail-link svg {
+	width: 1rem;
+	height: 1rem;
+	flex: 0 0 auto;
+	transition: transform 150ms ease;
+}
+
+.page-detail-link:hover,
+.page-entry[data-clickable="true"]:hover .page-detail-link {
+	background: color-mix(in srgb, var(--primary) 16%, transparent);
+	color: var(--primary);
+}
+
+.page-detail-link:hover svg,
+.page-entry[data-clickable="true"]:hover .page-detail-link svg {
+	transform: translateX(2px);
+}
+
+.page-detail-link:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 2px;
+	color: var(--primary);
 }
 
 .page-pinned-badge {
@@ -577,6 +665,11 @@ dynamic-feed {
 	height: 240px;
 	border: 0;
 	background: transparent;
+	color-scheme: light;
+}
+
+:root.dark .page-comment-frame {
+	color-scheme: dark;
 }
 
 .page-empty {
@@ -729,6 +822,10 @@ body.wallpaper-transparent .page-year-select select option {
 
 	.page-year-select select {
 		width: 100%;
+	}
+
+	.page-filter-reset {
+		align-self: flex-end;
 	}
 
 	.page-entry {

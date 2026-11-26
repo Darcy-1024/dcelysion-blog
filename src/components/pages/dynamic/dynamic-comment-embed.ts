@@ -33,8 +33,10 @@ export function initDynamicCommentEmbed(): () => void {
 			typeof event.data.dark !== "boolean"
 		)
 			return;
+		const scheme = event.data.dark ? "dark" : "light";
 		document.documentElement.classList.toggle("dark", event.data.dark);
-		document.documentElement.dataset.theme = event.data.dark ? "dark" : "light";
+		document.documentElement.dataset.theme = scheme;
+		document.documentElement.style.colorScheme = scheme;
 		const hue = event.data.hue;
 		if (typeof hue === "number" && Number.isFinite(hue)) {
 			document.documentElement.style.setProperty("--hue", String(hue));

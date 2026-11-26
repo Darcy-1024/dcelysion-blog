@@ -19,16 +19,98 @@ if (!link) {
 
 const processedLink = link;
 
-const hasChildren = processedLink.children && processedLink.children.length > 0;
+const hasChildren = Boolean(
+	processedLink.children && processedLink.children.length > 0,
+);
+
+function normalizeNavPath(rawInput: string): string {
+	const base = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
+	let pathname = rawInput;
+	if (
+		rawInput.startsWith("http://") ||
+		rawInput.startsWith("https://") ||
+		rawInput.startsWith("//")
+	) {
+		try {
+			pathname = new URL(rawInput, "http://localhost").pathname;
+		} catch {
+			pathname = rawInput.split(/[?#]/)[0] || "/";
+		}
+	} else {
+		pathname = rawInput.split(/[?#]/)[0] || "/";
+	}
+	const stripped =
+		base && pathname.startsWith(base)
+			? pathname.slice(base.length) || "/"
+			: pathname;
+	return stripped.replace(/\/+$/, "") || "/";
+}
+
+function isNavRouteMatch(currentPath: string, targetPath: string): boolean {
+	if (!targetPath || targetPath === "#") return false;
+	if (targetPath === "/") {
+		return currentPath === "/" || /^\/\d+$/.test(currentPath);
+	}
+	return currentPath === targetPath || currentPath.startsWith(`${targetPath}/`);
+}
+
+function isPostsSubroute(currentPath: string): boolean {
+	return (
+		currentPath === "/posts" ||
+		currentPath.startsWith("/posts/") ||
+		currentPath.startsWith("/post/")
+	);
+}
+
+const currentPath = normalizeNavPath(Astro.url.pathname);
+
+const childLinkItems = (processedLink.children ?? []).map((child) => {
+	const resolvedHref = child.external ? child.url : url(child.url);
+	const navHref = child.external ? undefined : resolvedHref;
+	const normalizedTarget = navHref ? normalizeNavPath(navHref) : "";
+	const isExact = Boolean(normalizedTarget && currentPath === normalizedTarget);
+	const isActive = Boolean(
+		normalizedTarget && isNavRouteMatch(currentPath, normalizedTarget),
+	);
+	return {
+		child,
+		resolvedHref,
+		navHref,
+		normalizedTarget,
+		isExact,
+		isActive,
+	};
+});
+
+const hasArchiveChild = childLinkItems.some(
+	(item) => item.normalizedTarget === "/archive",
+);
+const isDropdownActive =
+	childLinkItems.some((item) => item.isActive) ||
+	(hasArchiveChild && isPostsSubroute(currentPath));
+
+const topResolvedHref = processedLink.external
+	? processedLink.url
+	: url(processedLink.url);
+const topNavHref = processedLink.external ? undefined : topResolvedHref;
+const topNormalizedTarget = topNavHref ? normalizeNavPath(topNavHref) : "";
+const isTopExact = Boolean(
+	topNormalizedTarget && currentPath === topNormalizedTarget,
+);
+const isTopActive = Boolean(
+	topNormalizedTarget && isNavRouteMatch(currentPath, topNormalizedTarget),
+);
 ---
 
 <div class:list={["dropdown-container", className]} data-dropdown>
 	{hasChildren ? (
-		<button 
+		<button
 			class="btn-plain scale-animation rounded-lg h-10 font-bold px-4 pr-8 active:scale-95 dropdown-trigger relative"
 			aria-expanded="false"
 			aria-haspopup="true"
 			data-dropdown-trigger
+			data-active={isDropdownActive ? "true" : "false"}
+			data-nav-posts-group={hasArchiveChild ? "true" : undefined}
 		>
 			<div class="flex items-center gap-1.5">
 				{processedLink.icon && <Icon name={processedLink.icon} class="text-[1.1rem] mr-1.5 navbar-icon" />}
@@ -38,16 +120,19 @@ const hasChildren = processedLink.children && processedLink.children.length > 0;
 		</button>
 		<div class="dropdown-menu" data-dropdown-menu>
 			<DropdownPanel class="dropdown-content">
-				{processedLink.children?.map((child, index) => (
+				{childLinkItems.map((item, index) => (
 					<DropdownItem
-						href={child.external ? child.url : url(child.url)}
-						target={child.external ? "_blank" : undefined}
-						isLast={index === (processedLink.children?.length || 0) - 1}
+						href={item.resolvedHref}
+						target={item.child.external ? "_blank" : undefined}
+						isLast={index === childLinkItems.length - 1}
 						class="dropdown-item focus-ring-inset h-10"
+						data-nav-href={item.navHref}
+						data-active={item.navHref ? (item.isActive ? "true" : "false") : undefined}
+						aria-current={item.isExact ? "page" : undefined}
 					>
-						{child.icon && <Icon name={child.icon} class="text-[1.25rem] mr-3 navbar-icon" />}
-						<span>{child.name}</span>
-						{child.external && (
+						{item.child.icon && <Icon name={item.child.icon} class="text-[1.25rem] mr-3 navbar-icon" />}
+						<span>{item.child.name}</span>
+						{item.child.external && (
 							<Icon name="fa7-solid:arrow-up-right-from-square" class="text-[0.75rem] text-black/25 dark:text-white/25 ml-auto" />
 						)}
 					</DropdownItem>
@@ -55,11 +140,14 @@ const hasChildren = processedLink.children && processedLink.children.length > 0;
 			</DropdownPanel>
 		</div>
 	) : (
-		<a 
-			aria-label={processedLink.name} 
-			href={processedLink.external ? processedLink.url : url(processedLink.url)} 
+		<a
+			aria-label={processedLink.name}
+			href={topResolvedHref}
 			target={processedLink.external ? "_blank" : null}
 			class="btn-plain scale-animation rounded-lg h-10 font-bold px-4 active:scale-95"
+			data-nav-href={topNavHref}
+			data-active={topNavHref ? (isTopActive ? "true" : "false") : undefined}
+			aria-current={isTopExact ? "page" : undefined}
 		>
 			<div class="flex items-center gap-1.5">
 				{processedLink.icon && <Icon name={processedLink.icon} class="text-[1.1rem] mr-1.5 navbar-icon" />}
@@ -100,68 +188,106 @@ const hasChildren = processedLink.children && processedLink.children.length > 0;
 </style>
 
 <script>
-	// 键盘导航支持
-	document.addEventListener('DOMContentLoaded', function() {
-		const dropdowns = document.querySelectorAll('[data-dropdown]');
-		
-		dropdowns.forEach(dropdown => {
-			const trigger = dropdown.querySelector('[data-dropdown-trigger]') as HTMLElement | null;
-			const menu = dropdown.querySelector('[data-dropdown-menu]');
-			const items = dropdown.querySelectorAll('.dropdown-item') as NodeListOf<HTMLElement>;
-			
-			if (!trigger || !menu) return;
-			
-			// 键盘事件处理
-			trigger.addEventListener('keydown', function(e: KeyboardEvent) {
-				if (e.key === 'Enter' || e.key === ' ') {
-					e.preventDefault();
-					toggleDropdown(dropdown, trigger, menu);
-				} else if (e.key === 'ArrowDown') {
-					e.preventDefault();
-					openDropdown(dropdown, trigger, menu);
-					if (items.length > 0) {
-						items[0].focus();
+	type DesktopNavWindow = Window & {
+		__desktopNavActiveInit?: boolean;
+		__desktopNavSwupHooked?: boolean;
+	};
+
+	function normalizeNavPath(rawInput: string): string {
+		const base = (import.meta.env.BASE_URL || "/").replace(/\/+$/, "");
+		let pathname = rawInput;
+		if (
+			rawInput.startsWith("http://") ||
+			rawInput.startsWith("https://") ||
+			rawInput.startsWith("//")
+		) {
+			try {
+				pathname = new URL(rawInput, window.location.origin).pathname;
+			} catch {
+				pathname = rawInput.split(/[?#]/)[0] || "/";
+			}
+		} else {
+			pathname = rawInput.split(/[?#]/)[0] || "/";
+		}
+		const stripped =
+			base && pathname.startsWith(base)
+				? pathname.slice(base.length) || "/"
+				: pathname;
+		return stripped.replace(/\/+$/, "") || "/";
+	}
+
+	function isNavRouteMatch(currentPath: string, targetPath: string): boolean {
+		if (!targetPath || targetPath === "#") return false;
+		if (targetPath === "/") {
+			return currentPath === "/" || /^\/\d+$/.test(currentPath);
+		}
+		return (
+			currentPath === targetPath || currentPath.startsWith(`${targetPath}/`)
+		);
+	}
+
+	function isPostsSubroute(currentPath: string): boolean {
+		return (
+			currentPath === "/posts" ||
+			currentPath.startsWith("/posts/") ||
+			currentPath.startsWith("/post/")
+		);
+	}
+
+	function markDesktopActiveNav(rawUrl: string): void {
+		const currentPath = normalizeNavPath(rawUrl);
+		const dropdowns = document.querySelectorAll("#navbar [data-dropdown]");
+
+		dropdowns.forEach((dropdown) => {
+			const trigger = dropdown.querySelector<HTMLElement>(
+				"[data-dropdown-trigger]",
+			);
+			if (trigger) {
+				let anyChildActive = false;
+				const childLinks = dropdown.querySelectorAll<HTMLElement>(
+					".dropdown-item[data-nav-href]",
+				);
+				childLinks.forEach((item) => {
+					const href = item.getAttribute("data-nav-href") || "";
+					const targetPath = normalizeNavPath(href);
+					const isExact = currentPath === targetPath;
+					const isActive = isNavRouteMatch(currentPath, targetPath);
+					item.setAttribute("data-active", isActive ? "true" : "false");
+					if (isExact) {
+						item.setAttribute("aria-current", "page");
+					} else {
+						item.removeAttribute("aria-current");
 					}
-				} else if (e.key === 'Escape') {
-					closeDropdown(dropdown, trigger, menu);
-				}
-			});
-			
-			// 菜单项键盘导航
-			items.forEach((item, index) => {
-				item.addEventListener('keydown', function(e: KeyboardEvent) {
-					if (e.key === 'ArrowDown') {
-						e.preventDefault();
-						const nextIndex = (index + 1) % items.length;
-						items[nextIndex].focus();
-					} else if (e.key === 'ArrowUp') {
-						e.preventDefault();
-						const prevIndex = (index - 1 + items.length) % items.length;
-						items[prevIndex].focus();
-					} else if (e.key === 'Escape') {
-						closeDropdown(dropdown, trigger, menu);
-						trigger.focus();
+					if (isActive) {
+						anyChildActive = true;
 					}
 				});
-			});
+
+				const isPostsGroup =
+					trigger.getAttribute("data-nav-posts-group") === "true";
+				const groupActive =
+					anyChildActive || (isPostsGroup && isPostsSubroute(currentPath));
+				trigger.setAttribute("data-active", groupActive ? "true" : "false");
+				return;
+			}
+
+			const topLink = dropdown.querySelector<HTMLElement>("a[data-nav-href]");
+			if (!topLink) return;
+			const href = topLink.getAttribute("data-nav-href") || "";
+			const targetPath = normalizeNavPath(href);
+			const isExact = currentPath === targetPath;
+			const isActive = isNavRouteMatch(currentPath, targetPath);
+			topLink.setAttribute("data-active", isActive ? "true" : "false");
+			if (isExact) {
+				topLink.setAttribute("aria-current", "page");
+			} else {
+				topLink.removeAttribute("aria-current");
+			}
 		});
-		
-		// 点击外部关闭下拉菜单
-		document.addEventListener('click', function(e) {
-			dropdowns.forEach(dropdown => {
-				if (!dropdown.contains(e.target as Node)) {
-					const trigger = dropdown.querySelector('[data-dropdown-trigger]');
-					const menu = dropdown.querySelector('[data-dropdown-menu]');
-					if (trigger && menu) {
-						closeDropdown(dropdown, trigger, menu);
-					}
-				}
-			});
-		});
-	});
-	
+	}
+
 	function toggleDropdown(_dropdown: Element, trigger: Element, menu: Element) {
-		const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+		const isOpen = trigger.getAttribute("aria-expanded") === "true";
 		if (isOpen) {
 			closeDropdown(_dropdown, trigger, menu);
 		} else {
@@ -170,10 +296,114 @@ const hasChildren = processedLink.children && processedLink.children.length > 0;
 	}
 
 	function openDropdown(_dropdown: Element, trigger: Element, _menu: Element) {
-		trigger.setAttribute('aria-expanded', 'true');
+		trigger.setAttribute("aria-expanded", "true");
 	}
 
 	function closeDropdown(_dropdown: Element, trigger: Element, _menu: Element) {
-		trigger.setAttribute('aria-expanded', 'false');
+		trigger.setAttribute("aria-expanded", "false");
+	}
+
+	function setupDesktopDropdownInteractions(): void {
+		const dropdowns = document.querySelectorAll("[data-dropdown]");
+
+		dropdowns.forEach((dropdown) => {
+			const trigger = dropdown.querySelector(
+				"[data-dropdown-trigger]",
+			) as HTMLElement | null;
+			const menu = dropdown.querySelector("[data-dropdown-menu]");
+			const items = dropdown.querySelectorAll(
+				".dropdown-item",
+			) as NodeListOf<HTMLElement>;
+
+			if (!trigger || !menu) return;
+
+			trigger.addEventListener("keydown", (e: KeyboardEvent) => {
+				if (e.key === "Enter" || e.key === " ") {
+					e.preventDefault();
+					toggleDropdown(dropdown, trigger, menu);
+				} else if (e.key === "ArrowDown") {
+					e.preventDefault();
+					openDropdown(dropdown, trigger, menu);
+					if (items.length > 0) {
+						items[0].focus();
+					}
+				} else if (e.key === "Escape") {
+					closeDropdown(dropdown, trigger, menu);
+				}
+			});
+
+			items.forEach((item, index) => {
+				item.addEventListener("keydown", (e: KeyboardEvent) => {
+					if (e.key === "ArrowDown") {
+						e.preventDefault();
+						const nextIndex = (index + 1) % items.length;
+						items[nextIndex].focus();
+					} else if (e.key === "ArrowUp") {
+						e.preventDefault();
+						const prevIndex = (index - 1 + items.length) % items.length;
+						items[prevIndex].focus();
+					} else if (e.key === "Escape") {
+						closeDropdown(dropdown, trigger, menu);
+						trigger.focus();
+					}
+				});
+			});
+		});
+
+		document.addEventListener("click", (e) => {
+			dropdowns.forEach((dropdown) => {
+				if (!dropdown.contains(e.target as Node)) {
+					const trigger = dropdown.querySelector("[data-dropdown-trigger]");
+					const menu = dropdown.querySelector("[data-dropdown-menu]");
+					if (trigger && menu) {
+						closeDropdown(dropdown, trigger, menu);
+					}
+				}
+			});
+		});
+	}
+
+	const win = window as DesktopNavWindow;
+	if (!win.__desktopNavActiveInit) {
+		win.__desktopNavActiveInit = true;
+
+		const initDom = () => {
+			setupDesktopDropdownInteractions();
+			markDesktopActiveNav(window.location.pathname);
+		};
+
+		if (document.readyState === "loading") {
+			document.addEventListener("DOMContentLoaded", initDom, { once: true });
+		} else {
+			initDom();
+		}
+
+		document.addEventListener("astro:page-load", () => {
+			markDesktopActiveNav(window.location.pathname);
+		});
+		document.addEventListener("swup:contentReplaced", () => {
+			markDesktopActiveNav(window.location.pathname);
+		});
+
+		const attachSwupVisitStart = () => {
+			if (win.__desktopNavSwupHooked || !win.swup?.hooks) return;
+			win.__desktopNavSwupHooked = true;
+			win.swup.hooks.on(
+				"visit:start",
+				(visit: { to?: { url?: string } } | undefined) => {
+					if (visit?.to?.url) {
+						markDesktopActiveNav(visit.to.url);
+					}
+				},
+			);
+		};
+
+		if (win.swup?.hooks) {
+			attachSwupVisitStart();
+		} else {
+			document.addEventListener("swup:enable", attachSwupVisitStart, {
+				once: true,
+			});
+		}
 	}
 </script>

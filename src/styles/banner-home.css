@@ -325,9 +325,32 @@ html.is-page-transitioning .banner-home-text-overlay {
 
 /* ===== 首页横幅文字与链接（banner-title.css 来源，原样保留先后顺序） ===== */
 
-/* 横幅文字阴影 - 更柔和的扩散效果 */
+/* 仅当标题或副标题存在时，在文字容器后方叠加局部柔和径向衬底，避免整张壁纸变暗或出现硬边 */
+.banner-home-text-overlay > div:has(.banner-title, .banner-subtitle) {
+    position: relative;
+    isolation: isolate;
+}
+
+.banner-home-text-overlay > div:has(.banner-title, .banner-subtitle)::before {
+    content: "";
+    position: absolute;
+    inset: -1.75rem -1.5rem;
+    z-index: -1;
+    pointer-events: none;
+    background: radial-gradient(
+        ellipse closest-side at 50% 50%,
+        rgba(0, 0, 0, 0.26) 0%,
+        rgba(0, 0, 0, 0.13) 55%,
+        rgba(0, 0, 0, 0) 100%
+    );
+    filter: blur(12px);
+}
+
+/* 横幅文字阴影 - 多层柔和阴影兼顾亮部描边与远距扩散 */
 .banner-title {
-    text-shadow: 0 4px 24px rgba(0, 0, 0, 0.6);
+    text-shadow:
+        0 1px 3px rgba(0, 0, 0, 0.72),
+        0 4px 24px rgba(0, 0, 0, 0.62);
     /* 防止大字体标题溢出容器 */
     overflow-wrap: break-word;
     word-break: break-word;
@@ -339,7 +362,9 @@ html.is-page-transitioning .banner-home-text-overlay {
 }
 
 .banner-subtitle {
-    text-shadow: 0 2px 16px rgba(0, 0, 0, 0.6);
+    text-shadow:
+        0 1px 2px rgba(0, 0, 0, 0.68),
+        0 2px 16px rgba(0, 0, 0, 0.58);
     /* 独立字体设置，通过 fontConfig.bannerSubtitleFont 配置 */
     font-family: var(--font-banner-subtitle, inherit);
 }

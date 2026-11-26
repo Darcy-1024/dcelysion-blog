@@ -9,6 +9,14 @@ body:has(.page-comment-embed) {
 	background: transparent !important;
 }
 
+html:has(.page-comment-embed) {
+	color-scheme: light;
+}
+
+html.dark:has(.page-comment-embed) {
+	color-scheme: dark;
+}
+
 .page-comment-embed {
 	/* Contain child margins without tying content height to the iframe viewport. */
 	display: flow-root;
@@ -17,5 +25,7 @@ body:has(.page-comment-embed) {
 .page-comment-embed #post-comments {
 	margin: 0;
 	border: 0;
+	border-radius: 0;
+	background: transparent;
 	box-shadow: none;
 }

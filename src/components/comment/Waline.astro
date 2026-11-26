@@ -10,7 +10,7 @@ const config = {
 	...walineConfig,
 	path: Astro.props.path,
 	dark: "html.dark",
-	wordLimit: [1, 300],
+	wordLimit: 300,
 	...(visitorCount ? { pageview: true } : {}),
 };
 ---

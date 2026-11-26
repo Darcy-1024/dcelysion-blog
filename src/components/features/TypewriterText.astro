@@ -38,16 +38,18 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
   class TypewriterEffect {
     private element: HTMLElement;
     private texts: string[];
-    private currentTextIndex: number = 0;
+    private currentTextIndex = 0;
     private speed: number;
     private deleteSpeed: number;
     private pauseTime: number;
-    private currentIndex: number = 0;
-    private isDeleting: boolean = false;
+    private currentIndex = 0;
+    private isDeleting = false;
     private timeoutId: number | null = null;
+    private completeTimeoutId: number | null = null;
 
     constructor(element: HTMLElement) {
       this.element = element;
+      this.element.classList.remove("is-complete");
       const textData = element.dataset.text || "";
 
       // 尝试解析为JSON数组，如果失败则作为单个字符串处理
@@ -58,9 +60,15 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
         this.texts = [textData];
       }
 
-      this.speed = parseInt(element.dataset.speed || "100");
-      this.deleteSpeed = parseInt(element.dataset.deleteSpeed || "50");
-      this.pauseTime = parseInt(element.dataset.pauseTime || "2000");
+      this.speed = Number.parseInt(element.dataset.speed || "100", 10);
+      this.deleteSpeed = Number.parseInt(
+        element.dataset.deleteSpeed || "50",
+        10,
+      );
+      this.pauseTime = Number.parseInt(
+        element.dataset.pauseTime || "2000",
+        10,
+      );
 
       activeInstances.add(this);
 
@@ -91,6 +99,7 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
           ? Math.floor(Math.random() * this.texts.length)
           : 0;
       this.element.textContent = this.texts[index];
+      this.element.classList.add("is-complete");
     }
 
     private start() {
@@ -121,7 +130,7 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
 
           this.timeoutId = window.setTimeout(
             () => this.type(),
-            this.deleteSpeed
+            this.deleteSpeed,
           );
         } else {
           // 删除完成，切换到下一条文本
@@ -130,25 +139,26 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
             (this.currentTextIndex + 1) % this.texts.length;
           this.timeoutId = window.setTimeout(() => this.type(), this.speed);
         }
-      } else {
-        if (this.currentIndex < segments.length) {
-          this.currentIndex++;
-          this.element.textContent = segments
-            .slice(0, this.currentIndex)
-            .join("");
+      } else if (this.currentIndex < segments.length) {
+        this.currentIndex++;
+        this.element.textContent = segments
+          .slice(0, this.currentIndex)
+          .join("");
 
-          this.timeoutId = window.setTimeout(() => this.type(), this.speed);
-        } else {
-          // 打字完成，暂停后开始删除（如果有多条文本）
-          if (this.texts.length > 1) {
-            this.isDeleting = true;
-            this.timeoutId = window.setTimeout(
-              () => this.type(),
-              this.pauseTime
-            );
-          }
-          // 如果只有一条文本，保持显示不删除
-        }
+        this.timeoutId = window.setTimeout(() => this.type(), this.speed);
+      } else if (this.texts.length > 1) {
+        // 打字完成，暂停后开始删除（如果有多条文本）
+        this.isDeleting = true;
+        this.timeoutId = window.setTimeout(
+          () => this.type(),
+          this.pauseTime,
+        );
+      } else {
+        // 单条文本打字完成后短暂保留闪烁，随后平滑淡出竖线光标
+        this.completeTimeoutId = window.setTimeout(() => {
+          this.element.classList.add("is-complete");
+          this.completeTimeoutId = null;
+        }, 1500);
       }
     }
 
@@ -156,6 +166,10 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
       if (this.timeoutId !== null) {
         clearTimeout(this.timeoutId);
         this.timeoutId = null;
+      }
+      if (this.completeTimeoutId !== null) {
+        clearTimeout(this.completeTimeoutId);
+        this.completeTimeoutId = null;
       }
       activeInstances.delete(this);
     }
@@ -223,6 +237,14 @@ const textData = Array.isArray(text) ? JSON.stringify(text) : text;
     content: "|";
     animation: blink 1s infinite;
     margin-left: 2px;
+    opacity: 1;
+    transition: opacity 0.4s ease;
+  }
+
+  .typewriter.is-complete::after {
+    animation: none;
+    opacity: 0;
+    pointer-events: none;
   }
 
   @media (prefers-reduced-motion: reduce) {

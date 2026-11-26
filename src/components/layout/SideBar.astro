@@ -16,6 +16,7 @@ import type {
 	MobileBottomComponentConfig,
 	WidgetComponentConfig,
 } from "@/types/config";
+import { isDynamicFeedPage } from "@/utils/grid-layout-utils";
 import { shouldUseFullProfile } from "@/utils/layout-utils";
 
 interface Props {
@@ -105,6 +106,7 @@ const getAnimationDelay = (index: number): string => {
 
 // 判断当前页面是否为文章页面（服务端渲染时确定）
 const isPostPage = Astro.url.pathname.includes("/posts/");
+const isDynamicListPage = isDynamicFeedPage(Astro.url.pathname);
 const useStandardLayout = !isPostPage;
 const useFullProfile = shouldUseFullProfile(Astro.url.pathname);
 const showOnStandardLayout = (
@@ -121,6 +123,7 @@ const homeDynamicConfig = sidebarLayoutConfig.rightComponents.find(
 const isComponentInitiallyVisible = (
 	config: WidgetComponentConfig | MobileBottomComponentConfig,
 ): boolean => {
+	if (config.type === "dynamic" && isDynamicListPage) return false;
 	if (useStandardLayout && !showOnStandardLayout(config)) return false;
 	if (
 		"showOnPostPage" in config &&
@@ -158,6 +161,10 @@ const getComponentProps = (
 	}
 	if (config.type === "dynamic") {
 		baseProps.id = `${side}-latest-dynamics`;
+		baseProps.class = `${baseProps.class} widget-hide-on-dynamic`;
+		if (isDynamicListPage) {
+			baseProps.class = `${baseProps.class} hidden`;
+		}
 	}
 
 	// 添加 showOnPostPage 和 hideOnNonPostPage 标记class（仅WidgetComponentConfig有这些属性）
@@ -231,7 +238,7 @@ const hasInitiallyVisibleTopComponents = topComponents.some(
 									<Component {...props} />
 									{side === SIDEBAR_SIDE.LEFT && comp.type === "profile" && (
 										<Dynamic id="home-latest-dynamics" widgetConfig={homeDynamicConfig}
-											class:list={["onload-animation widget-non-post-only", !useStandardLayout && "hidden"]} />
+											class:list={["onload-animation widget-non-post-only widget-hide-on-dynamic", (!useStandardLayout || isDynamicListPage) && "hidden"]} />
 									)}
 								</>;
 							})}

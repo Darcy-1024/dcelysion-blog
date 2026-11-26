@@ -10,6 +10,7 @@ import subsetFont from "subset-font";
 import { fontConfig, fontsList } from "../src/config";
 import { musicPlayerConfig } from "../src/config/musicConfig";
 import { collectUsedFontCssVars, toPublicPath } from "../src/utils/fontHelper";
+import { openFontSubsetCache } from "./font-subset-cache";
 import { fontCodepoints, splitCodepoints, subsetFace } from "./font-subsets";
 import { resolveSiteRoot } from "./site-root";
 
@@ -271,6 +272,8 @@ async function main() {
 
 	// 3. 确保输出目录存在
 	await fs.mkdir(OUTPUT_DIR, { recursive: true });
+	const cache = await openFontSubsetCache();
+	const subsetOptions = { targetFormat: "woff2" } as const;
 
 	// 4. 为每个字体生成子集
 	const results: SubsetResult[] = [];
@@ -295,18 +298,21 @@ async function main() {
 			chars = [...extraSet].join("");
 		}
 
-		console.log(`⏳ Generating subset for '${font.id}' (${font.family})...`);
+		console.log(`⏳ Preparing subset for '${font.id}' (${font.family})...`);
 
 		const fontBuffer = await fs.readFile(fontPath);
+		const originalHash = fullHash(fontBuffer);
 		const originalFormat = detectFontFormat(fontPath);
+		const generateSubset = (text: string) =>
+			cache
+				? cache.getOrGenerate(fontBuffer, originalHash, text, subsetOptions)
+				: subsetFont(fontBuffer, text, subsetOptions);
 
 		try {
 			const groups = font.fullCoverage
 				? splitCodepoints(fontCodepoints(fontBuffer), chars)
 				: undefined;
-			const subsetBuffer = await subsetFont(fontBuffer, chars, {
-				targetFormat: "woff2",
-			});
+			const subsetBuffer = await generateSubset(chars);
 
 			const hash = contentHash(subsetBuffer);
 			const outFile = path.join(OUTPUT_DIR, `${hash}.woff2`);
@@ -315,13 +321,7 @@ async function main() {
 				? [{ hash, points: groups[0] }]
 				: undefined;
 			for (const points of groups?.slice(1) ?? []) {
-				const bytes = await subsetFont(
-					fontBuffer,
-					String.fromCodePoint(...points),
-					{
-						targetFormat: "woff2",
-					},
-				);
+				const bytes = await generateSubset(String.fromCodePoint(...points));
 				const shardHash = contentHash(bytes);
 				await fs.writeFile(path.join(OUTPUT_DIR, `${shardHash}.woff2`), bytes);
 				generatedGroups?.push({ hash: shardHash, points });
@@ -353,7 +353,7 @@ async function main() {
 				hash,
 				format: originalFormat,
 				originalSrc: font.src,
-				originalHash: fullHash(fontBuffer),
+				originalHash,
 				originalSize: fontBuffer.length,
 			});
 		} catch (err) {
@@ -486,6 +486,7 @@ async function main() {
 		}
 	}
 
+	await cache?.finish();
 	console.log("✨ Font subsetting completed!");
 }
 

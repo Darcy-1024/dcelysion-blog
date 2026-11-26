@@ -29,14 +29,30 @@ import { url } from "@/utils/url-utils";
                 {i18n(I18nKey.notFoundDescription)}
             </p>
             
-            <!-- 返回首页按钮 -->
-            <a 
-                href={url("/")}
-                class="inline-flex items-center gap-2 px-6 py-3 bg-(--primary) text-white rounded-(--radius-large) hover:bg-(--btn-content) transition-colors duration-200 font-medium"
-            >
-                <Icon name="material-symbols:home" class="text-xl" />
-                {i18n(I18nKey.backToHome)}
-            </a>
+            <!-- 操作按钮 -->
+            <div class="flex flex-wrap items-center justify-center gap-3">
+                <a
+                    href={url("/")}
+                    class="not-found-primary-btn inline-flex items-center gap-2 px-6 py-3 bg-(--primary) text-white rounded-(--radius-large) hover:opacity-90 transition-all duration-200 font-medium"
+                >
+                    <Icon name="material-symbols:home" class="text-xl" />
+                    {i18n(I18nKey.backToHome)}
+                </a>
+                <a
+                    href={url("/archive/")}
+                    class="not-found-secondary-btn btn-regular inline-flex items-center gap-2 px-5 py-3 rounded-(--radius-large) transition-all duration-200 font-medium"
+                >
+                    <Icon name="material-symbols:article" class="text-xl" />
+                    {i18n(I18nKey.archive)}
+                </a>
+                <a
+                    href={url("/search/")}
+                    class="not-found-secondary-btn btn-regular inline-flex items-center gap-2 px-5 py-3 rounded-(--radius-large) transition-all duration-200 font-medium"
+                >
+                    <Icon name="material-symbols:search" class="text-xl" />
+                    {i18n(I18nKey.search)}
+                </a>
+            </div>
             
             <!-- 装饰性元素 -->
             <div class="absolute top-4 left-4 opacity-10">
@@ -67,8 +83,12 @@ import { url } from "@/utils/url-utils";
     }
     
     /* 按钮悬停效果 */
-    a:hover {
+    .not-found-primary-btn:hover {
         transform: translateY(-2px);
-        box-shadow: 0 4px 12px rgba(var(--primary-rgb), 0.3);
+        box-shadow: 0 6px 18px color-mix(in oklch, var(--primary) 32%, transparent);
+    }
+
+    .not-found-secondary-btn:hover {
+        transform: translateY(-2px);
     }
 </style>

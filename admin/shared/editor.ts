@@ -191,6 +191,17 @@ export function inspect(source: string, kind: DraftKind): Metadata {
 			for (const name of ["comment", "typography"])
 				if (map.get(name) !== undefined && typeof map.get(name) !== "boolean")
 					errors.push(`${name} 需要布尔值`);
+			if (map.has("outdated") && typeof map.get("outdated") !== "boolean")
+				errors.push("outdated 需要布尔值");
+			if (map.has("outdatedThreshold")) {
+				const threshold = map.get("outdatedThreshold");
+				if (
+					typeof threshold !== "number" ||
+					!Number.isInteger(threshold) ||
+					threshold < 0
+				)
+					errors.push("outdatedThreshold 需要非负整数");
+			}
 			if (
 				map.get("seriesOrder") !== undefined &&
 				typeof map.get("seriesOrder") !== "number"

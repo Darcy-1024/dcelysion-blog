@@ -30,7 +30,7 @@ const bangumiConfig = {
 	mode: (siteConfig.bangumi?.mode || "static") as "static" | "dynamic",
 	apiUrl: siteConfig.bangumi?.apiUrl || "https://api.bangumi.one",
 	subjectBaseUrl:
-		siteConfig.bangumi?.subjectBaseUrl || "https://bangumi.one/subject/",
+		siteConfig.bangumi?.subjectBaseUrl || "https://bgm.tv/subject/",
 	// 从配置文件中读取各分类是否启用，若未配置则使用默认值
 	categories: {
 		book: siteConfig.bangumi?.categories?.book ?? true,
@@ -249,10 +249,10 @@ const activeTab = tabs[0]?.id || "anime";
                 <Icon name="material-symbols:settings" class="text-[2rem] text-(--btn-content)" />
               </div>
               <h2 class="text-xl font-semibold text-black/80 dark:text-white/80 mb-3">
-                未配置 Bangumi 用户ID
+                {i18n(I18nKey.bangumiEmpty)}
               </h2>
               <p class="text-black/60 dark:text-white/60 mb-4 max-w-md mx-auto">
-                请在 src/config/siteConfig.ts 中配置你的 Bangumi 用户ID
+                {i18n(I18nKey.bangumiConfigTip)}
               </p>
             </div>
           ) : (
@@ -295,10 +295,10 @@ const activeTab = tabs[0]?.id || "anime";
             <Icon name="material-symbols:settings" class="text-[2rem] text-(--btn-content)" />
           </div>
           <h2 class="text-xl font-semibold text-black/80 dark:text-white/80 mb-3">
-            {isUserIdConfigured ? i18n(I18nKey.bangumiEmpty) : "未配置 Bangumi 用户ID"}
+            {i18n(I18nKey.bangumiEmpty)}
           </h2>
           <p class="text-black/60 dark:text-white/60 mb-4 max-w-md mx-auto">
-            {isUserIdConfigured ? i18n(I18nKey.bangumiEmptyReason) : "请在 src/config/siteConfig.ts 中配置你的 Bangumi 用户ID"}
+            {isUserIdConfigured ? i18n(I18nKey.bangumiEmptyReason) : i18n(I18nKey.bangumiConfigTip)}
           </p>
         </div>
       )}
