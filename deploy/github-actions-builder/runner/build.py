@@ -1,4 +1,5 @@
 """Prepare trusted dependencies, then run untrusted content without network/secrets."""
+import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -27,22 +28,26 @@ assert image.startswith('sha256:') and len(image) == 71
 output = root / 'output'
 output.mkdir()
 artifact = output / 'artifact.tar.gz'
+# Astro sizes its image queue from CPU affinity, not the container CPU quota.
+cpu = str(min(os.sched_getaffinity(0)))
 with source.open('rb') as stdin, artifact.open('xb') as stdout:
     result = subprocess.run([
         'docker', 'run', '--rm', '-i', '--network', 'none', '--read-only',
         '--cap-drop', 'ALL', '--security-opt', 'no-new-privileges',
         '--user', '1000:1000', '--memory', '4g', '--memory-swap', '4g',
-        '--cpus', '2', '--pids-limit', '256',
+        '--cpus', '2', '--cpuset-cpus', cpu, '--pids-limit', '256',
         '--tmpfs', '/work:rw,nosuid,nodev,size=2g,uid=1000,gid=1000,mode=0700',
         '--tmpfs', '/tmp:rw,nosuid,nodev,size=64m,uid=1000,gid=1000,mode=0700',
         '-e', 'ASTRO_TELEMETRY_DISABLED=1',
+        '-e', 'UV_THREADPOOL_SIZE=2',
+        '-e', 'MALLOC_ARENA_MAX=2',
         '-e', 'PUBLIC_COMMENT_PROVIDER=waline',
         '-e', 'PUBLIC_WALINE_SERVER_URL=https://comments.dcelysion.cn',
         image,
     ], stdin=stdin, stdout=stdout, stderr=subprocess.DEVNULL, timeout=1200)
 if result.returncode:
     artifact.unlink(missing_ok=True)
-    raise RuntimeError('PRIVATE_BUILD_FAILED')
+    raise RuntimeError(f'PRIVATE_BUILD_FAILED (container exit {result.returncode})')
 assert artifact.stat().st_size <= 1024**3
 validated = root / 'validated-output'
 validated.mkdir()

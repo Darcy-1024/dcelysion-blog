@@ -6,7 +6,7 @@
 
 输入压缩包及解包内容上限均为 1 GiB。三个依赖配置必须与本目录 `dependencies/` 内操作员维护的副本逐字节一致；依赖更新后需要同步这些可信副本并更新工作流固定 SHA，不能由草稿自行修改依赖。依赖准备阶段仅使用 `.dockerignore` 允许的可信 Dockerfile、入口与依赖文件。
 
-执行 Markdown/MDX 的容器使用当前步骤准备好的不可变镜像 ID，断网、只读根文件系统、非 root、无 capabilities、禁止提权，无 Git、数据库、R2、SSH、GitHub token 或宿主目录挂载。资源限制为 4 GiB 内存、2 CPU、256 PIDs、20 分钟；工作区为 2 GiB tmpfs，临时目录为 64 MiB tmpfs。输入从 stdin 送入，输出仅从 stdout 送出压缩包；任意内容执行日志直接丢弃，不进入公开日志。
+执行 Markdown/MDX 的容器使用当前步骤准备好的不可变镜像 ID，断网、只读根文件系统、非 root、无 capabilities、禁止提权，无 Git、数据库、R2、SSH、GitHub token 或宿主目录挂载。资源限制为 4 GiB 内存、256 PIDs、20 分钟；容器只看到一个 CPU 核，避免 Astro 并行优化图片时耗尽内存。工作区为 2 GiB tmpfs，临时目录为 64 MiB tmpfs。输入从 stdin 送入，输出仅从 stdout 送出压缩包；任意内容执行日志直接丢弃，不进入公开日志。
 
 可信宿主步骤再次检查输出路径、文件类型、重复条目、数量和 1 GiB 解包预算，确认首页存在后才上传 `build-<jobId>` artifact。压缩包本身也限制为 1 GiB；artifact 内仅含 `artifact.tar.gz`，保留一天。后台必须绑定精确运行名、工作流固定 SHA 与对应 artifact，下载校验后才能进入公开仓库推送阶段。
 
