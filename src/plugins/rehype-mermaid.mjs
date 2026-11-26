@@ -1,5 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { assertSafeSvgForDom, initMerman, renderSvg } from "@mermanjs/web";
+import { createNodeEngine } from "@mermanjs/node";
+import { assertSelfContainedSvgForDom } from "@mermanjs/web";
 import { fromHtml } from "hast-util-from-html";
 import { h } from "hastscript";
 import { visit } from "unist-util-visit";
@@ -15,14 +15,9 @@ import {
 } from "./utils/diagramConstants.js";
 import { extractText } from "./utils/extractText.js";
 
-const mermanWasmUrl = import.meta.resolve(
-	"@mermanjs/web/pkg/merman_wasm_bg.wasm",
-);
-await initMerman({
-	wasm: {
-		module_or_path: await readFile(new URL(mermanWasmUrl)),
-	},
-});
+// @mermanjs/web 自 0.9 起仅支持浏览器运行时，构建期渲染改用 Node 原生引擎；
+// @mermanjs/web 仅用于校验输出的 SVG 可以安全插入 DOM
+const mermanEngine = await createNodeEngine();
 
 /**
  * 在构建时将 Mermaid 源码渲染为浅色和深色两套静态 SVG
@@ -40,34 +35,42 @@ function removeSvgMaxWidth(svg) {
 	return svg.replace(/(<svg[^>]*style="[^"]*?)max-width:\s*[^;]+;?/, "$1");
 }
 
-function buildMermaidSvgs(mermaidCode, themeConfig, diagramIndex) {
-	const lightSvg = renderSvg(mermaidCode, {
-		host_theme: {
-			preset: themeConfig.lightTheme,
-			site_config: {
-				flowchart: { wrappingWidth: themeConfig.flowchartWrappingWidth },
-			},
-		},
-		svg: {
-			diagram_id: `mermaid-${diagramIndex}-light`,
-			pipeline: "parity",
-		},
+// merman 0.10 起使用 Options JSON schema 3：主题 = preset（设计组）× appearance（light/dark）
+function renderMermaidSvg(
+	mermaidCode,
+	preset,
+	appearance,
+	diagramId,
+	wrappingWidth,
+) {
+	return mermanEngine.renderSvgSync(mermaidCode, {
+		optionsJson: JSON.stringify({
+			version: 3,
+			theme: { preset, appearance },
+			site_config: { flowchart: { wrappingWidth } },
+			svg: { diagram_id: diagramId, pipeline: "parity" },
+		}),
 	});
-	const darkSvg = renderSvg(mermaidCode, {
-		host_theme: {
-			preset: themeConfig.darkTheme,
-			site_config: {
-				flowchart: { wrappingWidth: themeConfig.flowchartWrappingWidth },
-			},
-		},
-		svg: {
-			diagram_id: `mermaid-${diagramIndex}-dark`,
-			pipeline: "parity",
-		},
-	});
+}
 
-	assertSafeSvgForDom(lightSvg);
-	assertSafeSvgForDom(darkSvg);
+function buildMermaidSvgs(mermaidCode, themeConfig, diagramIndex) {
+	const lightSvg = renderMermaidSvg(
+		mermaidCode,
+		themeConfig.lightTheme,
+		"light",
+		`mermaid-${diagramIndex}-light`,
+		themeConfig.flowchartWrappingWidth,
+	);
+	const darkSvg = renderMermaidSvg(
+		mermaidCode,
+		themeConfig.darkTheme,
+		"dark",
+		`mermaid-${diagramIndex}-dark`,
+		themeConfig.flowchartWrappingWidth,
+	);
+
+	assertSelfContainedSvgForDom(lightSvg);
+	assertSelfContainedSvgForDom(darkSvg);
 
 	return {
 		lightSvg: removeSvgMaxWidth(lightSvg),
@@ -83,8 +86,8 @@ function buildMermaidSvgs(mermaidCode, themeConfig, diagramIndex) {
  */
 export function rehypeMermaid(options = {}) {
 	const themeConfig = {
-		lightTheme: options.lightTheme || "editor-light",
-		darkTheme: options.darkTheme || "editor-dark",
+		lightTheme: options.lightTheme || "editor",
+		darkTheme: options.darkTheme || "editor",
 		flowchartWrappingWidth: options.flowchartWrappingWidth || 360,
 	};
 

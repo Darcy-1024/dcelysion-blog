@@ -1,5 +1,5 @@
 ---
-import { render } from "astro:content";
+import { getEntry, render } from "astro:content";
 import Comment from "@components/comment/index.astro";
 import Markdown from "@components/common/Markdown.astro";
 import EncryptedPost from "@components/features/EncryptedPost.astro";
@@ -55,6 +55,10 @@ const showPostActionCard = siteConfig.post.share || showSponsorButton;
 
 export async function getStaticPaths() {
 	const blogEntries = await getSortedPosts();
+	if (import.meta.env.MODE === "code-group-test") {
+		const fixture = await getEntry("posts", "code-examples");
+		if (fixture?.data.draft) blogEntries.push(fixture);
+	}
 	return blogEntries.map((entry) => {
 		// 将 id 转换为 slug（移除扩展名）以匹配路由参数
 		const slug = removeFileExtension(entry.id);

@@ -5,6 +5,7 @@ import MicrosoftClarity from "@components/analytics/MicrosoftClarity.astro";
 import UmamiAnalytics from "@components/analytics/UmamiAnalytics.astro";
 import CodeGroupManager from "@components/features/CodeGroupManager.astro";
 import FancyboxManager from "@components/features/FancyboxManager.astro";
+import FloatingLyrics from "@components/features/FloatingLyrics.astro";
 import FontSetup from "@components/features/FontSetup.astro";
 import GithubCardManager from "@components/features/GithubCardManager.astro";
 import MediaRouting from "@components/features/MediaRouting.astro";
@@ -13,6 +14,7 @@ import MusicPlayerView from "@components/features/MusicPlayerView.astro";
 import SakuraEffect from "@components/features/SakuraEffect.astro";
 import WavesEffect from "@components/features/WavesEffect.astro";
 import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
+import BrowserChrome from "@/components/layout/BrowserChrome.astro";
 
 import {
 	analyticsConfig,
@@ -253,9 +255,9 @@ const ogImageAlt = propsOgImageAlt ?? pageTitle;
       )
     }
 
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="generator" content={Astro.generator} />
-    <meta name="theme-color" content={`hsl(${siteConfig.themeColor.hue} 90% 60%)`} />
+    <meta name="theme-color" content={`hsl(${siteConfig.themeColor.hue} 12% 96%)`} />
     {
       favicons.map((favicon) => (
         <link
@@ -405,6 +407,9 @@ const ogImageAlt = propsOgImageAlt ?? pageTitle;
         ? localStorage.getItem("hue") || configHue
         : configHue;
       document.documentElement.style.setProperty("--hue", hue);
+      // 首帧先匹配深浅背景，BrowserChrome 随后同步实际计算后的主题底色。
+      const browserThemeMeta = document.querySelector('meta[name="theme-color"]');
+      if (browserThemeMeta) browserThemeMeta.setAttribute("content", `hsl(${hue} 12% ${document.documentElement.classList.contains("dark") ? "10%" : "96%"})`);
 
       // 设置卡片透明度（全屏透明模式下使用），优先使用用户自定义值
       const storedCardOpacity = localStorage.getItem("overlayCardOpacity");
@@ -522,6 +527,7 @@ const ogImageAlt = propsOgImageAlt ?? pageTitle;
       },
     ]}
   >
+    <BrowserChrome />
     <!-- 首帧前按运行时壁纸模式翻转卡片透明类（布局已由 data-wallpaper-mode 属性规则接管） -->
     <script is:inline>
       (function () {
@@ -567,6 +573,10 @@ const ogImageAlt = propsOgImageAlt ?? pageTitle;
     {(musicPlayerConfig.showInNavbar || musicPlayerConfig.showInSidebar !== false) && (
       <MusicPlayerView />
     )}
+
+    <!-- 悬浮歌词：底部居中三行歌词条，移动端时为一行，播放时出现，可点右侧 X 关闭 -->
+    {(musicPlayerConfig.showInNavbar || musicPlayerConfig.showInSidebar) &&
+      musicPlayerConfig.showFloatingLyrics === true && <FloatingLyrics />}
 
 
     <!-- Sakura Effect -->

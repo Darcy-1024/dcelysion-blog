@@ -40,10 +40,8 @@ export function computeMainGridLayoutVars(
 	const { hasLeftComponents: left, hasRightComponents: right } = config;
 	const both = left && right;
 	const tabletRight = config.tabletSidebar === "right";
-	const mdLeft = left && !(config.isBothSidebars && tabletRight);
-	const mdRight =
-		right &&
-		(config.isBothSidebars ? tabletRight : config.position === "right");
+	const mdLeft = left && (!both || !tabletRight);
+	const mdRight = right && (!both || tabletRight);
 	const colsMd = both
 		? tabletRight
 			? `1fr ${SIDEBAR_TRACK}`
@@ -79,7 +77,7 @@ export function computeMainGridLayoutVars(
 		"--main-grid-right-column-md": "2",
 		"--main-grid-right-column-xl": usePostPageTocLeftLayout
 			? "1"
-			: config.isBothSidebars
+			: both
 				? "3"
 				: "2",
 		"--main-grid-content-column-md": usePostPageTocLeftLayout ? "1" : contentMd,

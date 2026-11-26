@@ -87,6 +87,76 @@ export function ensureMusicManager() {
 		window.dispatchEvent(new CustomEvent(name, { detail: detail || {} }));
 	}
 
+	function syncMediaPosition() {
+		if (
+			!navigator.mediaSession?.setPositionState ||
+			!Number.isFinite(audio.duration) ||
+			audio.duration <= 0
+		)
+			return;
+		navigator.mediaSession.setPositionState({
+			duration: audio.duration,
+			position: Math.min(audio.duration, audio.currentTime),
+			playbackRate: audio.playbackRate,
+		});
+	}
+
+	function syncMediaTrack(track) {
+		if (!navigator.mediaSession || typeof MediaMetadata !== "function") return;
+		try {
+			navigator.mediaSession.metadata = new MediaMetadata({
+				title: track.name,
+				artist: track.artist,
+				artwork: track.pic ? [{ src: track.pic }] : [],
+			});
+			navigator.mediaSession.setPositionState?.();
+		} catch {
+			// Optional metadata must not interrupt playback.
+		}
+	}
+
+	function setPlaying(isPlaying) {
+		if (navigator.mediaSession) {
+			navigator.mediaSession.playbackState = isPlaying ? "playing" : "paused";
+		}
+		if (state.isPlaying === isPlaying) return;
+		state.isPlaying = isPlaying;
+		if (isPlaying) state.error = null;
+		emit("fm:play-state", { isPlaying });
+	}
+
+	function registerMediaActions() {
+		if (!navigator.mediaSession) return;
+		const actions = {
+			play: () => {
+				if (audio.paused) togglePlay();
+			},
+			pause: () => {
+				if (!audio.paused) togglePlay();
+			},
+			previoustrack: playPrev,
+			nexttrack: () => playNext(false),
+			seekto: ({ seekTime }) => {
+				if (Number.isFinite(seekTime)) seekToTime(seekTime);
+			},
+			seekbackward: ({ seekOffset }) =>
+				seekToTime(audio.currentTime - (seekOffset ?? 10)),
+			seekforward: ({ seekOffset }) =>
+				seekToTime(audio.currentTime + (seekOffset ?? 10)),
+			stop: () => {
+				if (!audio.paused) togglePlay();
+				seekToTime(0);
+			},
+		};
+		for (const [action, handler] of Object.entries(actions)) {
+			try {
+				navigator.mediaSession.setActionHandler(action, handler);
+			} catch {
+				// Not every browser supports every media action.
+			}
+		}
+	}
+
 	// ── Meting fetch ─────────────────────────────────────────
 	async function fetchMetingData() {
 		if (!config.meting) return;
@@ -127,6 +197,7 @@ export function ensureMusicManager() {
 
 	// ── Lyrics ───────────────────────────────────────────────
 	function loadLyrics(track) {
+		const version = loadVersion;
 		state.lyrics = [];
 		state.currentLrcIndex = -1;
 
@@ -143,12 +214,17 @@ export function ensureMusicManager() {
 		if (isLrcUrl) {
 			emit("fm:lyrics", { lyrics: [], status: "loading" });
 			fetchMedia(track.lrc)
-				.then((r) => r.text())
+				.then((r) => {
+					if (!r.ok) throw new Error(`HTTP ${r.status}`);
+					return r.text();
+				})
 				.then((text) => {
+					if (version !== loadVersion) return;
 					state.lyrics = parseLRC(text);
 					emit("fm:lyrics", { lyrics: state.lyrics, status: "loaded" });
 				})
 				.catch(() => {
+					if (version !== loadVersion) return;
 					state.lyrics = [];
 					emit("fm:lyrics", { lyrics: [], status: "failed" });
 				});
@@ -175,22 +251,13 @@ export function ensureMusicManager() {
 		}
 
 		if (autoPlay) {
-			audio
-				.play()
-				.then(() => {
-					if (ver !== loadVersion) return; // stale, discard
-					state.isPlaying = true;
-					state.error = null;
-					emit("fm:play-state", { isPlaying: true });
-				})
-				.catch((e) => {
-					if (ver !== loadVersion) return; // stale, discard
-					if (e.name === "AbortError") return; // interrupted by new load
-					console.warn("Autoplay blocked:", e);
-				});
+			audio.play().catch((e) => {
+				if (ver !== loadVersion) return; // stale, discard
+				if (e.name === "AbortError") return; // interrupted by new load
+				console.warn("Autoplay blocked:", e);
+			});
 		} else {
-			state.isPlaying = false;
-			emit("fm:play-state", { isPlaying: false });
+			setPlaying(false);
 		}
 	}
 
@@ -225,6 +292,7 @@ export function ensureMusicManager() {
 		}
 
 		loadLyrics(track);
+		syncMediaTrack(track);
 
 		emit("fm:track", { index: index, track: track, autoPlay: !!autoPlay });
 
@@ -233,27 +301,20 @@ export function ensureMusicManager() {
 
 	// ── Playback controls ────────────────────────────────────
 	function togglePlay() {
+		if (state.playlist.length === 0) return;
 		if (audio.paused) {
 			playbackRequested = true;
 			if (audio.error) {
 				loadTrack(state.currentIndex, true);
 				return;
 			}
-			audio
-				.play()
-				.then(() => {
-					state.isPlaying = true;
-					emit("fm:play-state", { isPlaying: true });
-				})
-				.catch((e) => {
-					if (e.name === "AbortError") return;
-					console.warn("Playback failed:", e);
-				});
+			audio.play().catch((e) => {
+				if (e.name === "AbortError") return;
+				console.warn("Playback failed:", e);
+			});
 		} else {
 			playbackRequested = false;
 			audio.pause();
-			state.isPlaying = false;
-			emit("fm:play-state", { isPlaying: false });
 		}
 	}
 
@@ -310,13 +371,13 @@ export function ensureMusicManager() {
 	}
 
 	function seek(percent) {
-		if (!audio.duration) return;
-		audio.currentTime = Math.max(0, Math.min(1, percent)) * audio.duration;
+		seekToTime(percent * audio.duration);
 	}
 
 	function seekToTime(time) {
-		if (!audio.duration) return;
+		if (!Number.isFinite(time) || !Number.isFinite(audio.duration)) return;
 		audio.currentTime = Math.max(0, Math.min(time, audio.duration));
+		syncMediaPosition();
 	}
 
 	function playTrackByIndex(index) {
@@ -344,6 +405,9 @@ export function ensureMusicManager() {
 	}
 
 	audio.addEventListener("loadedmetadata", emitAudioTime);
+	audio.addEventListener("loadedmetadata", syncMediaPosition);
+	audio.addEventListener("play", () => setPlaying(true));
+	audio.addEventListener("pause", () => setPlaying(false));
 
 	audio.addEventListener("timeupdate", () => {
 		if (!Number.isFinite(audio.duration) || audio.duration <= 0) return;
@@ -365,6 +429,7 @@ export function ensureMusicManager() {
 	});
 
 	audio.addEventListener("ended", () => {
+		setPlaying(false);
 		playNext(true);
 	});
 
@@ -377,9 +442,8 @@ export function ensureMusicManager() {
 				return;
 			}
 			state.error = "Audio playback error";
-			state.isPlaying = false;
 			emit("fm:error", { message: config.i18n.error });
-			emit("fm:play-state", { isPlaying: false });
+			setPlaying(false);
 			return;
 		}
 		var ver = loadVersion;
@@ -422,6 +486,7 @@ export function ensureMusicManager() {
 			if (state.playlist.length > 0) {
 				// Apply volume
 				audio.volume = state.volume;
+				registerMediaActions();
 
 				var startIndex = 0;
 				if (state.playMode === 2) {
@@ -503,5 +568,6 @@ export function ensureMusicManager() {
 		playTrackByIndex: playTrackByIndex,
 		loadTrack: loadTrack,
 	};
+	emit("fm:ready");
 	return window.__fireflyMusic;
 }

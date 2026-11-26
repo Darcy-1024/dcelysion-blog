@@ -93,6 +93,8 @@ export const ru: Translation = {
 	[Key.musicCover]: "Обложка",
 	[Key.musicNoCover]: "Нет обложки",
 	[Key.musicAudioPlayer]: "Аудиоплеер",
+	[Key.musicFloatingLyrics]: "Плавающие субтитры",
+	[Key.musicCloseFloatingLyrics]: "Закрыть плавающие субтитры",
 
 	// Объявление
 	[Key.announcement]: "Объявление",

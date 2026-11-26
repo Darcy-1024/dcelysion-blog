@@ -1,5 +1,6 @@
 ---
 import { musicPlayerConfig } from "@/config/musicConfig";
+import { siteConfig } from "@/config/siteConfig";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import { url } from "@/utils/url-utils";
@@ -31,6 +32,7 @@ const localPlaylist =
 		: [];
 
 const managerConfigStr = JSON.stringify({
+	siteTitle: siteConfig.title,
 	mode: config.mode,
 	meting: config.meting,
 	localPlaylist: localPlaylist,

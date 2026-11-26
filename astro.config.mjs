@@ -13,11 +13,13 @@ import icon from "astro-icon";
 import { pluginLanguageLogo } from "ec-lang-logo"; /* Language Logo */
 import { pluginCollapsible } from "expressive-code-collapsible"; /* Collapsible */
 import { pluginLanguageBadge } from "expressive-code-language-badge"; /* Language Badge */
-import katex from "katex";
 import "katex/dist/contrib/mhchem.mjs"; // 加载 mhchem 扩展
 import rehypeAutolinkHeadings from "rehype-autolink-headings";
 import rehypeCallouts from "rehype-callouts";
 import rehypeCodeGroup from "rehype-code-group"; /* Tab 代码块 */
+import { fullEmojiResolver } from "rehype-code-group/emoji";
+import remarkPackageManagers from "rehype-code-group/package-managers";
+import remarkCodeGroup from "rehype-code-group/remark";
 import rehypeComponents from "rehype-components"; /* Render the custom directive content */
 import rehypeKatex from "rehype-katex";
 import rehypeSlug from "rehype-slug";
@@ -288,6 +290,8 @@ export default defineConfig({
 	markdown: {
 		processor: unified({
 			remarkPlugins: [
+				remarkPackageManagers,
+				remarkCodeGroup,
 				...(siteConfig.post.rehypeCallouts.enablePythonMarkdownAdmonitions !==
 				false
 					? [remarkAdmonitionToBlockquoteCallout]
@@ -304,10 +308,10 @@ export default defineConfig({
 				[remarkPlantuml, plantumlConfig],
 			],
 			rehypePlugins: [
-				[rehypeKatex, { katex }],
+				rehypeKatex,
 				[rehypeCallouts, { theme: siteConfig.post.rehypeCallouts.theme }],
 				rehypeSlug,
-				rehypeCodeGroup,
+				[rehypeCodeGroup, { assets: "none", labelResolver: fullEmojiResolver }],
 				[rehypeMermaid, mermaidConfig],
 				rehypePlantuml,
 				rehypeDiagramPanZoom,

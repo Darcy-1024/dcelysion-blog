@@ -112,6 +112,7 @@ Firefly 项目中所有可复用组件的集中管理。组件按照功能和职
 - `BackgroundPlayer.astro` - 响应式视频壁纸播放器（双 video 轮换，仅在当前视频稳定播放且网络条件允许时预载一条下一视频）
 - `EncryptedContent.astro` - 加密内容组件
 - `EncryptedPost.astro` - 加密文章组件
+- `FloatingLyrics.astro` - 底部居中悬浮歌词
 - `Live2DWidget.astro` - Live2D 看板娘组件
 - `MusicPlayer.astro` - 音乐播放器 UI 视图控制器（纯 UI，委托 MusicManager 进行播放控制）
 - `SakuraEffect.astro` - 樱花飘落特效

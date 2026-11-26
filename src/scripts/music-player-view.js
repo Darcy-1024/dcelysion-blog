@@ -622,19 +622,57 @@ import { ensureMusicManager } from "./music-manager.js";
 			mgr.toggleMute();
 		});
 
-		ui.volContainer.addEventListener("click", (e) => {
-			var rect = ui.volContainer.getBoundingClientRect();
-			var x = e.clientX - rect.left;
-			var val = Math.max(0, Math.min(1, x / rect.width));
-			mgr.setVolume(val);
-		});
+		function bindSlider(slider, read, write) {
+			let pointerId = null;
+			const update = (event) => {
+				const { left, width } = slider.getBoundingClientRect();
+				if (width)
+					write(Math.max(0, Math.min(1, (event.clientX - left) / width)));
+			};
+			slider.addEventListener("pointerdown", (event) => {
+				if (event.button !== 0 || pointerId !== null) return;
+				pointerId = event.pointerId;
+				slider.setPointerCapture(pointerId);
+				update(event);
+			});
+			slider.addEventListener("pointermove", (event) => {
+				if (event.pointerId === pointerId) update(event);
+			});
+			slider.addEventListener("pointerup", (event) => {
+				if (event.pointerId === pointerId) update(event);
+			});
+			slider.addEventListener("lostpointercapture", () => {
+				pointerId = null;
+			});
+			slider.addEventListener("keydown", (event) => {
+				const step = {
+					ArrowUp: 0.05,
+					ArrowRight: 0.05,
+					ArrowDown: -0.05,
+					ArrowLeft: -0.05,
+				}[event.key];
+				if (step === undefined && event.key !== "Home" && event.key !== "End")
+					return;
+				event.preventDefault();
+				const next =
+					event.key === "Home" ? 0 : event.key === "End" ? 1 : read() + step;
+				write(Math.max(0, Math.min(1, next)));
+			});
+		}
 
-		ui.progressContainer.addEventListener("click", (e) => {
-			var rect = ui.progressContainer.getBoundingClientRect();
-			var clickX = e.clientX - rect.left;
-			var percent = Math.min(Math.max(clickX / rect.width, 0), 1);
-			mgr.seek(percent);
-		});
+		bindSlider(
+			ui.volContainer,
+			() => {
+				const state = mgr.getState();
+				return state.isMuted ? 0 : state.volume;
+			},
+			mgr.setVolume,
+		);
+		bindSlider(
+			ui.progressContainer,
+			() => mgr.getState().progress / 100,
+			mgr.seek,
+		);
 
 		// ── Drawer logic (local state) ───────────────────────────
 		ui.btnLrc.addEventListener("click", () => {

@@ -7,3 +7,7 @@ allowBuilds:
   esbuild: true
   swup: true
   workerd: true
+minimumReleaseAgeExclude:
+  - rehype-code-group@2.0.1
+overrides:
+  katex: "^0.19.1"
