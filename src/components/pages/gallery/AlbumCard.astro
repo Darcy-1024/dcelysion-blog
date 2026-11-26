@@ -78,19 +78,23 @@ const lqipProps = cover
     )}
 
     <!-- Gradient overlay + info -->
-    <div class="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent" />
+    <div
+      class="absolute inset-0 pointer-events-none"
+      style="background: linear-gradient(to top, rgba(10, 8, 15, 0.92) 0%, rgba(10, 8, 15, 0.68) 28%, rgba(10, 8, 15, 0.22) 52%, transparent 70%);"
+      aria-hidden="true"
+    />
     <div class="absolute bottom-0 left-0 right-0 p-4">
-      <h3 class="font-bold text-base text-white line-clamp-1 drop-shadow-lg">
+      <h3 class="font-bold text-base text-white line-clamp-1 drop-shadow-[0_1px_4px_rgba(0,0,0,0.85)]">
         {name}
       </h3>
 
       {description && (
-        <p class="text-xs text-white/75 line-clamp-1 mt-1 leading-relaxed" title={description}>
+        <p class="text-xs text-white/90 line-clamp-1 mt-1 leading-relaxed drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]" title={description}>
           {description}
         </p>
       )}
 
-      <div class="flex items-center gap-3 text-xs text-white/70 mt-1.5 flex-wrap">
+      <div class="flex items-center gap-3 text-xs text-white/85 mt-1.5 flex-wrap drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]">
         {date && <span>{date}</span>}
         {location && (
           <span class="inline-flex items-center gap-0.5">
@@ -103,7 +107,7 @@ const lqipProps = cover
       {tags && tags.length > 0 && (
         <div class="flex flex-wrap gap-1 mt-2">
           {tags.slice(0, 4).map((tag) => (
-            <span class="text-[0.6rem] px-1.5 py-0.5 rounded bg-white/20 text-white/90 backdrop-blur-sm">
+            <span class="text-[0.6rem] px-1.5 py-0.5 rounded bg-black/45 border border-white/15 text-white/95 backdrop-blur-sm">
               {tag}
             </span>
           ))}

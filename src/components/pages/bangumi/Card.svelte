@@ -153,22 +153,26 @@ function handleError(e: Event) {
     {/if}
 
     <!-- Gradient overlay + info -->
-    <div class="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent"></div>
-    <div class="absolute bottom-0 left-0 right-0 p-3">
-      <h3 class="font-bold text-sm text-white line-clamp-2 drop-shadow-lg">{title}</h3>
+    <div
+      class="absolute inset-0 pointer-events-none"
+      style="background: linear-gradient(to top, rgba(8, 7, 12, 0.94) 0%, rgba(8, 7, 12, 0.72) 26%, rgba(8, 7, 12, 0.28) 48%, transparent 66%);"
+      aria-hidden="true"
+    ></div>
+    <div class="absolute bottom-0 left-0 right-0 p-3 z-10">
+      <h3 class="font-bold text-sm text-white line-clamp-2 drop-shadow-[0_1px_5px_rgba(0,0,0,0.9)]">{title}</h3>
       {#if year}
-        <p class="text-xs text-white/60 mt-1">{year}</p>
+        <p class="text-xs text-white/85 mt-1 drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]">{year}</p>
       {/if}
       {#if item.comment}
-        <p class="text-xs text-white/75 line-clamp-1 mt-1 leading-relaxed" title={item.comment}>{item.comment}</p>
+        <p class="text-xs text-white/90 line-clamp-1 mt-1 leading-relaxed drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]" title={item.comment}>{item.comment}</p>
       {/if}
       {#if visibleTags.length > 0}
         <div class="flex flex-wrap gap-1 mt-1.5">
           {#each visibleTags as tag}
-            <span class="text-[0.6rem] px-1.5 py-0.5 rounded bg-white/20 text-white/90 backdrop-blur-sm">{tag}</span>
+            <span class="text-[0.6rem] px-1.5 py-0.5 rounded bg-black/45 border border-white/15 text-white/95 backdrop-blur-sm">{tag}</span>
           {/each}
           {#if hiddenTagCount > 0}
-            <span class="text-[0.6rem] px-1.5 py-0.5 rounded bg-white/20 text-white/60 backdrop-blur-sm">+{hiddenTagCount}</span>
+            <span class="text-[0.6rem] px-1.5 py-0.5 rounded bg-black/45 border border-white/15 text-white/75 backdrop-blur-sm">+{hiddenTagCount}</span>
           {/if}
         </div>
       {/if}

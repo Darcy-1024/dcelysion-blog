@@ -165,46 +165,72 @@ function handleError(e: Event) {
       </div>
     {/if}
 
-    <div class="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent"></div>
-    <div class="absolute bottom-0 left-0 right-0 p-3">
-      <h3 class="font-bold text-sm text-white line-clamp-2 drop-shadow-lg">{title}</h3>
-      {#if altTitle}
-        <p class="text-xs text-white/60 mt-0.5 line-clamp-1">{altTitle}</p>
-      {/if}
-      {#if year || lengthText}
-        <p class="text-xs text-white/70 mt-1">
+    <div class="vndb-scrim absolute inset-0 pointer-events-none transition-opacity duration-300 motion-reduce:transition-none" aria-hidden="true"></div>
+    <div class="vndb-scrim-hover absolute inset-0 pointer-events-none opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100 transition-opacity duration-300 motion-reduce:transition-none" aria-hidden="true"></div>
+    <div class="absolute bottom-0 left-0 right-0 p-3 z-10">
+      <h3 class="font-bold text-sm text-white line-clamp-2 drop-shadow-[0_1px_5px_rgba(0,0,0,0.9)]">{title}</h3>
+      {#if year || lengthText || rating}
+        <p class="text-xs text-white/90 mt-1 line-clamp-1 drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]">
           {#if year}{year}{/if}
           {#if year && lengthText} · {/if}
           {#if lengthText}{lengthText}{/if}
+          {#if (year || lengthText) && rating} · {/if}
+          {#if rating}<span class="text-yellow-300 font-semibold">&#9733; {rating}</span>{/if}
         </p>
       {/if}
-      {#if playRange}
-        <p class="text-xs text-white/70 mt-1">{playRange}</p>
-      {/if}
-      {#if rating}
-        <p class="text-xs text-white/70 mt-0.5">
-          <span class="text-yellow-300 font-medium">VNDB</span> {rating}
-          {#if voteCount}
-            <span class="text-white/50">· {voteCount} {i18n(I18nKey.vndbVotes)}</span>
-          {/if}
-        </p>
-      {/if}
-      {#if metaText}
-        <p class="text-xs text-white/65 mt-0.5 line-clamp-1" title={metaText}>{metaText}</p>
-      {/if}
-      {#if notes}
-        <p class="text-xs text-white/75 line-clamp-1 mt-1 leading-relaxed" title={notes}>{notes}</p>
+      {#if altTitle || playRange || voteCount || metaText || notes}
+        <div class="vndb-hover-details max-h-0 opacity-0 overflow-hidden group-hover:max-h-40 group-hover:opacity-100 group-focus-visible:max-h-40 group-focus-visible:opacity-100 transition-all duration-300 motion-reduce:transition-none">
+          <div class="mt-1.5 pt-1.5 border-t border-white/15 space-y-0.5 text-[11px] leading-snug text-white/80 drop-shadow-[0_1px_3px_rgba(0,0,0,0.85)]">
+            {#if altTitle}
+              <p class="text-white/75 line-clamp-1" title={altTitle}>{altTitle}</p>
+            {/if}
+            {#if voteCount || playRange}
+              <p class="line-clamp-1">
+                {#if voteCount}<span>{voteCount} {i18n(I18nKey.vndbVotes)}</span>{/if}
+                {#if voteCount && playRange} · {/if}
+                {#if playRange}<span>{playRange}</span>{/if}
+              </p>
+            {/if}
+            {#if metaText}
+              <p class="line-clamp-2 text-white/75" title={metaText}>{metaText}</p>
+            {/if}
+            {#if notes}
+              <p class="text-white/90 line-clamp-2 pt-0.5" title={notes}>{notes}</p>
+            {/if}
+          </div>
+        </div>
       {/if}
       {#if visibleTags.length > 0}
         <div class="flex flex-wrap gap-1 mt-1.5">
           {#each visibleTags as tag}
-            <span class="text-[0.6rem] px-1.5 py-0.5 rounded bg-white/20 text-white/90 backdrop-blur-sm">{tag}</span>
+            <span class="text-[0.6rem] px-1.5 py-0.5 rounded bg-black/45 border border-white/15 text-white/95 backdrop-blur-sm">{tag}</span>
           {/each}
           {#if hiddenTagCount > 0}
-            <span class="text-[0.6rem] px-1.5 py-0.5 rounded bg-white/20 text-white/60 backdrop-blur-sm">+{hiddenTagCount}</span>
+            <span class="text-[0.6rem] px-1.5 py-0.5 rounded bg-black/45 border border-white/15 text-white/75 backdrop-blur-sm">+{hiddenTagCount}</span>
           {/if}
         </div>
       {/if}
     </div>
   </div>
 </a>
+
+<style>
+  .vndb-scrim {
+    background: linear-gradient(
+      to top,
+      rgba(8, 7, 12, 0.94) 0%,
+      rgba(8, 7, 12, 0.72) 24%,
+      rgba(8, 7, 12, 0.3) 44%,
+      transparent 62%
+    );
+  }
+  .vndb-scrim-hover {
+    background: linear-gradient(
+      to top,
+      rgba(8, 7, 12, 0.96) 0%,
+      rgba(8, 7, 12, 0.84) 38%,
+      rgba(8, 7, 12, 0.45) 58%,
+      transparent 76%
+    );
+  }
+</style>

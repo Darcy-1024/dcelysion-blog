@@ -79,6 +79,27 @@ export const isHomePage = (pathname: string): boolean => {
 	return false;
 };
 
+/**
+ * 侧边栏个人资料卡在首页（含分页）及偏社交页面（关于/友链/留言板）保留完整大卡，
+ * 其余子页面使用紧凑小横卡（compact），为最新动态与播放器腾出首屏空间。
+ */
+export const shouldUseFullProfile = (pathname: string): boolean => {
+	const baseUrl = (import.meta.env.BASE_URL || "/").replace(/\/$/, "");
+	let relative = pathname;
+	if (baseUrl && relative.startsWith(baseUrl)) {
+		relative = relative.slice(baseUrl.length) || "/";
+	}
+	const normalized = relative.replace(/\/+$/, "") || "/";
+	if (normalized === "/" || /^\/\d+$/.test(normalized)) {
+		return true;
+	}
+	return (
+		normalized === "/about" ||
+		normalized === "/friends" ||
+		normalized === "/guestbook"
+	);
+};
+
 // 获取横幅偏移量
 export const getBannerOffset = (position = "center"): string => {
 	const bannerOffsetByPosition = {

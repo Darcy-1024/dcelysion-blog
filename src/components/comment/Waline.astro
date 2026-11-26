@@ -46,6 +46,21 @@ const config = {
 
   html.dark #waline {
     --waline-color: color-mix(in oklch, var(--card-bg) 12%, #fff 88%);
+    --waline-border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  html.dark #waline .wl-panel {
+    background: color-mix(in oklch, var(--card-bg) 88%, #000 12%);
+    border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  html.dark #waline .wl-header {
+    background: rgba(255, 255, 255, 0.035);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
+  }
+
+  html.dark #waline .wl-header-item:not(:last-child) {
+    border-right: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   #waline .wl-count {

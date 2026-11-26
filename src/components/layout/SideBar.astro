@@ -16,6 +16,7 @@ import type {
 	MobileBottomComponentConfig,
 	WidgetComponentConfig,
 } from "@/types/config";
+import { shouldUseFullProfile } from "@/utils/layout-utils";
 
 interface Props {
 	class?: string;
@@ -105,6 +106,7 @@ const getAnimationDelay = (index: number): string => {
 // 判断当前页面是否为文章页面（服务端渲染时确定）
 const isPostPage = Astro.url.pathname.includes("/posts/");
 const useStandardLayout = !isPostPage;
+const useFullProfile = shouldUseFullProfile(Astro.url.pathname);
 const showOnStandardLayout = (
 	config: WidgetComponentConfig | MobileBottomComponentConfig,
 ) =>
@@ -152,7 +154,7 @@ const getComponentProps = (
 		if (useStandardLayout) baseProps.class += " hidden";
 	}
 	if (config.type === "profile") {
-		baseProps.variant = isPostPage ? "compact" : "full";
+		baseProps.variant = useFullProfile ? "full" : "compact";
 	}
 	if (config.type === "dynamic") {
 		baseProps.id = `${side}-latest-dynamics`;

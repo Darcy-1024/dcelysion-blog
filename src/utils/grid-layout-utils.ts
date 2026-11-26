@@ -2,6 +2,7 @@
  * 主网格列布局与侧边栏可见性 / 吸顶间距管理（从 Layout.astro 迁出）。
  */
 
+import { shouldUseFullProfile } from "@/utils/layout-utils";
 import {
 	resolveSidebarLayout,
 	type SidebarLayoutInput,
@@ -94,8 +95,12 @@ export function updateSidebarComponentsVisibility(): void {
 				(isPostPage && widget.classList.contains("widget-non-post-only"));
 			widget.classList.toggle("hidden", hidden);
 		});
+	const useFullProfile =
+		typeof window !== "undefined"
+			? shouldUseFullProfile(window.location.pathname)
+			: !isPostPage;
 	document.querySelectorAll<HTMLElement>(".profile-card").forEach((profile) => {
-		profile.dataset.variant = isPostPage ? "compact" : "full";
+		profile.dataset.variant = useFullProfile ? "full" : "compact";
 	});
 
 	// 组件可见性变化后刷新吸顶偏移；组间距由 CSS 直接处理。
