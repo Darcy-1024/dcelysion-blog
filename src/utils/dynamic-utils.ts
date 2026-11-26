@@ -30,3 +30,24 @@ export const dynamicSearchText = (entry: CollectionEntry<"dynamic">): string =>
 		.filter(Boolean)
 		.join(" ")
 		.toLocaleLowerCase();
+
+export const getDynamicImageSizes = (
+	imageCount: number,
+	index: number,
+): string => {
+	if (imageCount === 1) {
+		return "(max-width: 48rem) calc(100vw - 5.75rem), 36rem";
+	}
+	if (imageCount === 3 && index === 0) {
+		return "(max-width: 48rem) calc((100vw - 6rem) * 0.6667), 28rem";
+	}
+	if (imageCount === 5) {
+		return index === 0
+			? "(max-width: 48rem) calc((100vw - 6rem) / 2), 21rem"
+			: "(max-width: 48rem) calc((100vw - 6.75rem) / 4), 10.5rem";
+	}
+	if (imageCount === 2 || imageCount === 4) {
+		return "(max-width: 48rem) calc((100vw - 6rem) / 2), 14rem";
+	}
+	return "(max-width: 48rem) calc((100vw - 6.5rem) / 3), 14rem";
+};

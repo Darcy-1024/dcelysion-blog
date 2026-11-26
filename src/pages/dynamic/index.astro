@@ -1,13 +1,23 @@
 ---
 import { Icon } from "astro-icon/components";
 import DynamicFeed from "@/components/pages/dynamic/DynamicFeed.svelte";
+import DynamicFeedCard from "@/components/pages/dynamic/DynamicFeedCard.astro";
 import DynamicItemTemplate from "@/components/pages/dynamic/DynamicItemTemplate.astro";
-import { commentConfig, dynamicConfig, siteConfig } from "@/config";
+import {
+	commentConfig,
+	dynamicConfig,
+	profileConfig,
+	siteConfig,
+} from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 import "@/styles/pages/common.css";
 import "@/styles/pages/dynamic.css";
+import {
+	getLocalDynamicEntries,
+	isLocalDynamicSource,
+} from "@/utils/dynamic-server";
 import { url } from "@/utils/url-utils";
 
 if (!siteConfig.pages.dynamic) {
@@ -27,11 +37,39 @@ const dataUrl = dynamicConfig.apiUrl?.startsWith("http")
 	? dynamicConfig.apiUrl
 	: url(dynamicConfig.apiUrl || "/api/dynamic.json");
 const memos = dynamicConfig.memos;
+const timezone = siteConfig.timezone || "UTC";
+
+const useLocalPrerender = isLocalDynamicSource();
+const localEntries = useLocalPrerender ? await getLocalDynamicEntries() : null;
+const initialPageEntries = localEntries
+	? localEntries.slice(0, itemsPerPage)
+	: [];
+const initialYears = localEntries
+	? [
+			...new Set(
+				localEntries.map((entry) => new Date(entry.published).getUTCFullYear()),
+			),
+		]
+	: [];
 ---
 
 <MainGridLayout title={title} description={description}>
 	<section class="page-shell" aria-labelledby="dynamic-page-title">
 		<div>
+			{/* 预置卡片内复用的 SVG symbol，避免客户端筛选重绘列表时丢失首次定义的 symbol */}
+			<div hidden aria-hidden="true">
+				<Icon name="material-symbols:location-on-rounded" />
+				<Icon name="material-symbols:push-pin" />
+				<Icon name="material-symbols:format-quote-rounded" />
+				<Icon name="material-symbols:share" />
+				<Icon name="material-symbols:close-fullscreen-rounded" />
+				<Icon name="material-symbols:zoom-in-rounded" />
+				<Icon name="material-symbols:chevron-left-rounded" />
+				<Icon name="material-symbols:chevron-right-rounded" />
+				<Icon name="material-symbols:chat-bubble-outline-rounded" />
+				<Icon name="material-symbols:expand-more-rounded" />
+			</div>
+
 			<header class="page-header card-base">
 				<div class="page-heading">
 					<div class="page-icon" aria-hidden="true">
@@ -47,7 +85,7 @@ const memos = dynamicConfig.memos;
 					aria-label={i18n(I18nKey.dynamic)}
 				>
 					<Icon name="material-symbols:dynamic-feed-rounded" />
-					<strong data-dynamic-page-count>0</strong>
+					<strong data-dynamic-page-count>{localEntries ? localEntries.length : 0}</strong>
 					<span>{i18n(I18nKey.dynamic)}</span>
 				</div>
 				<div class="page-filter">
@@ -63,11 +101,33 @@ const memos = dynamicConfig.memos;
 						<Icon name="material-symbols:calendar-month-rounded" />
 						<select data-year-select aria-label={i18n(I18nKey.year)}>
 							<option value="all">{i18n(I18nKey.dynamicAllYears)}</option>
+							{initialYears.map((year) => (
+								<option value={String(year)}>{year}</option>
+							))}
 						</select>
 						<Icon name="material-symbols:arrow-drop-down-rounded" />
 					</label>
 				</div>
 			</header>
+
+			<p
+				class="page-no-results card-base"
+				role="status"
+				data-dynamic-link-missing
+				hidden
+			>
+				{i18n(I18nKey.dynamicLinkMissing)}
+			</p>
+
+			<div class="page-feed" data-dynamic-feed-list>
+				{initialPageEntries.map((entry) => (
+					<DynamicFeedCard
+						{entry}
+						showComments={showInlineComments}
+						{timezone}
+					/>
+				))}
+			</div>
 
 			<DynamicFeed
 				client:load
@@ -77,12 +137,25 @@ const memos = dynamicConfig.memos;
 				emptyText={i18n(I18nKey.dynamicEmpty)}
 				noResultsText={i18n(I18nKey.dynamicNoResults)}
 				loadingText={i18n(I18nKey.dynamicLoading)}
+				linkMissingText={i18n(I18nKey.dynamicLinkMissing)}
+				shareFailedText={i18n(I18nKey.sharePosterFailed)}
 				allYearsText={i18n(I18nKey.dynamicAllYears)}
-				timezone={siteConfig.timezone || "UTC"}
+				{timezone}
+				authorName={profileConfig.name}
+				siteTitle={siteConfig.title}
 				{memos}
+				prerenderedCount={localEntries ? initialPageEntries.length : undefined}
+				initialTotal={localEntries ? localEntries.length : undefined}
 			/>
 
 			<DynamicItemTemplate />
 		</div>
 	</section>
 </MainGridLayout>
+
+<script>
+	import { registerDynamicGallery } from "@/components/pages/dynamic/dynamic-gallery";
+	import { registerDynamicInlineComments } from "@/components/pages/dynamic/dynamic-inline-comments";
+	registerDynamicGallery();
+	registerDynamicInlineComments();
+</script>

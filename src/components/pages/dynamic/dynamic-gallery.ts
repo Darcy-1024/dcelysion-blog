@@ -3,17 +3,12 @@ import type {
 	FancyboxInstance,
 	FancyboxOptions,
 } from "@fancyapps/ui";
-import * as FancyboxModule from "@fancyapps/ui";
-import { zh_CN } from "@fancyapps/ui/dist/fancybox/l10n/zh_CN.js";
 import { assignMedia, backupMedia, mediaRouter } from "@/utils/media-client";
 import { mediaCarousel } from "@/utils/media-lightbox";
 
 const VIEW_ORIGINAL_SIZE_TITLE = "查看原始尺寸";
 const FIT_TO_VIEW_TITLE = "适应窗口";
-const fancyboxL10n = {
-	...zh_CN,
-	TOGGLE_FULL: VIEW_ORIGINAL_SIZE_TITLE,
-};
+
 const fancyboxEvents: FancyboxOptions["on"] = {
 	"Carousel.panzoom:render": (instance, _carousel, slide) => {
 		updateToggle1to1Title(instance, slide);
@@ -34,11 +29,55 @@ function updateToggle1to1Title(
 		: VIEW_ORIGINAL_SIZE_TITLE;
 }
 
-function getLightboxOptions(startIndex: number): Partial<FancyboxOptions> {
+let fancyboxLoader:
+	| Promise<{
+			Fancybox: typeof import("@fancyapps/ui").Fancybox;
+			l10n: FancyboxOptions["l10n"];
+	  }>
+	| undefined;
+
+function loadFancybox() {
+	fancyboxLoader ??= Promise.all([
+		import("@fancyapps/ui"),
+		import("@fancyapps/ui/dist/fancybox/l10n/zh_CN.js"),
+		import("@fancyapps/ui/dist/fancybox/fancybox.css?url"),
+		import("@/styles/fancybox-custom.css?url"),
+	])
+		.then(([fancyboxMod, l10nMod, fancyboxCss, customCss]) => {
+			for (const href of [fancyboxCss.default, customCss.default]) {
+				if (
+					typeof href === "string" &&
+					!document.head.querySelector(`link[href="${href}"]`)
+				) {
+					const link = document.createElement("link");
+					link.rel = "stylesheet";
+					link.href = href;
+					document.head.appendChild(link);
+				}
+			}
+			return {
+				Fancybox: fancyboxMod.Fancybox,
+				l10n: {
+					...l10nMod.zh_CN,
+					TOGGLE_FULL: VIEW_ORIGINAL_SIZE_TITLE,
+				},
+			};
+		})
+		.catch((error) => {
+			fancyboxLoader = undefined;
+			throw error;
+		});
+	return fancyboxLoader;
+}
+
+function getLightboxOptions(
+	startIndex: number,
+	l10n: FancyboxOptions["l10n"],
+): Partial<FancyboxOptions> {
 	return {
 		startIndex,
 		Carousel: mediaCarousel(),
-		l10n: fancyboxL10n,
+		l10n,
 		on: fancyboxEvents,
 	};
 }
@@ -57,6 +96,7 @@ export function registerDynamicGallery(): void {
 	class DynamicGallery extends HTMLElement {
 		private activeIndex = 0;
 		private images: GalleryImage[] = [];
+		private thumbnailsBuilt = false;
 
 		connectedCallback() {
 			if (this.dataset.ready) return;
@@ -82,7 +122,6 @@ export function registerDynamicGallery(): void {
 					undefined,
 			}));
 			this.buildGrid();
-			this.buildThumbnails();
 			this.bindControls();
 			this.dataset.ready = "true";
 			this.hidden = false;
@@ -107,7 +146,9 @@ export function registerDynamicGallery(): void {
 				);
 				// 只有一张图时，点击直接打开大图查看
 				if (this.images.length === 1) {
-					button.addEventListener("click", () => this.openLightbox(0));
+					button.addEventListener("click", () => {
+						void this.openLightbox(0);
+					});
 				} else {
 					button.addEventListener("click", () => this.open(index));
 				}
@@ -135,7 +176,9 @@ export function registerDynamicGallery(): void {
 			}
 		}
 
-		private buildThumbnails() {
+		private ensureThumbnails() {
+			if (this.thumbnailsBuilt) return;
+			this.thumbnailsBuilt = true;
 			const thumbnails = this.querySelector<HTMLElement>(
 				"[data-gallery-thumbnails]",
 			);
@@ -164,6 +207,7 @@ export function registerDynamicGallery(): void {
 							"data-media-src",
 							"data-media-srcset",
 							"data-media-active",
+							"data-fallback-bound",
 						].includes(attribute.name)
 					)
 						thumbnail.setAttribute(attribute.name, attribute.value);
@@ -215,15 +259,7 @@ export function registerDynamicGallery(): void {
 				"click",
 				(event) => {
 					event.preventDefault();
-					const Fancybox = FancyboxModule.Fancybox;
-					Fancybox.show(
-						this.images.map((image) => ({
-							src: image.src,
-							thumbSrc: image.previewSrc,
-							type: "image",
-						})),
-						getLightboxOptions(this.activeIndex),
-					);
+					void this.openLightbox(this.activeIndex);
 				},
 			);
 		}
@@ -232,6 +268,7 @@ export function registerDynamicGallery(): void {
 			const grid = this.querySelector<HTMLElement>("[data-gallery-grid]");
 			const viewer = this.querySelector<HTMLElement>("[data-gallery-viewer]");
 			if (!grid || !viewer) return;
+			this.ensureThumbnails();
 			grid.hidden = true;
 			viewer.hidden = false;
 			this.select(index);
@@ -245,15 +282,15 @@ export function registerDynamicGallery(): void {
 			viewer.hidden = true;
 		}
 
-		private openLightbox(index: number) {
-			const Fancybox = FancyboxModule.Fancybox;
+		private async openLightbox(index: number) {
+			const { Fancybox, l10n } = await loadFancybox();
 			Fancybox.show(
 				this.images.map((image) => ({
 					src: image.src,
 					thumbSrc: image.previewSrc,
 					type: "image",
 				})),
-				getLightboxOptions(index),
+				getLightboxOptions(index, l10n),
 			);
 		}
 

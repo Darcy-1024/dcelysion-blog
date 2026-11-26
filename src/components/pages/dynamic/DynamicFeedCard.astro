@@ -1,0 +1,133 @@
+---
+import { Icon } from "astro-icon/components";
+import ImageWrapper from "@/components/common/ImageWrapper.astro";
+import LikeButton from "@/components/common/LikeButton.astro";
+import DynamicGallery from "@/components/pages/dynamic/DynamicGallery.astro";
+import DynamicInlineComments from "@/components/pages/dynamic/DynamicInlineComments.astro";
+import { dynamicConfig, profileConfig } from "@/config";
+import I18nKey from "@/i18n/i18nKey";
+import { i18n } from "@/i18n/translation";
+import type { DynamicEntry } from "@/types/dynamic";
+import { formatDynamicDate, formatDynamicDateFull } from "@/utils/date-utils";
+import { getDynamicImageSizes } from "@/utils/dynamic-utils";
+import { url } from "@/utils/url-utils";
+
+interface Props {
+	entry?: DynamicEntry;
+	showComments?: boolean;
+	timezone?: string;
+}
+
+const { entry, showComments = true, timezone = "UTC" } = Astro.props;
+
+const profileLabel = i18n(I18nKey.dynamicProfile).replace(
+	"{name}",
+	profileConfig.name,
+);
+const profileUrl = url(dynamicConfig.profileUrl || "/about/");
+
+const anchorId = entry ? `dynamic-${encodeURIComponent(entry.id)}` : undefined;
+const date = entry ? new Date(entry.published) : undefined;
+const permalink = entry
+	? entry.detailUrl ||
+		`${url("/dynamic/")}?entry=${encodeURIComponent(entry.id)}`
+	: undefined;
+const locationText = entry?.location?.trim() || "";
+const contentId = anchorId ? `${anchorId}-content` : undefined;
+const gallerySourceId = contentId || "dynamic-template-content";
+const likePath = entry ? `/dynamic/${entry.id}` : "";
+const commentSrc =
+	entry && showComments
+		? `/dynamic/comments/?path=${encodeURIComponent(`/dynamic/${entry.id}/`)}`
+		: "";
+---
+
+<dynamic-entry
+	id={anchorId}
+	class="page-entry card-base"
+	data-dynamic-entry
+	data-entry-id={entry?.id}
+	data-clickable={entry?.detailUrl ? "true" : undefined}
+	data-year={date ? String(date.getUTCFullYear()) : undefined}
+>
+	<article aria-labelledby={anchorId ? `${anchorId}-author` : undefined}>
+		<header class="page-entry-header">
+			<a href={profileUrl} class="page-avatar" aria-label={profileLabel}>
+				<ImageWrapper
+					src={profileConfig.avatar || ""}
+					alt={profileConfig.name}
+					widths={[96]}
+					sizes="48px"
+					loading="eager"
+					fadeIn={false}
+				/>
+			</a>
+			<div class="page-identity">
+				<a href={profileUrl} class="page-author" aria-label={profileLabel}>
+					<strong id={anchorId ? `${anchorId}-author` : undefined} data-dynamic-author>{profileConfig.name}</strong>
+				</a>
+				<div class="page-meta">
+					<a
+						class="page-time"
+						href={permalink}
+						data-dynamic-permalink
+						data-no-swup={entry && !entry.detailUrl ? "" : undefined}
+					>
+						<time
+							datetime={date?.toISOString()}
+							title={date ? formatDynamicDateFull(date, { timezone }) : undefined}
+							data-dynamic-time
+						>{date ? formatDynamicDate(date) : ""}</time>
+					</a>
+					<span
+						class="page-location"
+						title={locationText || undefined}
+						data-dynamic-location
+						hidden={!locationText}
+					>
+						<Icon name="material-symbols:location-on-rounded" />
+						<span data-dynamic-location-text>{locationText}</span>
+					</span>
+				</div>
+			</div>
+			<span
+				class="page-pinned-badge"
+				data-dynamic-pinned
+				hidden={!entry?.pinned}
+			>
+				<Icon name="material-symbols:push-pin" class="size-3" />
+				{i18n(I18nKey.pinned)}
+			</span>
+			<span class="page-entry-decoration" aria-hidden="true">
+				<Icon name="material-symbols:format-quote-rounded" />
+			</span>
+		</header>
+
+		<div id={contentId} class="page-content custom-md" data-dynamic-content>
+			{entry && <Fragment set:html={entry.html} />}
+			{entry?.images.map((image, index) => (
+				<img
+					src={image.preview?.src || image.src}
+					srcset={image.preview?.srcSet}
+					sizes={image.preview ? getDynamicImageSizes(entry.images.length, index) : undefined}
+					width={image.preview?.width}
+					height={image.preview?.height}
+					alt={image.alt}
+					title={image.title}
+					loading="lazy"
+					decoding="async"
+					data-original-src={image.src}
+				/>
+			))}
+		</div>
+		<DynamicGallery sourceId={gallerySourceId} />
+		<div class="dynamic-actions">
+			<LikeButton path={likePath} />
+			<button type="button" class="dynamic-share-button" data-dynamic-share>
+				<Icon name="material-symbols:share" />
+				<span>{i18n(I18nKey.shareDynamic)}</span>
+			</button>
+		</div>
+		{(!entry || showComments) && <DynamicInlineComments src={commentSrc} />}
+	</article>
+</dynamic-entry>

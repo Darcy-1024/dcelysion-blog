@@ -22,6 +22,8 @@ export function registerContentLike(): void {
 	class ContentLike extends HTMLElement {
 		private lifetime?: AbortController;
 		private requestController?: AbortController;
+		private visibilityObserver?: IntersectionObserver;
+		private hasEnteredViewport = false;
 		private busy = false;
 		private loading = false;
 		private token = "";
@@ -33,6 +35,7 @@ export function registerContentLike(): void {
 			queueMicrotask(() => {
 				if (!this.isConnected || !this.path) return;
 				this.lifetime?.abort();
+				this.visibilityObserver?.disconnect();
 				this.lifetime = new AbortController();
 				const options = { signal: this.lifetime.signal };
 				this.querySelector("[data-like-toggle]")?.addEventListener(
@@ -83,11 +86,32 @@ export function registerContentLike(): void {
 				])
 					window.addEventListener(event, this.syncAuth, options);
 				this.token = getLikeToken();
-				void this.load();
+				if (typeof IntersectionObserver === "function") {
+					this.hasEnteredViewport = false;
+					const observer = new IntersectionObserver(
+						(entries) => {
+							if (!entries.some((entry) => entry.isIntersecting)) return;
+							observer.disconnect();
+							if (this.visibilityObserver === observer)
+								this.visibilityObserver = undefined;
+							this.hasEnteredViewport = true;
+							if (this.isConnected && !this.state && !this.loading)
+								void this.load();
+						},
+						{ rootMargin: "300px" },
+					);
+					this.visibilityObserver = observer;
+					observer.observe(this);
+				} else {
+					this.hasEnteredViewport = true;
+					void this.load();
+				}
 			});
 		}
 		disconnectedCallback() {
 			this.querySelector<HTMLDialogElement>("[data-like-dialog]")?.close();
+			this.visibilityObserver?.disconnect();
+			this.visibilityObserver = undefined;
 			this.lifetime?.abort();
 			this.requestController?.abort();
 		}
@@ -96,7 +120,7 @@ export function registerContentLike(): void {
 			if (token === this.token) return;
 			this.token = token;
 			this.state = null;
-			void this.load();
+			if (this.hasEnteredViewport) void this.load();
 		};
 		private async request(
 			liked?: boolean,

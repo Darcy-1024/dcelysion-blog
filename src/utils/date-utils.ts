@@ -1,4 +1,4 @@
-import { siteConfig } from "../config";
+import { siteConfig } from "../config/siteConfig";
 
 /**
  * 判断日期是否为纯日期输入（如 YAML 中仅填写 YYYY-MM-DD，解析为 UTC 午夜）。

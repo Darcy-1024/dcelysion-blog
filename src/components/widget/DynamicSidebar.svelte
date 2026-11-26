@@ -9,7 +9,6 @@ import { onMount } from "svelte";
 import type { DynamicEntry } from "@/types/dynamic";
 import { formatDynamicDate, formatDynamicDateFull } from "@/utils/date-utils";
 import { fetchWithDedup } from "@/utils/fetch-dedup";
-import { fetchMemos } from "@/utils/memos-adapter";
 import { url } from "@/utils/url-utils";
 
 interface MemosConfig {
@@ -35,6 +34,7 @@ onMount(async () => {
 	try {
 		let data: DynamicEntry[];
 		if (memos?.enable) {
+			const { fetchMemos } = await import("@/utils/memos-adapter");
 			data = await fetchMemos(memos.apiUrl, { parent: memos.parent });
 		} else {
 			data = await fetchWithDedup(apiUrl);
@@ -94,7 +94,7 @@ function formatFullDate(timestamp: number): string {
 			{@const text = getPlainText(entry.html)}
 			{@const hasImage = (entry.images?.length ?? 0) > 0}
 			<a
-				href={url(`/dynamic/#dynamic-${entry.id}`)}
+				href={entry.detailUrl || url(`/dynamic/#dynamic-${entry.id}`)}
 				class="group flex min-w-0 min-h-16 items-center gap-3 rounded-lg p-2
 					text-neutral-700/75 dark:text-neutral-300/75
 					hover:bg-(--btn-plain-bg-hover) hover:text-(--primary)

@@ -167,7 +167,7 @@
     if (navigating) return;
     const generation = pageGeneration;
     const version = ++setupVersion;
-    if (!document.querySelector(IMG_SELECTOR) && !document.querySelector(LINK_SELECTOR)) return;
+    if (!document.querySelector(IMG_SELECTOR) && !document.querySelector(BOUND_LINK_SELECTOR)) return;
 
     await injectFancyboxCss();
 

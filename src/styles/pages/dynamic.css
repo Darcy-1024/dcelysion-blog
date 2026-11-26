@@ -97,6 +97,10 @@ dynamic-feed {
 	gap: 0.875rem;
 }
 
+.page-feed:empty {
+	display: none;
+}
+
 .page-entry {
 	display: block;
 	box-sizing: border-box;

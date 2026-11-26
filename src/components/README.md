@@ -2,11 +2,12 @@
 
 ## 动态组件
 
-- `widget/Dynamic.astro`：显示最新动态的侧边栏组件。
-- `pages/dynamic/DynamicFeed.svelte`：负责动态 JSON 加载、搜索、年份筛选和分页。
-- `pages/dynamic/DynamicGallery.astro`：动态图片网格、轮播和灯箱。
+- `widget/Dynamic.astro`：显示最新动态的侧边栏组件（本地数据源在构建期直出，远程接口或 Memos 按需水合 `DynamicSidebar.svelte`）。
+- `pages/dynamic/DynamicFeed.svelte`：动态流客户端交互岛，接管首屏预渲染条目并按需加载完整动态 JSON 支持搜索、年份筛选和分页。
+- `pages/dynamic/DynamicFeedCard.astro`：动态列表卡片组件，供首屏预渲染与客户端 `<template>` 共用。
+- `pages/dynamic/DynamicGallery.astro`：动态图片网格、轮播和按需灯箱。
 - `pages/dynamic/DynamicInlineComments.astro`：单条动态的按需评论区。
-- `pages/dynamic/DynamicItem.astro`：动态条目的服务端渲染组件。
+- `pages/dynamic/DynamicItem.astro`：动态详情页的服务端渲染组件。
 - `pages/dynamic/DynamicItemTemplate.astro`：动态条目的客户端渲染模板。
 
 Firefly 项目中所有可复用组件的集中管理。组件按照功能和职责进行分类，提供清晰的架构和易于维护的代码组织。
