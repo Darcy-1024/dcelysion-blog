@@ -110,8 +110,6 @@
     z-index: -1;
     border-radius: inherit;
     pointer-events: none;
-    /* 独立提升为合成层，避免 Windows Edge/Chromium 在非整数缩放下因 hover 动画升降级图层导致毛玻璃横向接缝闪烁 */
-    transform: translateZ(0);
     /* 只用 blur，避免顶部透明时饱和色带 */
     backdrop-filter: blur(var(--navbar-surface-blur, 0px));
 }
