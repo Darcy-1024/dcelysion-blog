@@ -1,4 +1,4 @@
-/* 动态页专属：筛选栏、动态流与条目、图集查看器、内联评论、空态 */
+/* 动态页专属：筛选栏、详情返回栏、动态流与条目、图集查看器、统一互动栏、内联评论、空态 */
 
 dynamic-feed {
 	display: block;
@@ -23,26 +23,46 @@ dynamic-feed {
 	top: 50%;
 	left: 0.875rem;
 	color: var(--content-meta);
-	font-size: 1.25rem;
+	font-size: 1.2rem;
 	pointer-events: none;
 	transform: translateY(-50%);
+	transition: color 150ms ease;
+}
+
+.page-search:focus-within svg {
+	color: var(--primary);
 }
 
 .page-search input {
 	width: 100%;
-	min-height: 2.75rem;
-	border: 1px solid var(--line-divider);
-	border-radius: var(--radius-large);
+	min-height: 2.625rem;
+	border: 1px solid color-mix(in srgb, var(--line-divider) 115%, transparent);
+	border-radius: calc(var(--radius-large) - 0.125rem);
 	outline: none;
-	background: transparent;
+	background: color-mix(in srgb, var(--btn-regular-bg) 72%, transparent);
 	color: rgb(0 0 0 / 90%);
-	padding: 0.625rem 1rem 0.625rem 2.75rem;
+	padding: 0.55rem 1rem 0.55rem 2.65rem;
 	font-size: 0.9rem;
+	transition:
+		background-color 150ms ease,
+		border-color 150ms ease,
+		box-shadow 150ms ease;
+}
+
+.page-search input::placeholder {
+	color: var(--content-meta);
+	opacity: 0.85;
+}
+
+.page-search input:hover {
+	border-color: color-mix(in srgb, var(--primary) 30%, var(--line-divider));
+	background: var(--btn-regular-bg);
 }
 
 .page-search input:focus {
 	border-color: var(--primary);
-	box-shadow: 0 0 0 1px var(--primary);
+	background: var(--card-bg);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
 }
 
 .page-year-select {
@@ -56,8 +76,9 @@ dynamic-feed {
 .page-year-select svg:first-child {
 	position: absolute;
 	left: 0.75rem;
-	font-size: 1.15rem;
+	font-size: 1.125rem;
 	pointer-events: none;
+	transition: color 150ms ease;
 }
 
 .page-year-select svg:last-child {
@@ -65,21 +86,30 @@ dynamic-feed {
 	right: 0.5rem;
 	font-size: 1.25rem;
 	pointer-events: none;
+	transition: color 150ms ease;
+}
+
+.page-year-select:focus-within svg {
+	color: var(--primary);
 }
 
 .page-year-select select {
-	min-width: 9.5rem;
-	min-height: 2.75rem;
+	min-width: 9.25rem;
+	min-height: 2.625rem;
 	appearance: none;
-	border: 1px solid var(--line-divider);
-	border-radius: var(--radius-large);
+	border: 1px solid color-mix(in srgb, var(--line-divider) 115%, transparent);
+	border-radius: calc(var(--radius-large) - 0.125rem);
 	outline: none;
-	background: var(--card-bg);
+	background: color-mix(in srgb, var(--btn-regular-bg) 72%, transparent);
 	color: rgb(0 0 0 / 90%);
 	color-scheme: light;
-	padding: 0.625rem 2.25rem 0.625rem 2.35rem;
+	padding: 0.55rem 2.25rem 0.55rem 2.35rem;
 	font-size: 0.9rem;
 	cursor: pointer;
+	transition:
+		background-color 150ms ease,
+		border-color 150ms ease,
+		box-shadow 150ms ease;
 }
 
 .page-year-select select option {
@@ -87,9 +117,15 @@ dynamic-feed {
 	color: rgb(0 0 0 / 90%);
 }
 
+.page-year-select select:hover {
+	border-color: color-mix(in srgb, var(--primary) 30%, var(--line-divider));
+	background: var(--btn-regular-bg);
+}
+
 .page-year-select select:focus {
 	border-color: var(--primary);
-	box-shadow: 0 0 0 1px var(--primary);
+	background: var(--card-bg);
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 16%, transparent);
 }
 
 .page-filter-reset {
@@ -98,16 +134,19 @@ dynamic-feed {
 	align-items: center;
 	justify-content: center;
 	gap: 0.35rem;
-	min-height: 2.75rem;
+	min-height: 2.625rem;
 	padding: 0 0.875rem;
-	border: 1px solid var(--line-divider);
-	border-radius: var(--radius-large);
-	background: var(--btn-regular-bg);
+	border: 1px solid color-mix(in srgb, var(--line-divider) 115%, transparent);
+	border-radius: calc(var(--radius-large) - 0.125rem);
+	background: color-mix(in srgb, var(--btn-regular-bg) 78%, transparent);
 	color: var(--btn-content);
 	font-size: 0.85rem;
 	font-weight: 500;
 	cursor: pointer;
-	transition: background-color 150ms ease, border-color 150ms ease, color 150ms ease;
+	transition:
+		background-color 150ms ease,
+		border-color 150ms ease,
+		color 150ms ease;
 }
 
 .page-filter-reset[hidden] {
@@ -121,7 +160,7 @@ dynamic-feed {
 }
 
 .page-filter-reset:hover {
-	border-color: color-mix(in srgb, var(--primary) 45%, var(--line-divider));
+	border-color: color-mix(in srgb, var(--primary) 42%, var(--line-divider));
 	background: var(--btn-regular-bg-hover);
 	color: var(--primary);
 }
@@ -147,11 +186,29 @@ dynamic-feed {
 	max-width: 100%;
 	overflow: visible;
 	padding: 1.125rem;
+	border: 1px solid transparent;
 	scroll-margin-top: 5.5rem;
+	transition:
+		border-color 180ms ease,
+		box-shadow 180ms ease;
 }
 
 .page-entry[hidden] {
 	display: none;
+}
+
+.page-entry[data-clickable="true"] {
+	cursor: pointer;
+}
+
+.page-entry[data-clickable="true"]:hover {
+	border-color: color-mix(in srgb, var(--primary) 28%, var(--line-divider));
+	box-shadow: 0 6px 20px -10px color-mix(in srgb, var(--primary) 22%, rgb(0 0 0 / 14%));
+}
+
+.page-entry--detail,
+.page-entry[data-detail="true"] {
+	padding: 1.5rem;
 }
 
 .page-entry-header {
@@ -281,7 +338,7 @@ dynamic-feed {
 	align-items: center;
 	gap: 0.125rem;
 	min-height: 1.875rem;
-	padding: 0.25rem 0.5rem 0.25rem 0.65rem;
+	padding: 0.25rem 0.5rem 0.25rem 0.6875rem;
 	border-radius: 999px;
 	background: color-mix(in srgb, var(--primary) 8%, transparent);
 	color: var(--content-meta);
@@ -289,7 +346,10 @@ dynamic-feed {
 	font-weight: 500;
 	line-height: 1;
 	text-decoration: none;
-	transition: background-color 150ms ease, color 150ms ease;
+	white-space: nowrap;
+	transition:
+		background-color 150ms ease,
+		color 150ms ease;
 }
 
 .page-detail-link[hidden] {
@@ -322,15 +382,22 @@ dynamic-feed {
 
 .page-pinned-badge {
 	display: inline-flex;
+	flex: 0 0 auto;
 	align-items: center;
-	margin-left: auto;
-	font-size: 0.65rem;
-	padding: 0.125rem 0.375rem;
-	border-radius: 0.25rem;
-	background: color-mix(in srgb, var(--primary) 10%, transparent);
+	gap: 0.225rem;
+	min-height: 1.875rem;
+	padding: 0.25rem 0.6rem;
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--primary) 12%, transparent);
 	color: var(--primary);
-	font-weight: 500;
+	font-size: 0.74rem;
+	font-weight: 600;
 	line-height: 1;
+	white-space: nowrap;
+}
+
+.page-pinned-badge:not([hidden]) {
+	margin-right: -0.25rem;
 }
 
 .page-pinned-badge[hidden] {
@@ -351,6 +418,10 @@ dynamic-feed {
 	color: rgb(0 0 0 / 90%);
 	font-size: 0.98rem;
 	line-height: 1.75;
+}
+
+.page-entry[data-detail="true"] .page-content {
+	margin: 1rem 0 0;
 }
 
 .page-content > :first-child {
@@ -387,9 +458,14 @@ dynamic-feed {
 	display: block;
 	box-sizing: border-box;
 	min-width: 0;
-	width: min(calc(100% - 3.75rem), 56rem);
+	width: calc(100% - 3.75rem);
 	max-width: 100%;
 	margin: 0.875rem 0 0 3.75rem;
+}
+
+.page-entry[data-detail="true"] .page-gallery {
+	width: 100%;
+	margin: 1rem 0 0;
 }
 
 .page-gallery[hidden],
@@ -402,15 +478,20 @@ dynamic-feed {
 	display: grid;
 	box-sizing: border-box;
 	min-width: 0;
-	width: min(100%, 42rem);
+	width: 100%;
 	max-width: 100%;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
-	gap: 0.25rem;
+	gap: 0.375rem;
+}
+
+.page-gallery-grid:not([data-layout="single"]) {
+	border-radius: var(--radius-large);
+	overflow: hidden;
 }
 
 .page-gallery-grid[data-count="2"],
 .page-gallery-grid[data-count="4"] {
-	width: min(100%, 28rem);
+	width: min(100%, 34rem);
 }
 
 .page-gallery-grid[data-count="5"],
@@ -443,10 +524,15 @@ dynamic-feed {
 	overflow: hidden;
 	aspect-ratio: 1;
 	border: 0;
-	border-radius: calc(var(--radius-large) - 0.25rem);
+	border-radius: 0.375rem;
 	background: var(--btn-regular-bg);
 	cursor: pointer;
 	padding: 0;
+}
+
+.page-gallery-grid-item:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: -2px;
 }
 
 .page-gallery-grid[data-layout="single"] {
@@ -459,6 +545,7 @@ dynamic-feed {
 	width: fit-content;
 	max-width: 100%;
 	aspect-ratio: auto;
+	border-radius: var(--radius-large);
 	background: transparent;
 }
 
@@ -469,6 +556,12 @@ dynamic-feed {
 	margin: 0;
 	object-fit: cover;
 	border-radius: inherit;
+	transition: transform 280ms var(--ease-standard, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.page-gallery-grid-item:hover img,
+.page-gallery-grid-item:focus-visible img {
+	transform: scale(1.03);
 }
 
 .page-gallery-grid[data-layout="single"] img {
@@ -484,10 +577,20 @@ dynamic-feed {
 	inset: 0;
 	display: grid;
 	place-items: center;
-	background: rgb(0 0 0 / 55%);
-	color: white;
-	font-size: 1.5rem;
-	font-weight: 600;
+	background: rgb(0 0 0 / 48%);
+	backdrop-filter: blur(3px);
+	-webkit-backdrop-filter: blur(3px);
+	color: rgb(255 255 255 / 96%);
+	font-size: 1.625rem;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	font-variant-numeric: tabular-nums;
+	text-shadow: 0 2px 8px rgb(0 0 0 / 35%);
+	transition: background-color 200ms ease;
+}
+
+.page-gallery-grid-item:hover .page-gallery-more {
+	background: rgb(0 0 0 / 38%);
 }
 
 .page-gallery-viewer {
@@ -616,43 +719,212 @@ dynamic-feed {
 	object-fit: cover;
 }
 
-.page-inline-comments {
-	display: block;
-	margin: 0.75rem 0 0 3.75rem;
-	border-top: 1px solid color-mix(in srgb, var(--content-meta) 16%, transparent);
-	padding-top: 0.35rem;
-}
-
-.page-comment-toggle {
-	display: inline-flex;
-	min-height: 2.25rem;
+/* 统一底部互动工具栏（点赞 + 评论入口 + 分享同行排布，下方承接点赞头像条与评论面板） */
+.dynamic-actions {
+	display: flex;
+	flex-wrap: wrap;
 	align-items: center;
-	gap: 0.4rem;
-	padding: 0 0.25rem;
-	border-radius: 0;
-	background: transparent;
-	color: var(--content-meta);
-	font-size: 0.85rem;
+	gap: 0.5rem;
+	margin: 0.875rem 0 0 3.75rem;
 }
 
-.page-comment-toggle:hover,
-.page-comment-toggle:focus-visible,
-.page-inline-comments[data-expanded="true"] .page-comment-toggle {
-	background: transparent;
+.page-entry[data-detail="true"] .dynamic-actions {
+	margin: 1.125rem 0 0;
+}
+
+.dynamic-actions content-like,
+.dynamic-actions dynamic-inline-comments,
+.dynamic-actions astro-island {
+	display: contents;
+}
+
+.dynamic-actions content-like [data-like-toggle],
+.dynamic-actions .page-comment-toggle,
+.dynamic-actions .dynamic-share-button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem;
+	min-height: 2.25rem;
+	padding: 0.375rem 0.875rem;
+	border: 1px solid color-mix(in srgb, var(--line-divider) 115%, transparent);
+	border-radius: 999px;
+	background: color-mix(in srgb, var(--btn-regular-bg) 68%, transparent);
+	color: var(--content-meta);
+	font-size: 0.84rem;
+	font-weight: 500;
+	line-height: 1;
+	white-space: nowrap;
+	cursor: pointer;
+	transition:
+		background-color 150ms ease,
+		border-color 150ms ease,
+		color 150ms ease;
+}
+
+.dynamic-actions content-like [data-like-toggle] {
+	order: 1;
+}
+
+.dynamic-actions .page-comment-toggle {
+	order: 2;
+}
+
+.dynamic-actions .dynamic-share-button {
+	order: 3;
+	margin-left: auto;
+}
+
+.dynamic-actions content-like [data-like-toggle] svg,
+.dynamic-actions .page-comment-toggle svg:first-child,
+.dynamic-actions .dynamic-share-button svg {
+	width: 1.05rem;
+	height: 1.05rem;
+	flex: 0 0 auto;
+}
+
+.dynamic-actions content-like [data-count],
+.dynamic-actions [data-comment-label] {
+	font-variant-numeric: tabular-nums;
+}
+
+.dynamic-actions content-like [data-like-toggle]:hover,
+.dynamic-actions .page-comment-toggle:hover,
+.dynamic-actions .dynamic-share-button:hover {
+	border-color: color-mix(in srgb, var(--primary) 30%, var(--line-divider));
+	background: var(--btn-regular-bg-hover);
 	color: var(--primary);
 }
 
-.page-comment-chevron {
+.dynamic-actions content-like [data-like-toggle]:focus-visible,
+.dynamic-actions .page-comment-toggle:focus-visible,
+.dynamic-actions .dynamic-share-button:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 2px;
+	color: var(--primary);
+}
+
+.dynamic-actions content-like [data-like-toggle][aria-pressed="true"],
+.dynamic-actions .page-inline-comments[data-expanded="true"] .page-comment-toggle {
+	border-color: color-mix(in srgb, var(--primary) 32%, transparent);
+	background: color-mix(in srgb, var(--primary) 13%, transparent);
+	color: var(--primary);
+}
+
+.dynamic-actions content-like [data-like-toggle]:disabled {
+	opacity: 0.6;
+	cursor: wait;
+}
+
+.dynamic-actions .page-comment-chevron {
+	width: 1rem;
+	height: 1rem;
+	flex: 0 0 auto;
+	margin-inline: -0.15rem -0.2rem;
 	transition: transform 180ms ease;
 }
 
-.page-inline-comments[data-expanded="true"] .page-comment-chevron {
+.dynamic-actions .page-inline-comments[data-expanded="true"] .page-comment-chevron {
 	transform: rotate(180deg);
+}
+
+/* 详情页默认展开评论时隐藏多余折叠触发按钮，直接由分割线过渡到评论区 */
+.dynamic-actions .page-inline-comments[data-default-open="true"] .page-comment-toggle {
+	display: none;
+}
+
+.dynamic-actions content-like .like-status,
+.dynamic-actions astro-island > p[role="status"] {
+	order: 4;
+	flex: 1 0 100%;
+	margin: 0;
+	color: var(--content-meta);
+	font-size: 0.78rem;
+}
+
+.dynamic-actions content-like .like-status:empty {
+	display: none;
+}
+
+/* 点赞头像列表：仅在有人点赞时以轻盈无框方式贴左轴展示 */
+.dynamic-actions content-like [data-like-users] {
+	order: 5;
+	flex: 1 0 100%;
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.45rem 0.875rem;
+	width: 100%;
+	margin: 0.2rem 0 0;
+	padding: 0;
+}
+
+.dynamic-actions content-like [data-like-users]:empty {
+	display: none;
+}
+
+.dynamic-actions content-like [data-like-users] li {
+	gap: 0.375rem;
+	color: var(--content-meta);
+	font-size: 0.78rem;
+}
+
+.dynamic-actions content-like .like-avatar {
+	flex: 0 0 22px;
+	width: 22px;
+	height: 22px;
+	font-size: 0.68rem;
+	box-shadow: 0 0 0 1.5px var(--card-bg);
+}
+
+.dynamic-actions content-like [data-like-more] {
+	order: 6;
+	min-height: 1.875rem;
+	padding: 0.25rem 0.75rem;
+	border: 1px solid var(--line-divider);
+	border-radius: 999px;
+	background: transparent;
+	color: var(--content-meta);
+	font-size: 0.78rem;
+}
+
+.dynamic-actions content-like [data-like-more]:hover {
+	border-color: color-mix(in srgb, var(--primary) 30%, var(--line-divider));
+	background: var(--btn-regular-bg);
+	color: var(--primary);
+}
+
+/* 内联评论区面板 */
+.page-inline-comments {
+	display: block;
+	margin: 0.75rem 0 0 3.75rem;
+	border-top: 1px solid var(--line-divider);
+	padding-top: 0.5rem;
+}
+
+.dynamic-actions .page-inline-comments {
+	margin: 0;
+	border-top: 0;
+	padding-top: 0;
 }
 
 .page-comment-panel {
 	margin-top: 0.5rem;
 	overflow: hidden;
+}
+
+.dynamic-actions .page-comment-panel {
+	order: 7;
+	flex: 1 0 100%;
+	width: 100%;
+	margin-top: 0.5rem;
+	padding-top: 0.875rem;
+	border-top: 1px solid var(--line-divider);
+}
+
+.page-entry[data-detail="true"] .dynamic-actions .page-comment-panel {
+	margin-top: 0.75rem;
+	padding-top: 1rem;
 }
 
 .page-comment-panel[hidden] {
@@ -662,7 +934,7 @@ dynamic-feed {
 .page-comment-frame {
 	display: block;
 	width: 100%;
-	height: 240px;
+	height: 220px;
 	border: 0;
 	background: transparent;
 	color-scheme: light;
@@ -722,6 +994,18 @@ dynamic-feed {
 	.page-loading-spinner {
 		animation-duration: 1.5s;
 	}
+
+	.page-gallery-grid-item img,
+	.page-gallery-grid-item:hover img,
+	.page-gallery-grid-item:focus-visible img,
+	.page-back svg,
+	.page-back:hover svg,
+	.page-detail-link svg,
+	.page-detail-link:hover svg,
+	.page-entry[data-clickable="true"]:hover .page-detail-link svg {
+		transition: none;
+		transform: none;
+	}
 }
 
 .page-no-results {
@@ -746,19 +1030,66 @@ dynamic-feed {
 	margin: 0;
 }
 
+/* 详情页顶部返回导航条 */
 .page-detail {
 	display: grid;
 	gap: 0.875rem;
 }
 
+.page-detail-nav {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 0.75rem;
+	padding: 0.625rem 0.875rem;
+}
+
 .page-back {
 	display: inline-flex;
 	width: fit-content;
-	min-height: 2.5rem;
+	min-height: 2.25rem;
 	align-items: center;
 	gap: 0.4rem;
-	padding-inline: 0.875rem;
+	padding: 0.25rem 0.75rem 0.25rem 0.55rem;
+	border-radius: calc(var(--radius-large) - 0.25rem);
+	color: var(--btn-content);
+	font-size: 0.9rem;
+	font-weight: 500;
+	line-height: 1;
 	text-decoration: none;
+	transition:
+		background-color 150ms ease,
+		color 150ms ease;
+}
+
+.page-back svg {
+	width: 1.15rem;
+	height: 1.15rem;
+	flex: 0 0 auto;
+	transition: transform 150ms ease;
+}
+
+.page-back:hover {
+	background: var(--btn-plain-bg-hover);
+	color: var(--primary);
+}
+
+.page-back:hover svg {
+	transform: translateX(-2px);
+}
+
+.page-back:focus-visible {
+	outline: 2px solid var(--primary);
+	outline-offset: 2px;
+	color: var(--primary);
+}
+
+.page-detail-date {
+	color: var(--content-meta);
+	font-size: 0.82rem;
+	font-variant-numeric: tabular-nums;
+	line-height: 1.4;
+	white-space: nowrap;
 }
 
 .page-comments {
@@ -774,11 +1105,30 @@ dynamic-feed {
 	color: var(--primary);
 }
 
+:root.dark .page-entry[data-clickable="true"]:hover {
+	border-color: color-mix(in srgb, var(--primary) 34%, var(--line-color));
+	box-shadow: 0 8px 24px -10px rgb(0 0 0 / 45%);
+}
+
 :root.dark .page-search input,
 :root.dark .page-year-select select {
-	background: transparent;
+	background: color-mix(in srgb, var(--btn-regular-bg) 68%, transparent);
+	border-color: color-mix(in srgb, var(--line-color) 90%, transparent);
 	color: rgb(255 255 255 / 90%);
 	color-scheme: dark;
+}
+
+:root.dark .page-search input:hover,
+:root.dark .page-year-select select:hover {
+	background: var(--btn-regular-bg);
+	border-color: color-mix(in srgb, var(--primary) 36%, var(--line-color));
+}
+
+:root.dark .page-search input:focus,
+:root.dark .page-year-select select:focus {
+	border-color: var(--primary);
+	background: color-mix(in srgb, var(--btn-regular-bg) 88%, var(--card-bg));
+	box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
 }
 
 :root.dark .page-year-select select option {
@@ -786,22 +1136,58 @@ dynamic-feed {
 	color: rgb(255 255 255 / 90%);
 }
 
-/* 透明模式适配 */
-body.wallpaper-transparent .page-search input {
-	background: transparent;
+:root.dark .dynamic-actions content-like [data-like-toggle],
+:root.dark .dynamic-actions .page-comment-toggle,
+:root.dark .dynamic-actions .dynamic-share-button {
+	border-color: color-mix(in srgb, var(--line-color) 85%, transparent);
+	background: color-mix(in srgb, var(--btn-regular-bg) 62%, transparent);
+	color: rgb(255 255 255 / 72%);
 }
 
+:root.dark .dynamic-actions content-like [data-like-toggle]:hover,
+:root.dark .dynamic-actions .page-comment-toggle:hover,
+:root.dark .dynamic-actions .dynamic-share-button:hover {
+	border-color: color-mix(in srgb, var(--primary) 36%, var(--line-color));
+	background: var(--btn-regular-bg-hover);
+	color: var(--primary);
+}
+
+:root.dark .dynamic-actions content-like [data-like-toggle][aria-pressed="true"],
+:root.dark
+	.dynamic-actions
+	.page-inline-comments[data-expanded="true"]
+	.page-comment-toggle {
+	border-color: color-mix(in srgb, var(--primary) 38%, transparent);
+	background: color-mix(in srgb, var(--primary) 16%, transparent);
+	color: var(--primary);
+}
+
+/* 透明模式适配 */
+body.wallpaper-transparent .page-search input,
 body.wallpaper-transparent .page-year-select select {
-	background: transparent;
+	background: color-mix(in srgb, var(--btn-regular-bg) 52%, transparent);
+	border-color: color-mix(in srgb, var(--line-color) 85%, transparent);
+}
+
+body.wallpaper-transparent .page-search input:focus,
+body.wallpaper-transparent .page-year-select select:focus {
+	background: color-mix(in srgb, var(--card-bg) 78%, transparent);
 }
 
 body.wallpaper-transparent .page-year-select select option {
 	background: var(--card-bg);
 }
 
+body.wallpaper-transparent .dynamic-actions content-like [data-like-toggle],
+body.wallpaper-transparent .dynamic-actions .page-comment-toggle,
+body.wallpaper-transparent .dynamic-actions .dynamic-share-button {
+	background: color-mix(in srgb, var(--btn-regular-bg) 48%, transparent);
+}
+
 @media (max-width: 768px) {
 	.page-content,
 	.page-gallery,
+	.dynamic-actions,
 	.page-inline-comments {
 		margin-left: 0;
 	}
@@ -830,6 +1216,16 @@ body.wallpaper-transparent .page-year-select select option {
 
 	.page-entry {
 		padding: 1rem;
+	}
+
+	.page-entry--detail,
+	.page-entry[data-detail="true"] {
+		padding: 1.125rem;
+	}
+
+	.page-detail-nav {
+		flex-wrap: wrap;
+		padding: 0.5rem 0.75rem;
 	}
 
 	.page-gallery-grid[data-layout="single"] img {
@@ -877,12 +1273,11 @@ body.wallpaper-transparent .page-year-select select option {
 		height: 3.25rem;
 		flex-basis: 3.25rem;
 	}
-}
 
-.page-entry[data-clickable="true"] { cursor: pointer; }
-.dynamic-actions { position: relative; margin-block: 1rem; }
-.dynamic-actions content-like { margin-block: 0; padding-right: 6rem; }
-.dynamic-actions .dynamic-share-button { position: absolute; top: 0; right: 0; display: inline-flex; align-items: center; gap: .5rem; min-height: 44px; padding: .5rem 1rem; border-radius: 999px; background: var(--btn-regular-bg); color: var(--btn-content); }
-.dynamic-actions:not(:has(content-like)) { min-height: 44px; }
-.dynamic-share-button:hover { background: var(--btn-regular-bg-hover); }
-.dynamic-share-button:focus-visible { outline: 2px solid var(--primary); outline-offset: 3px; }
+	.dynamic-actions content-like [data-like-toggle],
+	.dynamic-actions .page-comment-toggle,
+	.dynamic-actions .dynamic-share-button {
+		padding-inline: 0.75rem;
+		font-size: 0.8rem;
+	}
+}

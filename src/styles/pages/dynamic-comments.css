@@ -1,4 +1,4 @@
-/* 动态页内嵌评论 iframe 页专属：去掉外层留白，仅保留评论本身 */
+/* 动态页内嵌评论 iframe 页专属：去掉外层留白与文章页专用标题，与卡片主体齐平 */
 
 html:has(.page-comment-embed),
 body:has(.page-comment-embed) {
@@ -20,12 +20,31 @@ html.dark:has(.page-comment-embed) {
 .page-comment-embed {
 	/* Contain child margins without tying content height to the iframe viewport. */
 	display: flow-root;
+	padding-bottom: 0.25rem;
 }
 
 .page-comment-embed #post-comments {
 	margin: 0;
+	padding: 0;
 	border: 0;
 	border-radius: 0;
 	background: transparent;
 	box-shadow: none;
+}
+
+.page-comment-embed #post-comments [data-comment-header] {
+	display: none;
+}
+
+.page-comment-embed #post-comments [data-comment-body] {
+	padding-inline: 0;
+}
+
+/* 对齐 Waline 内部面板与上方图集、互动栏左右边缘 */
+.page-comment-embed #waline .wl-comment {
+	margin-inline: 0;
+}
+
+.page-comment-embed #waline .wl-panel {
+	margin-inline: 0;
 }

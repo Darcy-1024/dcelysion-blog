@@ -15,6 +15,7 @@ import DynamicShareButton from "./DynamicShareButton.svelte";
 
 interface Props {
 	entry: CollectionEntry<"dynamic">;
+	detail?: boolean;
 	detailUrl?: string;
 	showInlineComments?: boolean;
 	defaultOpenComments?: boolean;
@@ -23,11 +24,13 @@ interface Props {
 
 const {
 	entry,
+	detail,
 	detailUrl,
 	showInlineComments = false,
 	defaultOpenComments = false,
 	commentPath,
 } = Astro.props;
+const isDetail = detail ?? Boolean(detailUrl);
 const { Content } = await render(entry);
 const anchorId = `dynamic-${encodeURIComponent(entry.id)}`;
 const published = formatDynamicDate(entry.data.published);
@@ -45,8 +48,9 @@ const profileUrl = url(dynamicConfig.profileUrl || "/about/");
 
 <dynamic-entry
 	id={anchorId}
-	class="page-entry card-base"
+	class:list={["page-entry", "card-base", { "page-entry--detail": isDetail }]}
 	data-dynamic-entry
+	data-detail={isDetail ? "true" : undefined}
 	data-year={entry.data.published.getUTCFullYear()}
 >
 	<article aria-labelledby={`${anchorId}-author`}>
@@ -100,14 +104,14 @@ const profileUrl = url(dynamicConfig.profileUrl || "/about/");
 		<DynamicGallery sourceId={`${anchorId}-content`} />
 		<div class="dynamic-actions">
 			<LikeButton path={(commentPath || `/dynamic/${entry.id}/`).replace(/\/$/, "")} />
+			{showInlineComments && commentPath && (
+				<DynamicInlineComments
+					defaultOpen={defaultOpenComments}
+					src={`/dynamic/comments/?path=${encodeURIComponent(commentPath)}`}
+				/>
+			)}
 			<DynamicShareButton client:load author={profileConfig.name} pubDate={entry.data.published.toISOString()} url={new URL(permalink, Astro.url).href} siteTitle={siteConfig.title} entryId={anchorId} />
 		</div>
-		{showInlineComments && commentPath && (
-			<DynamicInlineComments
-				defaultOpen={defaultOpenComments}
-				src={`/dynamic/comments/?path=${encodeURIComponent(commentPath)}`}
-			/>
-		)}
 	</article>
 </dynamic-entry>
 <script>

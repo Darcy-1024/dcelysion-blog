@@ -1,11 +1,13 @@
 ---
 import { type CollectionEntry, getCollection } from "astro:content";
 import type { ImageMetadata } from "astro";
+import { Icon } from "astro-icon/components";
 import DynamicItem from "@/components/pages/dynamic/DynamicItem.astro";
 import { commentConfig, dynamicConfig, siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import { formatDynamicDateFull } from "@/utils/date-utils";
 import { dynamicDetailPath } from "@/utils/dynamic-share";
 import { dynamicPlainText, dynamicSlug } from "@/utils/dynamic-utils";
 import { url } from "@/utils/url-utils";
@@ -55,11 +57,22 @@ const showInlineComments = Boolean(
 		commentConfig.type &&
 		commentConfig.type !== "none",
 );
+const publishedFull = formatDynamicDateFull(entry.data.published, {
+	timezone: siteConfig.timezone || "UTC",
+});
 ---
 
 <MainGridLayout {title} {description} postCoverImage={coverImage} ogImageWidth={imageMetadata?.width} ogImageHeight={imageMetadata?.height} ogImageAlt={description}>
-	<section class="page-shell" aria-label={i18n(I18nKey.dynamic)}>
-		<a href={url("/dynamic/")} class="btn-regular rounded-lg px-4 py-3 inline-flex mb-4">{i18n(I18nKey.dynamicBackToList)}</a>
-		<DynamicItem {entry} {showInlineComments} defaultOpenComments detailUrl={detailUrl} commentPath={`/dynamic/${id}/`} />
+	<section class="page-shell page-detail" aria-label={i18n(I18nKey.dynamic)}>
+		<nav class="page-detail-nav card-base" aria-label={i18n(I18nKey.dynamicBackToList)}>
+			<a href={url("/dynamic/")} class="page-back">
+				<Icon name="material-symbols:arrow-back-rounded" />
+				<span>{i18n(I18nKey.dynamicBackToList)}</span>
+			</a>
+			<time class="page-detail-date" datetime={entry.data.published.toISOString()}>
+				{publishedFull}
+			</time>
+		</nav>
+		<DynamicItem {entry} {showInlineComments} defaultOpenComments detail detailUrl={detailUrl} commentPath={`/dynamic/${id}/`} />
 	</section>
 </MainGridLayout>

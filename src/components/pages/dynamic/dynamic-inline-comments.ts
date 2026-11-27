@@ -132,7 +132,7 @@ export function registerDynamicInlineComments(): void {
 					height <= 0
 				)
 					return;
-				const nextHeight = `${Math.max(240, Math.ceil(height))}px`;
+				const nextHeight = `${Math.max(180, Math.ceil(height))}px`;
 				if (this.frame.style.height !== nextHeight)
 					this.frame.style.height = nextHeight;
 			}
@@ -157,7 +157,7 @@ export function registerDynamicInlineComments(): void {
 			frame.className = "page-comment-frame";
 			frame.src = this.dataset.src || "";
 			frame.title = this.label;
-			frame.loading = "lazy";
+			frame.loading = this.dataset.defaultOpen === "true" ? "eager" : "lazy";
 			frame.addEventListener("load", this.syncTheme);
 			panel.append(frame);
 			this.frame = frame;

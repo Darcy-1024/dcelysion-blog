@@ -101,7 +101,9 @@ export function registerContentLike(): void {
 						{ rootMargin: "300px" },
 					);
 					this.visibilityObserver = observer;
-					observer.observe(this);
+					observer.observe(
+						this.querySelector<HTMLElement>("[data-like-toggle]") ?? this,
+					);
 				} else {
 					this.hasEnteredViewport = true;
 					void this.load();

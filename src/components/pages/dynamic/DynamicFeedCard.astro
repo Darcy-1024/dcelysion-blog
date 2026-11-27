@@ -138,11 +138,11 @@ const commentSrc =
 		<DynamicGallery sourceId={gallerySourceId} />
 		<div class="dynamic-actions">
 			<LikeButton path={likePath} />
+			{(!entry || showComments) && <DynamicInlineComments src={commentSrc} />}
 			<button type="button" class="dynamic-share-button" data-dynamic-share>
 				<Icon name="material-symbols:share" />
 				<span>{i18n(I18nKey.shareDynamic)}</span>
 			</button>
 		</div>
-		{(!entry || showComments) && <DynamicInlineComments src={commentSrc} />}
 	</article>
 </dynamic-entry>
