@@ -15,7 +15,7 @@ const config = {
 };
 ---
 <!-- Waline -->
-<div class="relative w-full">
+<div class="waline-shell relative w-full">
 	<div id="waline" data-waline-config={JSON.stringify(config)}></div>
 </div>
 
@@ -41,12 +41,210 @@ const config = {
     --waline-disable-color: var(--content-meta);
     --waline-info-bg-color: var(--btn-regular-bg);
     --waline-info-color: var(--content-meta);
+    --waline-avatar-size: 2.75rem;
+    --waline-m-avatar-size: 2.25rem;
     color: var(--waline-color);
+  }
+
+  .waline-shell {
+    container-type: inline-size;
   }
 
   html.dark #waline {
     --waline-color: color-mix(in oklch, var(--card-bg) 12%, #fff 88%);
     --waline-border-color: rgba(255, 255, 255, 0.18);
+  }
+
+  /* 统一评论输入区左右齐平，并在已登录态下为左侧头像列与输入面板留出充足间距 */
+  #waline .wl-comment {
+    align-items: flex-start;
+    gap: 1rem;
+    margin: 0 0 1rem;
+  }
+
+  #waline .wl-login-info {
+    box-sizing: border-box;
+    flex: 0 0 auto;
+    width: 3rem;
+    max-width: 3.625rem;
+    margin-top: 0.125rem;
+    padding-top: 0.2rem;
+    text-align: center;
+  }
+
+  #waline .wl-avatar {
+    box-sizing: border-box;
+    overflow: visible;
+    line-height: 0;
+    box-shadow: 0 2px 8px rgb(0 0 0 / 8%);
+  }
+
+  /* Waline 为头像内层 <a> 也挂了 .wl-login-nick，需单独归零外边距并撑满圆框 */
+  #waline .wl-avatar > a,
+  #waline .wl-cards .wl-user > a {
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    line-height: 0;
+  }
+
+  #waline .wl-avatar img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    object-fit: cover;
+  }
+
+  #waline .wl-cards .wl-user .wl-user-avatar {
+    display: block;
+    object-fit: cover;
+  }
+
+  #waline .wl-logout-btn {
+    z-index: 2;
+    top: -0.25rem;
+    inset-inline-end: -0.25rem;
+    padding: 2px;
+    background: transparent;
+    filter: drop-shadow(0 1px 2px rgb(0 0 0 / 20%));
+    transition: transform 150ms ease;
+  }
+
+  #waline .wl-logout-btn .wl-close-icon {
+    display: block;
+  }
+
+  #waline .wl-logout-btn .wl-close-icon path:first-child {
+    fill: var(--btn-regular-bg);
+    transition: fill 150ms ease;
+  }
+
+  #waline .wl-logout-btn .wl-close-icon path:last-child {
+    fill: var(--content-meta);
+    transition: fill 150ms ease;
+  }
+
+  #waline .wl-logout-btn:hover {
+    transform: scale(1.08);
+  }
+
+  #waline .wl-logout-btn:hover .wl-close-icon path:first-child {
+    fill: var(--primary);
+  }
+
+  #waline .wl-logout-btn:hover .wl-close-icon path:last-child {
+    fill: var(--card-bg);
+  }
+
+  #waline .wl-login-info > .wl-login-nick {
+    margin-top: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1.35;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+  }
+
+  #waline .wl-panel {
+    box-sizing: border-box;
+    flex: 1 1 0%;
+    min-width: 0;
+    width: auto;
+    margin: 0;
+    border-radius: 0.875rem;
+  }
+
+  #waline .wl-header {
+    border-top-left-radius: 0.875rem;
+    border-top-right-radius: 0.875rem;
+  }
+
+  /* 补齐被 Tailwind Preflight 清零的文本框内边距，并收敛默认空框高度 */
+  #waline .wl-editor {
+    box-sizing: border-box;
+    width: calc(100% - 1.25rem);
+    min-height: 6.5rem;
+    margin: 0.625rem 0.625rem 0.25rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: 0.5rem;
+    line-height: 1.65;
+  }
+
+  #waline .wl-footer {
+    align-items: center;
+    margin: 0.375rem 0.75rem 0.625rem;
+  }
+
+  /* 用细分割线与收敛字号承接下方评论流，避免与外层“评论区”卡片主标题重复抢视觉 */
+  #waline .wl-meta-head {
+    margin: 1rem 0 0.375rem;
+    padding: 0.875rem 0 0.25rem;
+    border-top: 1px solid var(--line-divider);
+  }
+
+  #waline .wl-count {
+    color: var(--primary);
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  #waline .wl-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  #waline .wl-sort li {
+    margin-inline-start: 0;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    line-height: 1.4;
+    transition:
+      background-color 150ms ease,
+      color 150ms ease;
+  }
+
+  #waline .wl-sort li:hover {
+    color: var(--primary);
+  }
+
+  #waline .wl-sort li.active {
+    background: color-mix(in srgb, var(--primary) 14%, transparent);
+    color: var(--primary);
+    font-weight: 500;
+  }
+
+  #waline .wl-empty {
+    padding: 1.25rem 0;
+    color: var(--content-meta);
+    font-size: 0.875rem;
+  }
+
+  #waline .wl-meta-foot {
+    padding-top: 0.25rem;
+    opacity: 0.78;
+  }
+
+  #waline .wl-card-item {
+    padding: 0.875rem 0;
+  }
+
+  #waline .wl-cards .wl-user {
+    flex: 0 0 auto;
+    margin-inline-end: 0.875rem;
+  }
+
+  #waline .wl-card .wl-quote {
+    margin-top: 0.5rem;
+    padding-inline-start: 0.75rem;
+    border-inline-start: 2px solid var(--line-divider);
+  }
+
+  #waline .wl-card .wl-quote .wl-card-item {
+    padding: 0.625rem 0;
   }
 
   html.dark #waline .wl-panel {
@@ -63,8 +261,41 @@ const config = {
     border-right: 1px solid rgba(255, 255, 255, 0.1);
   }
 
-  #waline .wl-count {
-    color: var(--primary);
+  /* 三栏文章页等窄容器及手机端自适应收紧间距与未登录输入栏 */
+  @container (max-width: 540px) {
+    #waline .wl-comment {
+      gap: 0.75rem;
+    }
+
+    #waline .wl-header {
+      display: block;
+    }
+
+    #waline .wl-header-item,
+    #waline .wl-header-2 .wl-header-item,
+    #waline .wl-header-3 .wl-header-item {
+      width: 100%;
+    }
+
+    html #waline .wl-header-item:not(:last-child) {
+      border-right: 0;
+      border-bottom: 1px dashed var(--waline-border-color);
+    }
+  }
+
+  @media (max-width: 640px) {
+    #waline .wl-comment {
+      gap: 0.75rem;
+    }
+
+    #waline .wl-login-info {
+      width: 3rem;
+      max-width: 3.375rem;
+    }
+
+    #waline .wl-cards .wl-user {
+      margin-inline-end: 0.625rem;
+    }
   }
 
   #waline .wl-btn.primary {

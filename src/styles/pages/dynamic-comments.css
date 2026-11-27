@@ -20,7 +20,7 @@ html.dark:has(.page-comment-embed) {
 .page-comment-embed {
 	/* Contain child margins without tying content height to the iframe viewport. */
 	display: flow-root;
-	padding-bottom: 0.25rem;
+	padding-block: 0.125rem 0.25rem;
 }
 
 .page-comment-embed #post-comments {
@@ -40,11 +40,27 @@ html.dark:has(.page-comment-embed) {
 	padding-inline: 0;
 }
 
-/* 对齐 Waline 内部面板与上方图集、互动栏左右边缘 */
+/* 动态卡片内嵌评论：进一步微调输入框高度与紧凑外边距 */
 .page-comment-embed #waline .wl-comment {
-	margin-inline: 0;
+	gap: 0.875rem;
+	margin: 0 0 0.75rem;
 }
 
-.page-comment-embed #waline .wl-panel {
-	margin-inline: 0;
+.page-comment-embed #waline .wl-editor {
+	min-height: 5.75rem;
+}
+
+.page-comment-embed #waline .wl-meta-head {
+	margin-top: 0.75rem;
+	padding-top: 0.75rem;
+}
+
+.page-comment-embed #waline .wl-empty {
+	padding: 0.875rem 0;
+}
+
+@media (max-width: 640px) {
+	.page-comment-embed #waline .wl-comment {
+		gap: 0.75rem;
+	}
 }

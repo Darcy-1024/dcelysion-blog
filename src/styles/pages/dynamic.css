@@ -916,15 +916,22 @@ dynamic-feed {
 .dynamic-actions .page-comment-panel {
 	order: 7;
 	flex: 1 0 100%;
+	box-sizing: border-box;
 	width: 100%;
 	margin-top: 0.5rem;
-	padding-top: 0.875rem;
-	border-top: 1px solid var(--line-divider);
+	padding: 1rem 1.125rem 0.625rem;
+	border: 1px solid color-mix(in srgb, var(--line-divider) 110%, transparent);
+	border-radius: var(--radius-large);
+	background: color-mix(in srgb, var(--btn-regular-bg) 42%, transparent);
 }
 
 .page-entry[data-detail="true"] .dynamic-actions .page-comment-panel {
 	margin-top: 0.75rem;
-	padding-top: 1rem;
+	padding: 1.25rem 0 0;
+	border: 0;
+	border-top: 1px solid var(--line-divider);
+	border-radius: 0;
+	background: transparent;
 }
 
 .page-comment-panel[hidden] {
@@ -1162,6 +1169,11 @@ dynamic-feed {
 	color: var(--primary);
 }
 
+:root.dark .page-entry:not([data-detail="true"]) .dynamic-actions .page-comment-panel {
+	border-color: color-mix(in srgb, var(--line-color) 75%, transparent);
+	background: color-mix(in srgb, var(--btn-regular-bg) 36%, transparent);
+}
+
 /* 透明模式适配 */
 body.wallpaper-transparent .page-search input,
 body.wallpaper-transparent .page-year-select select {
@@ -1182,6 +1194,10 @@ body.wallpaper-transparent .dynamic-actions content-like [data-like-toggle],
 body.wallpaper-transparent .dynamic-actions .page-comment-toggle,
 body.wallpaper-transparent .dynamic-actions .dynamic-share-button {
 	background: color-mix(in srgb, var(--btn-regular-bg) 48%, transparent);
+}
+
+body.wallpaper-transparent .page-entry:not([data-detail="true"]) .dynamic-actions .page-comment-panel {
+	background: color-mix(in srgb, var(--btn-regular-bg) 30%, transparent);
 }
 
 @media (max-width: 768px) {
@@ -1221,6 +1237,14 @@ body.wallpaper-transparent .dynamic-actions .dynamic-share-button {
 	.page-entry--detail,
 	.page-entry[data-detail="true"] {
 		padding: 1.125rem;
+	}
+
+	.page-entry:not([data-detail="true"]) .dynamic-actions .page-comment-panel {
+		padding: 0.875rem 0.875rem 0.5rem;
+	}
+
+	.page-entry[data-detail="true"] .dynamic-actions .page-comment-panel {
+		padding-top: 1rem;
 	}
 
 	.page-detail-nav {
